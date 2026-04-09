@@ -1,0 +1,123 @@
+"""MiniMax Provider — Anthropic API 兼容"""
+
+from __future__ import annotations
+
+import os
+from typing import TYPE_CHECKING, Any, AsyncIterator
+
+import anthropic
+from anthropic import AsyncAnthropic
+
+from ..agent.message import Message
+from ..agent.types import LLMContext
+from .base import (
+    LLMProvider,
+    LLMStreamEvent,
+    ReasoningDeltaEvent,
+    ReasoningFinishEvent,
+    ReasoningStartEvent,
+    TextDeltaEvent,
+    TextStartEvent,
+    TextFinishEvent,
+    ToolUseEvent,
+)
+
+if TYPE_CHECKING:
+    pass
+
+
+class MiniMaxProvider(LLMProvider):
+    """MiniMax 流式 Provider（Anthropic API 兼容）"""
+
+    DEFAULT_BASE_URL = "https://api.minimaxi.com/anthropic"
+
+    def __init__(
+        self,
+        model: str = "MiniMax-M2.7",
+        api_key: str | None = None,
+        base_url: str | None = None,
+        max_tokens: int = 8192,
+        temperature: float = 0.0,
+        timeout: float = 60.0,
+    ) -> None:
+        super().__init__(model, api_key, base_url, max_tokens, temperature, timeout)
+        key = api_key or os.environ.get("MINIMAX_API_KEY", "")
+        url = base_url or self.DEFAULT_BASE_URL
+        self._client = AsyncAnthropic(api_key=key, base_url=url, timeout=timeout)
+
+    def _message_to_anthropic(self, messages: list[Message]) -> list[dict[str, Any]]:
+        """将内部 Message 列表转换为 Anthropic 兼容格式"""
+        result = []
+        for msg in messages:
+            content: list[dict[str, Any]] = []
+            tool_result_msgs: list[dict[str, Any]] = []
+            for part in msg.parts:
+                if part.type == "text":
+                    content.append({"type": "text", "text": part.content})
+                elif part.type == "reasoning":
+                    content.append({"type": "thinking", "thinking": part.content})
+                elif part.type == "tool":
+                    tool_part = part
+                    content.append({
+                        "type": "tool_use",
+                        "id": tool_part.tool_call_id,
+                        "name": tool_part.tool_name,
+                        "input": tool_part.tool_input,
+                    })
+                    if tool_part.tool_output:
+                        # tool_result 单独发 user message（跟在 assistant 消息之后）
+                        tool_result_msgs.append({
+                            "type": "tool_result",
+                            "tool_use_id": tool_part.tool_call_id,
+                            "content": tool_part.tool_output,
+                        })
+            if content:
+                result.append({"role": msg.role, "content": content})
+            for tr in tool_result_msgs:
+                result.append({"role": "user", "content": [tr]})
+        return result
+
+    async def stream(self, ctx: LLMContext) -> AsyncIterator[LLMStreamEvent]:
+        system = ctx.system_prompt or ""
+        anthropic_messages = self._message_to_anthropic(ctx.messages)
+
+        async with self._client.messages.stream(
+            model=ctx.model,
+            max_tokens=ctx.max_tokens,
+            temperature=ctx.temperature,
+            system=system or None,
+            messages=anthropic_messages,  # type: ignore
+            tools=ctx.tools or None,
+        ) as stream:
+            async for event in stream:
+                # SDK v0.88.0: AsyncMessageStream is directly async-iterable via __anext__
+                if event.type == "content_block_start":
+                    block = event.content_block
+                    if block.type == "text":
+                        yield TextStartEvent()
+                    elif block.type == "thinking":
+                        # MiniMax thinking blocks have an id
+                        block_id = getattr(block, "id", "") or ""
+                        yield ReasoningStartEvent(id=block_id)
+
+                elif event.type == "text":
+                    yield TextDeltaEvent(delta=event.text)
+
+                elif event.type == "thinking":
+                    yield ReasoningDeltaEvent(delta=event.thinking)
+
+                elif event.type == "input_json":
+                    pass  # accumulated via message_snapshot
+
+                elif event.type == "content_block_stop":
+                    block = event.content_block
+                    if block.type == "text":
+                        yield TextFinishEvent(full_text=block.text)
+                    elif block.type == "tool_use":
+                        yield ToolUseEvent(
+                            id=block.id,
+                            name=block.name,
+                            input=dict(block.input),
+                        )
+                    elif block.type == "thinking":
+                        yield ReasoningFinishEvent()

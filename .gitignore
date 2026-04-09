@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+.env
+.venv
+venv/
+ENV/
+
+# Data (runtime, not committed)
+data/memory/
+data/tasks/
+data/cache/
+data/logs/
+data/heartbeat/
+data/cron/
+data/workspace/
+
+# Config overrides
+auton.yaml
+.local.yaml
+
+# Logs
+*.log
+
+# uv
+uv.lock
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Auton runtime files
+.auton/
+.HEARTBEAT_OK.log
