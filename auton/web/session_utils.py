@@ -13,6 +13,25 @@ from ..agent.session_store import SessionStore
 from ..memory.storage_utils import project_storage_base
 
 
+def _stable_compact_prefix_end(messages: list[Message]) -> int:
+    """返回 compact 时应稳定保留的前缀长度。
+
+    规则需与 `Session.compact()` 保持一致：首条系统消息之后，连续的
+    `[历史压缩]` system 摘要都属于稳定前缀，不能再被误裁掉。
+    """
+    if not messages:
+        return 0
+    stable_prefix_end = 1
+    while stable_prefix_end < len(messages):
+        msg = messages[stable_prefix_end]
+        text = msg.get_text().strip()
+        if msg.role == "system" and text.startswith("[历史压缩]"):
+            stable_prefix_end += 1
+            continue
+        break
+    return stable_prefix_end
+
+
 def _read_index_file(base_dir: Path) -> list[dict[str, Any]]:
     path = base_dir / SessionStore.INDEX_FILE
     if not path.exists():
@@ -226,9 +245,36 @@ def build_session_from_events(
     )
     session.messages.clear()
     timestamps: list[float] = []
+    pending_compact_summaries: list[str] = []
     for event in events:
+        if event.get("type") == "compact":
+            session.meta.compaction_count += 1
+            before_count = int(event.get("before_count") or 0)
+            summary = str(event.get("summary") or "").strip()
+            if before_count > 0 and summary and session.messages:
+                stable_prefix_end = _stable_compact_prefix_end(session.messages)
+                tail_start = min(len(session.messages), stable_prefix_end + before_count)
+                summary_msg = Message(role="system")
+                summary_msg.created_at = float(event.get("timestamp") or summary_msg.created_at)
+                summary_msg.add_text(summary)
+                session.messages = [
+                    *session.messages[:stable_prefix_end],
+                    summary_msg,
+                    *session.messages[tail_start:],
+                ]
+                pending_compact_summaries.append(summary)
+                timestamps.append(summary_msg.created_at)
+            continue
+
         msg = Message.from_record(event)
         if msg:
+            if (
+                msg.role == "system"
+                and pending_compact_summaries
+                and msg.get_text().strip() == pending_compact_summaries[0]
+            ):
+                pending_compact_summaries.pop(0)
+                continue
             session.messages.append(msg)
             timestamps.append(float(msg.created_at))
 
@@ -252,6 +298,12 @@ def create_session_store(
     )
     if base_override is not None:
         store._base = base_override  # type: ignore[attr-defined]
+    elif project_path is None:
+        # SessionStore.__init__ 在 project_root=None 时会从 CWD 自动向上检测 .git，
+        # 若服务器恰好在某个 git 仓库内运行，就会错误地切换到 project 模式，
+        # 导致日期模式的 session 被写入 projects/ 而不是 dates/。
+        # 显式调用 set_date_mode() 覆盖这一自动检测结果。
+        store.set_date_mode()
     return store
 
 

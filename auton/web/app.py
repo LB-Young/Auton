@@ -14,8 +14,11 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from ..agent.agent import SessionProcessor
+from ..agent.message import Message
 from ..agent.session import Session
 from ..agent.session_store import SessionStore
+from ..cli.greeting_context import collect_greeting_context
+from ..cli.greeting_generator import generate_greeting
 from ..commands.base import CommandResult
 from ..core.config import get_config
 from ..core.events import EventBus
@@ -36,6 +39,8 @@ from .session_utils import (
 
 log = get_logger("web")
 STATIC_DIR = Path(__file__).parent / "static"
+README_CANDIDATES = ("README.md", "Readme.md", "readme.md")
+README_MAX_CHARS = 2000
 
 
 class ChatRequest(BaseModel):
@@ -45,12 +50,14 @@ class ChatRequest(BaseModel):
     session_date: str | None = None
 
 
-def _ensure_project_path(path_str: str | None) -> Path | None:
+def _ensure_project_path(path_str: str | None, *, strict: bool = True) -> Path | None:
     if not path_str:
         return None
     path = Path(path_str).expanduser()
     if not path.exists() or not path.is_dir():
-        raise HTTPException(status_code=400, detail=f"项目路径不存在：{path}")
+        if strict:
+            raise HTTPException(status_code=400, detail=f"项目路径不存在：{path}")
+        return None
     return path
 
 
@@ -86,6 +93,40 @@ async def _stream_processor(processor: SessionProcessor) -> AsyncIterator[Any]:
         yield event
 
 
+def _build_project_context_message(project_path: Path) -> str:
+    parts = [
+        f"[Project workspace]\n{project_path}",
+        "在此目录内执行所有文件读写与命令；bash/glob/read 等工具请使用绝对路径。",
+    ]
+    for candidate in README_CANDIDATES:
+        readme = project_path / candidate
+        if readme.exists() and readme.is_file():
+            try:
+                content = readme.read_text(encoding="utf-8")
+            except UnicodeDecodeError:
+                continue
+            snippet = content[:README_MAX_CHARS]
+            parts.append(f"\n## README 预览（{candidate}）\n{snippet}")
+            break
+    return "\n".join(parts)
+
+
+def _inject_project_context_message(
+    session: Session,
+    session_store: SessionStore,
+    project_path: Path,
+    *,
+    is_new_session: bool,
+) -> None:
+    if not is_new_session:
+        return
+    text = _build_project_context_message(project_path)
+    system_msg = Message(role="system")
+    system_msg.add_text(text)
+    session.messages.insert(0, system_msg)
+    session_store.append_system_message(session.meta.session_id, text)
+
+
 def create_app() -> FastAPI:
     setup_logging()
     app = FastAPI(title="Auton Web UI")
@@ -104,11 +145,29 @@ def create_app() -> FastAPI:
     async def health() -> dict[str, str]:
         return {"status": "ok"}
 
+    @app.get("/api/greeting")
+    async def greeting(project_path: str | None = Query(None)) -> dict[str, str]:
+        """启动问候语：复用 CLI 的 collect_greeting_context + generate_greeting 逻辑。"""
+        config = get_config()
+        storage_dir = Path(config.memory.storage_dir).expanduser()
+        path = _ensure_project_path(project_path, strict=False)
+
+        ctx = collect_greeting_context(
+            storage_dir=storage_dir,
+            cwd=path if path else storage_dir,
+            has_project_history=path is not None,
+        )
+        ctx.should_ask_project_mode = False
+
+        llm = _create_llm()
+        text = await generate_greeting(llm=llm, ctx=ctx, session_id=str(uuid.uuid4()))
+        return {"greeting": text}
+
     @app.get("/api/sidebar")
     async def sidebar(project_path: str | None = Query(None)) -> dict[str, Any]:
         config = get_config()
         storage_dir = Path(config.memory.storage_dir).expanduser()
-        path = _ensure_project_path(project_path)
+        path = _ensure_project_path(project_path, strict=False)
         if path:
             sessions = list_project_sessions(storage_dir, path)
             mode = "project"
@@ -135,9 +194,14 @@ def create_app() -> FastAPI:
         if not session_path:
             raise HTTPException(status_code=404, detail="Session not found")
         events = load_session_events(session_path)
+        session = build_session_from_events(
+            session_id,
+            events,
+            project_path=path,
+        )
         return {
             "session_id": session_id,
-            "messages": serialize_messages(events),
+            "messages": serialize_messages([msg.to_dict() for msg in session.messages]),
             "session_date": session_path.parent.parent.name,
         }
 
@@ -175,6 +239,15 @@ def create_app() -> FastAPI:
             project_path,
             base_override=processor_store_base,
         )
+
+        if project_path and not events:
+            _inject_project_context_message(
+                session,
+                session_store,
+                project_path,
+                is_new_session=not events,
+            )
+
         llm = _create_llm()
         tools = get_default_tools(
             permission_mode=config.security.permission_mode,

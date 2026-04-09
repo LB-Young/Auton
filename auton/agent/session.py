@@ -13,12 +13,13 @@ import time
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Sequence
 
 from loguru import logger
 
 from .message import Message
 from .types import SessionMeta, SessionStatus
+from .token_utils import estimate_tokens_from_messages
 
 if TYPE_CHECKING:
     pass
@@ -82,40 +83,89 @@ class Session:
 
     # ─── Compact ────────────────────────────────────────────────────────────
 
-    def compact(self) -> int:
-        """上下文压缩：保留首尾消息，中间消息压缩为摘要
+    def compact(
+        self,
+        *,
+        protect_turns: int = 2,
+        recent_token_budget: int = 40_000,
+        min_tail_messages: int = 2,
+    ) -> "CompactResult":
+        """上下文压缩：保留首条 + 最近 k 轮，其余转成摘要"""
+        total = len(self.messages)
+        if total <= 2:
+            return CompactResult()
 
-        Returns:
-            被压缩的消息数量
-        """
-        if len(self.messages) <= 2:
-            return 0
+        # 已存在的历史压缩摘要属于稳定前缀，不应被再次压成“摘要的摘要”。
+        stable_prefix_end = 1
+        while stable_prefix_end < total:
+            msg = self.messages[stable_prefix_end]
+            text = msg.get_text().strip()
+            if msg.role == "system" and text.startswith("[历史压缩]"):
+                stable_prefix_end += 1
+                continue
+            break
 
-        # 保留首尾消息，中间压缩为摘要
-        kept = [self.messages[0], self.messages[-1]]
-        compacted_count = len(self.messages) - 2
+        compressible_total = total - stable_prefix_end
+        if compressible_total <= 1:
+            return CompactResult()
 
-        # 构建压缩摘要消息
-        summary_parts = []
-        for msg in self.messages[1:-1]:
+        turn_starts = self._real_user_turn_starts(self.messages, start=stable_prefix_end)
+        preserved_turns = min(protect_turns, len(turn_starts)) if turn_starts else 0
+
+        if preserved_turns > 0:
+            tail_start = turn_starts[-preserved_turns]
+        else:
+            tail_start = max(stable_prefix_end + 1, total - min_tail_messages)
+
+        recent_tokens = self._estimate_tokens(self.messages[tail_start:])
+        while tail_start > stable_prefix_end and recent_tokens > recent_token_budget:
+            if preserved_turns > 1:
+                preserved_turns -= 1
+                tail_start = turn_starts[-preserved_turns]
+            elif self._contains_internal_user_messages(self.messages[tail_start:]):
+                break
+            else:
+                tail_start = min(total - 1, tail_start + 1)
+            recent_tokens = self._estimate_tokens(self.messages[tail_start:])
+
+        middle = self.messages[stable_prefix_end:tail_start]
+        if not middle:
+            return CompactResult()
+
+        summary_lines: list[str] = []
+        for msg in middle:
             text = msg.get_text()
             if text:
-                summary_parts.append(f"[{msg.role}]: {text[:100]}...")
+                if msg.role == "system" and text.strip().startswith("[历史压缩]"):
+                    continue
+                summary_lines.append(f"[{msg.role}] {text[:120]}")
+        summary_text = (
+            f"[历史压缩] 合并 {len(middle)} 条消息，保留关键信息：\n- "
+            + "\n- ".join(summary_lines[:6])
+        )
 
         summary_msg = Message(role="system")
-        summary_msg.add_text(
-            f"[Compacted {compacted_count} messages: "
-            + "; ".join(summary_parts[:5])
-            + "]"
-        )
-        kept.insert(1, summary_msg)
+        summary_msg.add_text(summary_text)
 
-        self.messages = kept
+        kept_head = self.messages[:stable_prefix_end]
+        kept_tail = self.messages[tail_start:]
+        self.messages = kept_head + [summary_msg] + kept_tail
+
         self.meta.compaction_count += 1
         self._touch()
-        self._logger.info("compact session={id} compacted={n}",
-                          id=self.meta.session_id, n=compacted_count)
-        return compacted_count
+        self._logger.info(
+            "compact session={id} compacted={n} protect={p}",
+            id=self.meta.session_id,
+            n=len(middle),
+            p=protect_turns,
+        )
+
+        return CompactResult(
+            compacted_count=len(middle),
+            summary_text=summary_text,
+            compressed_message_ids=[m.message_id for m in middle],
+            summary_message_id=summary_msg.message_id,
+        )
 
     def should_compact(self, threshold: int = 150_000) -> bool:
         """判断是否需要压缩（token 接近上限）"""
@@ -139,3 +189,44 @@ class Session:
             "compaction_count": self.meta.compaction_count,
             "message_count": len(self.messages),
         }
+
+    @staticmethod
+    def _estimate_tokens(messages: Sequence[Message]) -> int:
+        return estimate_tokens_from_messages(messages)
+
+    @staticmethod
+    def _real_user_turn_starts(messages: Sequence[Message], *, start: int = 0) -> list[int]:
+        """返回真实用户轮次的起点索引。
+
+        工具结果与命令结果虽然以 user message 形式写入 session，但它们属于
+        内部续上下文消息，不能被当作新的“用户轮次”边界，否则 compact 会把
+        最近一轮工具交互拆断。
+        """
+        starts: list[int] = []
+        for idx in range(start, len(messages)):
+            msg = messages[idx]
+            if msg.role != "user":
+                continue
+            text = msg.get_text().strip()
+            if text.startswith("[tool:") or text.startswith("[command:"):
+                continue
+            starts.append(idx)
+        return starts
+
+    @staticmethod
+    def _contains_internal_user_messages(messages: Sequence[Message]) -> bool:
+        for msg in messages:
+            if msg.role != "user":
+                continue
+            text = msg.get_text().strip()
+            if text.startswith("[tool:") or text.startswith("[command:"):
+                return True
+        return False
+
+
+@dataclass
+class CompactResult:
+    compacted_count: int = 0
+    summary_text: str = ""
+    compressed_message_ids: list[str] = field(default_factory=list)
+    summary_message_id: str | None = None

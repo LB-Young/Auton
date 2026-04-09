@@ -23,9 +23,10 @@ from ..llm.base import LLMProvider
 from .context import ContextBuilder
 from .message import Message
 from .policies import DecisionPolicy, PolicyInput
-from .session import Session
+from .session import CompactResult, Session
 from .session_store import SessionStore
-from .types import ProcessResult
+from .token_utils import estimate_context_tokens
+from .types import LLMContext, ProcessResult
 
 if TYPE_CHECKING:
     from ..tools.base import Tool, ToolResult
@@ -61,11 +62,19 @@ class SessionProcessor:
         self._logger = logger.bind(name="SessionProcessor")
         self._last_stored_msg_index = -1  # 跟踪已存储的消息位置
         self._command_registry = command_registry  # 懒加载
+        self.last_command_result = None
 
     # ─── 主循环 ────────────────────────────────────────────────────────────
 
     async def run(self) -> ProcessResult:
         """运行主循环直到结束，返回最终结果"""
+        handled, cmd_result = await self._try_handle_command()
+        if handled:
+            return ProcessResult(
+                status="stop",
+                reason=cmd_result.content if cmd_result else "command handled",
+            )
+
         self.session.update_status("running")
         self.events.emit_sync(
             SessionStatusChangeEvent(
@@ -92,6 +101,7 @@ class SessionProcessor:
         while True:
             # 1. 构建上下文
             ctx = self._ctx_builder.build(self.session)
+            self._update_token_count(ctx)
 
             # 系统提示词只存一次
             if ctx.system_prompt and not self._ctx_builder._system_stored:
@@ -172,6 +182,52 @@ class SessionProcessor:
 
         self._logger.info("handling command /{name}", name=command.name)
 
+        if command.name == "compact" and hasattr(command, "execute_compact"):
+            try:
+                # /compact 是控制命令，不应进入后续上下文；先移除用户刚输入的命令消息，
+                # 再对当前真实对话历史执行压缩。
+                for i in range(len(self.session.messages) - 1, -1, -1):
+                    msg = self.session.messages[i]
+                    if msg.role == "user" and msg.get_text() == last_user_text:
+                        self.session.messages.pop(i)
+                        break
+
+                self._persist_pending_messages()
+                self.session.update_status("compact")
+                before_token_count = self.session._token_count
+                result_obj = await command.execute_compact(
+                    cmd_ctx,
+                    protect_turns=self.policy.recent_protect_turns,
+                    recent_token_budget=self.policy.recent_token_budget,
+                )
+                compacted = await self._finalize_compact(
+                    result_obj,
+                    before_token_count=before_token_count,
+                )
+                if compacted > 0:
+                    result = CommandResult(
+                        content=(
+                            f"[compact] 已压缩 {compacted} 条历史消息。\n"
+                            "当前 session 已保留摘要与最近上下文，可继续对话。"
+                        ),
+                        handled=True,
+                        metadata={"compacted_count": compacted},
+                    )
+                else:
+                    result = CommandResult(
+                        content="[compact] 当前上下文较短，暂无可压缩历史。",
+                        handled=True,
+                        metadata={"compacted_count": 0},
+                    )
+            except Exception as exc:
+                result = CommandResult(
+                    content=f"[error] Command /{command.name} failed: {exc}",
+                    success=False,
+                    error=str(exc),
+                )
+            self.last_command_result = result
+            return True, result
+
         try:
             result = await command.handle(args or {})
         except Exception as exc:
@@ -185,6 +241,7 @@ class SessionProcessor:
         result_msg = Message(role="user")
         result_msg.add_text(f"[command: /{command.name}]\n{result.content}")
         self.session.messages.append(result_msg)
+        self.last_command_result = result
 
         return True, result
 
@@ -202,6 +259,7 @@ class SessionProcessor:
 
         while True:
             ctx = self._ctx_builder.build(self.session)
+            self._update_token_count(ctx)
 
             # 系统提示词只存一次
             if ctx.system_prompt and not self._ctx_builder._system_stored:
@@ -261,6 +319,27 @@ class SessionProcessor:
             # 只有当本轮执行了工具时才继续循环；否则退出
             if not tools_executed:
                 return
+
+    def _persist_pending_messages(self) -> None:
+        """将当前 session 中尚未落盘的消息按原角色持久化。"""
+        for i in range(self._last_stored_msg_index + 1, len(self.session.messages)):
+            msg = self.session.messages[i]
+            if msg.role == "user":
+                self.session_store.append_user_message(
+                    self.session.meta.session_id,
+                    msg.get_text(),
+                )
+            elif msg.role == "system":
+                self.session_store.append_system_message(
+                    self.session.meta.session_id,
+                    msg.get_text(),
+                )
+            elif msg.role == "assistant":
+                self.session_store.append_assistant_message(
+                    self.session.meta.session_id,
+                    msg,
+                )
+        self._last_stored_msg_index = len(self.session.messages) - 1
 
     # ─── 事件处理 ─────────────────────────────────────────────────────────
 
@@ -345,18 +424,24 @@ class SessionProcessor:
 
             try:
                 result: "ToolResult" = await tool.execute(**part.tool_input)
+                # 在结果进入任何内存结构之前，先把 base64 数据 URI 落盘替换为路径引用。
+                # 这是唯一的拦截点：之后 part.tool_output、ToolResultEvent、
+                # user message 乃至 LLM 上下文都不会再包含原始 base64。
+                clean_output = self.session_store.sanitize_tool_output(
+                    result.content, part.tool_name
+                )
                 part.status = "completed"
-                part.tool_output = result.content
+                part.tool_output = clean_output
                 self.events.emit_sync(
                     ToolResultEvent(
                         session_id=self.session.meta.session_id,
                         tool_name=part.tool_name,
-                        output=result.content,
+                        output=clean_output,
                         tool_call_id=part.tool_call_id,
                     )
                 )
                 # 添加 tool result 作为 user message 续上下文（由 run/run_stream 的存储循环统一写入）
-                result_content = f"[tool: {part.tool_name}]\n{result.content}"
+                result_content = f"[tool: {part.tool_name}]\n{clean_output}"
                 result_msg = Message(role="user")
                 result_msg.add_text(result_content)
                 self.session.messages.append(result_msg)
@@ -389,24 +474,55 @@ class SessionProcessor:
         )
         return self.policy.decide(inp)
 
+    def _update_token_count(self, ctx: LLMContext) -> None:
+        token_count = estimate_context_tokens(ctx.messages, ctx.system_prompt)
+        self.session.update_token_count(token_count)
+
     # ─── Compact / Stop ─────────────────────────────────────────────────
 
-    async def _do_compact(self) -> None:
+    async def _do_compact(self) -> int:
         self.session.update_status("compact")
-        compacted = self.session.compact()
+        before_token_count = self.session._token_count
+        result = self.session.compact(
+            protect_turns=self.policy.recent_protect_turns,
+            recent_token_budget=self.policy.recent_token_budget,
+        )
+        return await self._finalize_compact(
+            result,
+            before_token_count=before_token_count,
+        )
+
+    async def _finalize_compact(self, result: CompactResult, *, before_token_count: int) -> int:
+        if result.compacted_count <= 0:
+            self.session.update_status("running")
+            return 0
+
         self.session_store.append_compact_event(
             self.session.meta.session_id,
-            before_count=compacted,
-            summary="[compacted]",  # 实际 summary 由 session.compact() 生成
+            before_count=result.compacted_count,
+            summary=result.summary_text,
+            meta={
+                "compressed_message_ids": result.compressed_message_ids,
+                "summary_message_id": result.summary_message_id,
+            },
         )
+        self.session_store.append_system_message(
+            self.session.meta.session_id,
+            result.summary_text,
+        )
+        self._last_stored_msg_index = len(self.session.messages) - 1
+        after_token_count = self.session._estimate_tokens(self.session.messages)
+        self.session.update_token_count(after_token_count)
         self.events.emit_sync(
             SessionCompactEvent(
                 session_id=self.session.meta.session_id,
-                compacted_count=compacted,
+                before_token_count=before_token_count,
+                after_token_count=after_token_count,
             )
         )
         self.session.update_status("running")
         self._logger.info("compact completed, messages={n}", n=len(self.session.messages))
+        return result.compacted_count
 
     async def _do_stop(self, reason: str) -> None:
         self.session.update_status("idle", reason=reason)

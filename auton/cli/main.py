@@ -14,6 +14,8 @@ from rich.panel import Panel
 from rich.syntax import Syntax
 from rich.text import Text
 
+from typing import Literal
+
 from ..agent.agent import SessionProcessor
 from ..agent.session import Session
 from ..agent.session_store import SessionStore
@@ -105,16 +107,25 @@ async def _start_session(
     permission: str | None,
     no_stream: bool,
     yes_all: bool,
+    session_mode: Literal["auto", "project", "chat"],
 ) -> None:
     setup_logging()
     log = get_logger("cli")
     config = get_config()
 
+    cwd = Path.cwd()
     session_store = SessionStore(
         storage_dir=config.memory.storage_dir,
         project_root=project,
     )
-    session = Session.create(project_path=str(project) if project else None)
+    if session_mode == "project":
+        target_project = project or cwd
+        session_store.set_project_root(target_project)
+    elif session_mode == "chat":
+        session_store.set_date_mode()
+
+    active_project = session_store.project_root
+    session = Session.create(project_path=str(active_project) if active_project else None)
 
     log.info("session_id={id}", id=session.meta.session_id)
 
@@ -184,7 +195,7 @@ async def _start_session(
         await _run_stream_once(processor)
     else:
         # 无初始消息：交互式 REPL 循环
-        await _run_repl(processor)
+        await _run_repl(processor, session_mode=session_mode)
 
 
 @app.command()
@@ -196,10 +207,25 @@ def main(
     permission: str | None = typer.Option(None, "--permission", help="Permission mode: default/auto/bypass/yolo"),
     no_stream: bool = typer.Option(False, "--no-stream", help="Disable streaming"),
     yes_all: bool = typer.Option(False, "--yes", "-y", help="Auto-confirm all permission prompts"),
+    session_mode: Literal["auto", "project", "chat"] = typer.Option(
+        "auto",
+        "--session-mode",
+        help="Choose between auto/project/chat modes when starting the TUI",
+    ),
 ) -> None:
     """启动 Auton 会话"""
     import anyio
-    anyio.run(_start_session, message, project, model, provider, permission, no_stream, yes_all)
+    anyio.run(
+        _start_session,
+        message,
+        project,
+        model,
+        provider,
+        permission,
+        no_stream,
+        yes_all,
+        session_mode,
+    )
 
 
 @app.command(help="启动 Auton Web 界面")
@@ -217,6 +243,9 @@ def web(
 async def _run_sync(processor: SessionProcessor, session: Session) -> None:
     try:
         result = await processor.run()
+        if getattr(processor, "last_command_result", None):
+            console.print(Markdown(processor.last_command_result.content))
+            return
         console.print(f"\n[dim]Session ended: {result.status} — {result.reason}[/dim]")
     finally:
         await stop_mcp_servers()
@@ -262,7 +291,11 @@ async def _run_stream_once(processor: SessionProcessor) -> None:
         await stop_mcp_servers()
 
 
-async def _run_repl(processor: SessionProcessor) -> None:
+async def _run_repl(
+    processor: SessionProcessor,
+    *,
+    session_mode: Literal["auto", "project", "chat"] = "auto",
+) -> None:
     """交互式 REPL 循环：问候 → 添加消息 → 流式响应 → 循环"""
     from auton.commands import CommandResult
 
@@ -273,14 +306,30 @@ async def _run_repl(processor: SessionProcessor) -> None:
     console.print("\n[bold green]你好！我是 Auton，你的 AI 助手。[/bold green]")
     console.print(f"[dim]当前目录：{cwd}[/dim]")
 
-    # 只按已有项目历史判定是否直接进入项目模式
-    has_project_history = store.has_existing_project_history(cwd)
-    if has_project_history:
-        if store.mode != "project" or store.project_root != cwd:
+    forced_project = session_mode == "project"
+    forced_chat = session_mode == "chat"
+
+    if forced_project:
+        if store.project_root is None:
             store.set_project_root(cwd)
-        console.print(f"[green]✓ 检测到历史项目记录：{cwd.name}（项目模式）[/green]\n")
+        has_project_history = True
+        console.print(f"[green]✓ 已按参数进入项目模式：{(store.project_root or cwd).name}[/green]\n")
+        should_prompt_project = False
+    elif forced_chat:
+        store.set_date_mode()
+        has_project_history = False
+        should_prompt_project = False
+        console.print("[green]✓ 已按参数进入闲聊模式（日期存储）[/green]\n")
     else:
-        console.print("[dim]当前目录暂无历史项目记录，默认日期模式[/dim]\n")
+        has_project_history = store.has_existing_project_history(cwd)
+        if has_project_history:
+            if store.mode != "project" or store.project_root != cwd:
+                store.set_project_root(cwd)
+            console.print(f"[green]✓ 检测到历史项目记录：{cwd.name}（项目模式）[/green]\n")
+            should_prompt_project = False
+        else:
+            console.print("[dim]当前目录暂无历史项目记录，默认日期模式[/dim]\n")
+            should_prompt_project = True
 
     # 本地收集上下文，再让模型生成问候
     greeting_ctx = collect_greeting_context(
@@ -288,6 +337,8 @@ async def _run_repl(processor: SessionProcessor) -> None:
         cwd=cwd,
         has_project_history=has_project_history,
     )
+    if forced_chat:
+        greeting_ctx.should_ask_project_mode = False
     greeting_text = await generate_greeting(
         llm=processor.llm,
         ctx=greeting_ctx,
@@ -306,7 +357,7 @@ async def _run_repl(processor: SessionProcessor) -> None:
     ))
 
     # 项目模式询问：独立显示，不依赖 LLM 问候是否包含该问题
-    if not has_project_history:
+    if should_prompt_project:
         console.print(
             "[dim]是否按[bold]项目模式[/bold]开启？(y/N，直接回车或输入任务则跳过)[/dim]"
         )
@@ -420,7 +471,7 @@ def replay(
     setup_logging()
     config = get_config()
     store = SessionStore(config.memory.storage_dir)
-    events = store.read_session_by_id(session_id)
+    events = store.read_session_by_id(session_id, scope="all")
 
     console.print(f"[dim]Replay session {session_id} ({len(events)} events)[/dim]\n")
     for ev in events:

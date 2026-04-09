@@ -214,6 +214,13 @@ body {
   color: #b91c1c;
 }
 
+.message.assistant.greeting {
+  background: linear-gradient(135deg, #f0f9ff 0%, #ffffff 100%);
+  border: 1px solid rgba(37, 99, 235, 0.15);
+  border-left: 3px solid #2563eb;
+  white-space: pre-wrap;
+}
+
 .composer {
   padding: 16px 32px 24px 32px;
   border-top: 1px solid rgba(15, 23, 42, 0.08);

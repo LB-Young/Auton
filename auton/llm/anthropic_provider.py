@@ -41,10 +41,29 @@ class AnthropicProvider(LLMProvider):
         key = api_key or os.environ.get("ANTHROPIC_API_KEY", "")
         self._client = AsyncAnthropic(api_key=key, timeout=timeout)
 
-    def _message_to_anthropic(self, messages: list[Message]) -> list[dict[str, Any]]:
-        """将内部 Message 列表转换为 Anthropic 格式"""
-        result = []
+    def _message_to_anthropic(
+        self,
+        messages: list[Message],
+    ) -> tuple[list[dict[str, Any]], str]:
+        """将内部 Message 列表转换为 Anthropic 格式。
+
+        Anthropic messages 数组只接受 role=user/assistant；
+        role=system 的消息（如 compact 摘要、项目上下文注入等）会被单独
+        收集后返回为 extra_system，调用方应将其追加到顶层 system 参数。
+
+        Returns:
+            (anthropic_messages, extra_system)
+        """
+        result: list[dict[str, Any]] = []
+        extra_system_parts: list[str] = []
+
         for msg in messages:
+            if msg.role == "system":
+                text = msg.get_text()
+                if text:
+                    extra_system_parts.append(text)
+                continue
+
             content: list[dict[str, Any]] = []
             tool_result_msgs: list[dict[str, Any]] = []
             for part in msg.parts:
@@ -71,11 +90,13 @@ class AnthropicProvider(LLMProvider):
                 result.append({"role": msg.role, "content": content})
             for tr in tool_result_msgs:
                 result.append({"role": "user", "content": [tr]})
-        return result
+
+        return result, "\n\n".join(extra_system_parts)
 
     async def stream(self, ctx: LLMContext) -> AsyncIterator[LLMStreamEvent]:
-        system = ctx.system_prompt or ""
-        anthropic_messages = self._message_to_anthropic(ctx.messages)
+        anthropic_messages, extra_system = self._message_to_anthropic(ctx.messages)
+        base_system = ctx.system_prompt or ""
+        system = (base_system + "\n\n" + extra_system).strip() if extra_system else base_system
 
         tools = ctx.tools or []
         async with self._client.messages.stream(

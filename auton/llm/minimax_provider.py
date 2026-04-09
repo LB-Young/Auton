@@ -45,10 +45,28 @@ class MiniMaxProvider(LLMProvider):
         url = base_url or self.DEFAULT_BASE_URL
         self._client = AsyncAnthropic(api_key=key, base_url=url, timeout=timeout)
 
-    def _message_to_anthropic(self, messages: list[Message]) -> list[dict[str, Any]]:
-        """将内部 Message 列表转换为 Anthropic 兼容格式"""
-        result = []
+    def _message_to_anthropic(
+        self,
+        messages: list[Message],
+    ) -> tuple[list[dict[str, Any]], str]:
+        """将内部 Message 列表转换为 Anthropic 兼容格式。
+
+        role=system 的消息（compact 摘要等）不放入 messages 数组，
+        而是收集后以字符串形式返回，由调用方追加到顶层 system 参数。
+
+        Returns:
+            (anthropic_messages, extra_system)
+        """
+        result: list[dict[str, Any]] = []
+        extra_system_parts: list[str] = []
+
         for msg in messages:
+            if msg.role == "system":
+                text = msg.get_text()
+                if text:
+                    extra_system_parts.append(text)
+                continue
+
             content: list[dict[str, Any]] = []
             tool_result_msgs: list[dict[str, Any]] = []
             for part in msg.parts:
@@ -75,11 +93,13 @@ class MiniMaxProvider(LLMProvider):
                 result.append({"role": msg.role, "content": content})
             for tr in tool_result_msgs:
                 result.append({"role": "user", "content": [tr]})
-        return result
+
+        return result, "\n\n".join(extra_system_parts)
 
     async def stream(self, ctx: LLMContext) -> AsyncIterator[LLMStreamEvent]:
-        system = ctx.system_prompt or ""
-        anthropic_messages = self._message_to_anthropic(ctx.messages)
+        anthropic_messages, extra_system = self._message_to_anthropic(ctx.messages)
+        base_system = ctx.system_prompt or ""
+        system = (base_system + "\n\n" + extra_system).strip() if extra_system else base_system
 
         async with self._client.messages.stream(
             model=ctx.model,

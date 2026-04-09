@@ -8,6 +8,9 @@ const state = {
   mode: "date",
 };
 
+// 问候语按 projectPath 缓存，切换项目后自动失效
+let greetingCache = {};
+
 const els = {
   projectPath: document.getElementById("projectPath"),
   applyProject: document.getElementById("applyProject"),
@@ -89,11 +92,51 @@ async function selectSession(session) {
   await loadConversation();
 }
 
+function _greetingCacheKey() {
+  return state.projectPath || "__date__";
+}
+
+async function loadGreeting() {
+  const cacheKey = _greetingCacheKey();
+  const cached = greetingCache[cacheKey];
+  if (cached) {
+    _appendGreetingBubble(cached);
+    return;
+  }
+
+  // 先展示加载占位，再用真实问候替换
+  const bubble = _appendGreetingBubble("…");
+  try {
+    const url = new URL("/api/greeting", window.location.origin);
+    if (state.projectPath) {
+      url.searchParams.set("project_path", state.projectPath);
+    }
+    const res = await fetch(url);
+    const text = res.ok
+      ? ((await res.json()).greeting || "你好！我是 Auton，有什么可以帮你的吗？")
+      : "你好！我是 Auton，有什么可以帮你的吗？";
+    greetingCache[cacheKey] = text;
+    bubble.textContent = text;
+  } catch {
+    bubble.textContent = "你好！我是 Auton，有什么可以帮你的吗？";
+  }
+}
+
+function _appendGreetingBubble(text) {
+  const bubble = document.createElement("div");
+  bubble.className = "message assistant greeting";
+  bubble.textContent = text;
+  els.chatHistory.appendChild(bubble);
+  scrollToBottom();
+  return bubble;
+}
+
 async function loadConversation() {
   if (!state.currentSessionId) {
     els.chatHistory.innerHTML = "";
     els.chatTitle.textContent = "新会话";
     els.chatMeta.textContent = state.mode === "project" ? "项目模式" : "日期模式";
+    await loadGreeting();
     return;
   }
   const url = new URL(`/api/sessions/${state.currentSessionId}`, window.location.origin);
@@ -267,11 +310,13 @@ function bindEvents() {
     state.currentSessionId = null;
     state.currentSessionDate = null;
     state.currentTitle = "";
+    delete greetingCache[_greetingCacheKey()];
     await loadSidebar();
     await loadConversation();
   });
 
   els.clearProject.addEventListener("click", async () => {
+    delete greetingCache[_greetingCacheKey()];
     state.projectPath = "";
     els.projectPath.value = "";
     window.localStorage.removeItem("auton.projectPath");
@@ -281,13 +326,14 @@ function bindEvents() {
     await loadConversation();
   });
 
-  els.newSession.addEventListener("click", () => {
+  els.newSession.addEventListener("click", async () => {
     state.currentSessionId = null;
     state.currentSessionDate = null;
     state.currentTitle = "新会话";
     els.chatHistory.innerHTML = "";
     els.chatTitle.textContent = "新会话";
-    els.chatMeta.textContent = "";
+    els.chatMeta.textContent = state.mode === "project" ? "项目模式" : "日期模式";
+    await loadGreeting();
   });
 
   els.composer.addEventListener("submit", async (event) => {
@@ -301,12 +347,44 @@ function bindEvents() {
     await streamChat(text);
   });
 
+  let isComposing = false;
+  let compositionEndTime = 0;
+  let enterWasIME = false;
+
+  els.messageInput.addEventListener("compositionstart", () => {
+    isComposing = true;
+  });
+  els.messageInput.addEventListener("compositionend", () => {
+    isComposing = false;
+    compositionEndTime = Date.now();
+  });
+
+  // keydown 只做两件事：阻止换行插入、记录本次 Enter 是否属于 IME
   els.messageInput.addEventListener("keydown", (event) => {
-    if (event.key === "Enter" && !event.shiftKey) {
-      event.preventDefault();
-      const form = els.messageInput.form || els.composer;
-      form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
-    }
+    if (event.key !== "Enter" || event.shiftKey) return;
+    event.preventDefault();
+    // 记录判断结果供 keyup 使用，不在这里触发提交
+    // Chrome 序列：keydown(isComposing=true) → compositionend → keyup
+    // Safari 序列：compositionend → keydown(isComposing=false) → keyup
+    // 两种情况都可以通过此处的三重检查覆盖
+    enterWasIME = event.isComposing || isComposing || (Date.now() - compositionEndTime < 300);
+  });
+
+  // keyup 时所有 IME 事件已经结束，此时做提交判断最安全
+  els.messageInput.addEventListener("keyup", (event) => {
+    if (event.key !== "Enter" || event.shiftKey) return;
+
+    // Chrome：compositionend 在 keydown 之后、keyup 之前触发
+    // 所以到 keyup 时 compositionEndTime 已经更新，timestamp 检查能覆盖这种情况
+    const blocked = enterWasIME
+      || event.isComposing
+      || isComposing
+      || (Date.now() - compositionEndTime < 300);
+
+    enterWasIME = false;
+    if (blocked) return;
+
+    els.composer.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
   });
 }
 

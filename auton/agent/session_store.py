@@ -14,7 +14,9 @@ session_store.py 只管 append jsonl，不管检索。
 
 from __future__ import annotations
 
+import base64
 import json
+import re
 import time
 import uuid
 from dataclasses import asdict
@@ -30,6 +32,83 @@ from ..memory.storage_utils import project_storage_base
 
 if TYPE_CHECKING:
     pass
+
+# ─── Base64 媒体落盘工具 ────────────────────────────────────────────────────
+
+_DATA_URI_RE = re.compile(
+    r'data:(image/[a-zA-Z0-9.+-]+|application/[a-zA-Z0-9.+-]+);base64,([A-Za-z0-9+/=]+)'
+)
+
+_MIME_TO_EXT: dict[str, str] = {
+    "image/png": "png",
+    "image/jpeg": "jpg",
+    "image/jpg": "jpg",
+    "image/gif": "gif",
+    "image/webp": "webp",
+    "image/svg+xml": "svg",
+    "application/pdf": "pdf",
+}
+
+_BASE64_MIN_LEN = 256  # 短于此长度的 base64 不落盘，避免误处理小图标
+
+
+def _save_base64_uri(data_uri: str, tmp_dir: Path, prefix: str = "media") -> str | None:
+    """将 base64 数据 URI 落盘，返回文件路径字符串；失败返回 None。"""
+    m = _DATA_URI_RE.match(data_uri)
+    if not m:
+        return None
+    mime, b64data = m.group(1), m.group(2)
+    if len(b64data) < _BASE64_MIN_LEN:
+        return None
+    ext = _MIME_TO_EXT.get(mime, mime.split("/")[-1])
+    tmp_dir.mkdir(parents=True, exist_ok=True)
+    filename = f"{prefix}_{uuid.uuid4().hex[:12]}.{ext}"
+    filepath = tmp_dir / filename
+    try:
+        filepath.write_bytes(base64.b64decode(b64data, validate=True))
+    except Exception:
+        return None
+    return str(filepath)
+
+
+def _replace_base64_in_str(value: str, tmp_dir: Path, tool_name: str = "tool") -> str:
+    """将字符串中所有 base64 数据 URI 替换为落盘路径引用。"""
+    def replacer(m: re.Match) -> str:
+        saved = _save_base64_uri(m.group(0), tmp_dir, prefix=tool_name)
+        if saved:
+            return f"[media saved: {saved}]"
+        return m.group(0)
+
+    return _DATA_URI_RE.sub(replacer, value)
+
+
+def _sanitize_event(event: dict, tmp_dir: Path) -> dict:
+    """递归扫描 event dict，将 base64 数据 URI 落盘并替换为路径引用。
+
+    只处理字符串值，不修改其他类型，也不修改 key。
+    """
+    if not isinstance(event, dict):
+        return event
+
+    result: dict = {}
+    for k, v in event.items():
+        if isinstance(v, str):
+            # 推断工具名（用于文件名前缀）
+            tool_name = event.get("tool_name") or (
+                event.get("name") or k
+            )
+            result[k] = _replace_base64_in_str(v, tmp_dir, tool_name=str(tool_name))
+        elif isinstance(v, dict):
+            result[k] = _sanitize_event(v, tmp_dir)
+        elif isinstance(v, list):
+            result[k] = [
+                _sanitize_event(item, tmp_dir) if isinstance(item, dict)
+                else (_replace_base64_in_str(item, tmp_dir) if isinstance(item, str) else item)
+                for item in v
+            ]
+        else:
+            result[k] = v
+    return result
 
 
 class SessionStore:
@@ -61,6 +140,8 @@ class SessionStore:
         project_root: Path | None = None,
     ) -> None:
         self.storage_dir = Path(storage_dir)
+        # base64 媒体文件统一落盘到 ~/.auton/tmp/
+        self.tmp_dir: Path = Path(storage_dir).parent / "tmp"
         self._logger = logger.bind(name="SessionStore")
 
         # 自动检测模式：优先用显式传入的 project_root
@@ -85,6 +166,14 @@ class SessionStore:
         # 项目模式：统一存到 ~/.auton/memory/projects/<绝对路径字符串>/
         self._base = project_storage_base(self.storage_dir, self.project_root)
         self._logger.info("switched to project mode: base={base}", base=self._base)
+
+    def set_date_mode(self, target_date: date | None = None) -> None:
+        """切换为闲聊（日期）模式，忽略自动项目检测。"""
+        self.project_root = None
+        self._mode = "date"
+        target_date = target_date or date.today()
+        self._base = self.storage_dir / "dates" / target_date.isoformat()
+        self._logger.info("switched to date mode: base={base}", base=self._base)
 
     def has_existing_project_history(self, cwd: Path) -> bool:
         """当前目录是否已有项目历史记录（projects/<绝对路径字符串>/）"""
@@ -150,6 +239,43 @@ class SessionStore:
         """SUMMARY.md 路径"""
         return self._memory_dir() / "SUMMARY.md"
 
+    def session_memory_sources(self) -> list[Path]:
+        """返回当前会话允许访问的 session 目录列表。"""
+
+        def add_if_valid(path: Path) -> None:
+            if not path.exists() or not path.is_dir():
+                return
+            resolved = str(path.resolve(strict=False))
+            if resolved in seen:
+                return
+            seen.add(resolved)
+            sources.append(path)
+
+        sources: list[Path] = []
+        seen: set[str] = set()
+
+        if self._mode == "project":
+            add_if_valid(self._sessions_dir())
+            return sources
+
+        add_if_valid(self._sessions_dir())
+
+        dates_root = self.storage_dir / "dates"
+        if dates_root.exists():
+            for date_dir in sorted(dates_root.iterdir()):
+                if not date_dir.is_dir():
+                    continue
+                add_if_valid(date_dir / self.SESSIONS_DIR)
+
+        projects_root = self.storage_dir / "projects"
+        if projects_root.exists():
+            for proj_dir in sorted(projects_root.iterdir()):
+                if not proj_dir.is_dir():
+                    continue
+                add_if_valid(proj_dir / self.SESSIONS_DIR)
+
+        return sources
+
     @property
     def mode(self) -> Literal["project", "date"]:
         return self._mode
@@ -160,8 +286,21 @@ class SessionStore:
 
     # ─── Append-only 写入 ─────────────────────────────────────────────────
 
+    def sanitize_tool_output(self, content: str, tool_name: str = "tool") -> str:
+        """将工具输出中的 base64 数据 URI 落盘，返回已替换为路径引用的字符串。
+
+        应在工具结果写入 ToolPart.tool_output **之前**调用，确保 base64
+        不进入任何内存中的会话上下文，也不被带入 LLM 的 prompt。
+        """
+        return _replace_base64_in_str(content, self.tmp_dir, tool_name=tool_name)
+
     def append_event(self, session_id: str, event: dict) -> None:
-        """追加单个事件到 jsonl"""
+        """追加单个事件到 jsonl
+
+        兜底安全层：写入前再次扫描 event，防止未经 sanitize_tool_output 处理的
+        base64 数据意外进入 jsonl 文件。正常路径下 base64 应已在工具执行时被替换。
+        """
+        event = _sanitize_event(event, self.tmp_dir)
         path = self.session_path(session_id)
         with open(path, "a", encoding="utf-8") as f:
             f.write(json.dumps(event, ensure_ascii=False) + "\n")
@@ -214,17 +353,21 @@ class SessionStore:
         session_id: str,
         before_count: int,
         summary: str,
+        meta: dict | None = None,
     ) -> None:
         """追加 compact 摘要事件（compact 时调用，不删除原始行）"""
+        payload = {
+            "type": "compact",
+            "session_id": session_id,
+            "timestamp": time.time(),
+            "before_count": before_count,
+            "summary": summary,
+        }
+        if meta:
+            payload.update(meta)
         self.append_event(
             session_id,
-            {
-                "type": "compact",
-                "session_id": session_id,
-                "timestamp": time.time(),
-                "before_count": before_count,
-                "summary": summary,
-            },
+            payload,
         )
 
     # ─── 会话结束归档 ────────────────────────────────────────────────────
@@ -261,21 +404,26 @@ class SessionStore:
 
     # ─── 读取（供 memory_manager.py 调用）──────────────────────────────────
 
+    @staticmethod
+    def _read_session_file(path: Path) -> list[dict]:
+        events: list[dict] = []
+        with open(path, encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    events.append(json.loads(line))
+                except json.JSONDecodeError:
+                    logger.warning("invalid json line ignored: path={path}", path=path)
+        return events
+
     def read_session(self, session_id: str) -> list[dict]:
         """读取整个 jsonl（供检索模块调用）"""
         path = self.session_path(session_id)
         if not path.exists():
             return []
-        events = []
-        with open(path, encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
-                if line:
-                    try:
-                        events.append(json.loads(line))
-                    except json.JSONDecodeError:
-                        self._logger.warning("invalid json line ignored: path={path}", path=path)
-        return events
+        return self._read_session_file(path)
 
     def read_session_lines(
         self,
@@ -350,32 +498,27 @@ class SessionStore:
 
         return None
 
-    def read_session_by_id(self, session_id: str) -> list[dict]:
-        """读取指定 session_id 的 jsonl（自动搜索所有目录）"""
-        # 先尝试当前 base 下
-        path = self.session_path(session_id)
-        if path.exists():
-            events = []
-            with open(path, encoding="utf-8") as f:
-                for line in f:
-                    if line.strip():
-                        try:
-                            events.append(json.loads(line))
-                        except json.JSONDecodeError:
-                            self._logger.warning("invalid json line ignored: path={path}", path=path)
-            return events
+    def read_session_by_id(
+        self,
+        session_id: str,
+        *,
+        scope: Literal["session", "all"] = "session",
+    ) -> list[dict]:
+        """读取指定 session_id 的 jsonl。
 
-        # 搜索全部
+        Args:
+            session_id: 目标 session ID
+            scope: ``"session"`` 仅在当前会话允许的记忆源中搜索；
+                ``"all"`` 搜索整个 storage_dir（用于 CLI replay 等全局操作）
+        """
+        if scope == "session":
+            for sessions_dir in self.session_memory_sources():
+                path = sessions_dir / f"{session_id}.jsonl"
+                if path.exists():
+                    return self._read_session_file(path)
+            return []
+
         found = self.find_session_path(self.storage_dir, session_id)
         if found and found.exists():
-            events = []
-            with open(found, encoding="utf-8") as f:
-                for line in f:
-                    if line.strip():
-                        try:
-                            events.append(json.loads(line))
-                        except json.JSONDecodeError:
-                            self._logger.warning("invalid json line ignored: path={path}", path=found)
-            return events
-
+            return self._read_session_file(found)
         return []

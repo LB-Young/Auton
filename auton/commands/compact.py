@@ -6,6 +6,7 @@ from typing import Any
 
 from .base import Command, CommandResult
 from .context import CommandContext
+from ..agent.session import CompactResult
 
 
 class CompactCommand(Command):
@@ -24,12 +25,15 @@ class CompactCommand(Command):
             handled=True,
         )
 
-    async def execute_compact(self, ctx: CommandContext) -> int:
-        """执行实际的 compact 操作"""
-        compacted = ctx.session.compact()
-        ctx.session_store.append_compact_event(
-            session_id=ctx.session.meta.session_id,
-            before_count=compacted,
-            summary="[manual /compact triggered]",
+    async def execute_compact(
+        self,
+        ctx: CommandContext,
+        *,
+        protect_turns: int = 2,
+        recent_token_budget: int = 40_000,
+    ) -> CompactResult:
+        """执行实际的 compact 计算，持久化由 SessionProcessor 统一负责。"""
+        return ctx.session.compact(
+            protect_turns=protect_turns,
+            recent_token_budget=recent_token_budget,
         )
-        return compacted

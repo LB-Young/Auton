@@ -26,11 +26,15 @@ class DecisionPolicy:
 
     def __init__(
         self,
-        compact_threshold: int = 150_000,
+        compact_threshold: int = 180_000,
         max_turns: int = 500,
+        recent_protect_turns: int = 2,
+        recent_token_budget: int = 40_000,
     ) -> None:
         self.compact_threshold = compact_threshold
         self.max_turns = max_turns
+        self.recent_protect_turns = recent_protect_turns
+        self.recent_token_budget = recent_token_budget
         self._logger = logger.bind(name="DecisionPolicy")
 
     def decide(self, inp: PolicyInput) -> ProcessResult:

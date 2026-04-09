@@ -84,6 +84,10 @@ auton main --model claude-opus-4-20250514 -m "..."
 
 # 使用 MiniMax
 auton main --provider minimax --model MiniMax-M2.7 -m "..."
+
+# 指定闲聊 / 项目模式
+auton main --session-mode chat
+auton main --session-mode project
 ```
 
 ### Web 界面（实验）
