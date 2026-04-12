@@ -16,19 +16,19 @@ from rich.text import Text
 
 from typing import Literal
 
-from ..agent.agent import SessionProcessor
-from ..agent.session import Session
-from ..agent.session_store import SessionStore
-from ..core.config import get_config
-from ..core.event_types import (
+from ...agent.agent import SessionProcessor
+from ...agent.session import Session
+from ...agent.session_store import SessionStore
+from ...core.config import get_config
+from ...core.event_types import (
     AutonEvent,
     TextDeltaEvent,
     ToolCallEvent,
     ToolResultEvent,
     ToolErrorEvent,
 )
-from ..core.events import EventBus
-from ..core.logging import get_logger, setup_logging
+from ...core.events import EventBus
+from ...core.logging import get_logger, setup_logging
 from .greeting_context import collect_greeting_context
 from .greeting_generator import generate_greeting
 from .project_mode_intent import parse_project_mode_reply

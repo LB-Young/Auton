@@ -12,16 +12,29 @@ from .session import Session
 from .types import LLMContext
 
 if TYPE_CHECKING:
-    from ..llm.base import LLMPProvider
+    from ..llm.base import LLMProvider
 
 
 class ContextBuilder:
     """从 Session 构建 LLM 请求上下文"""
 
-    def __init__(self, provider: "LLMPProvider", tools: list[dict] | None = None) -> None:
+    def __init__(self, provider: "LLMProvider", tools: list[dict] | None = None) -> None:
         self.provider = provider
         self.tools = tools or []
         self._logger = logger.bind(name="ContextBuilder")
+        self._system_stored = False
+
+    @property
+    def system_stored(self) -> bool:
+        """系统提示词是否已持久化到 session store（只读）。"""
+        return self._system_stored
+
+    def mark_system_stored(self) -> None:
+        """标记系统提示词已持久化（由 SessionProcessor 在存储后调用）。"""
+        self._system_stored = True
+
+    def reset(self) -> None:
+        """重置 Builder 状态，用于新会话开始时清理历史标记。"""
         self._system_stored = False
 
     def build(self, session: Session, system_prompt: str = "") -> LLMContext:

@@ -7,8 +7,8 @@ from datetime import date
 from pathlib import Path
 from typing import AsyncIterator
 
-from auton.cli.greeting_context import GreetingContext
-from auton.cli.greeting_generator import DEFAULT_GREETING, generate_greeting
+from auton.adapters.cli.greeting_context import GreetingContext
+from auton.adapters.cli.greeting_generator import DEFAULT_GREETING, generate_greeting
 from auton.llm.base import LLMProvider, LLMStreamEvent
 
 

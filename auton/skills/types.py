@@ -8,6 +8,20 @@ from pathlib import Path
 from typing import Literal
 
 
+@dataclass
+class SkillPerfConfig:
+    """Skill 性能追踪阈值配置（持久化到 SKILL_PERF.json thresholds 字段）。
+
+    触发优化的条件（OR 关系）：
+      - window_7d.success_rate < success_rate_min
+      - window_7d.avg_tool_calls > avg_tool_calls_max
+      - window_7d.avg_turns > avg_turns_max
+    """
+    success_rate_min: float = 0.70      # 7 日成功率下限
+    avg_tool_calls_max: float = 15.0    # 7 日平均工具调用次数上限
+    avg_turns_max: float = 5.0          # 7 日平均 LLM 轮次上限
+
+
 class SkillSource(enum.Enum):
     """技能来源（优先级从高到低）"""
 

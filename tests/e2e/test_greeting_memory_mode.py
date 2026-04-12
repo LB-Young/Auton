@@ -10,9 +10,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from auton.agent.session_store import SessionStore
-from auton.cli.greeting_context import collect_greeting_context
-from auton.cli.greeting_generator import build_greeting_prompt
-from auton.cli.project_mode_intent import parse_project_mode_reply
+from auton.adapters.cli.greeting_context import collect_greeting_context
+from auton.adapters.cli.greeting_generator import build_greeting_prompt
+from auton.adapters.cli.project_mode_intent import parse_project_mode_reply
 from auton.memory.global_memory import GlobalMemory
 from auton.memory.storage_utils import project_storage_dir_name
 

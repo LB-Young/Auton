@@ -21,6 +21,8 @@ from .base import (
     ReasoningFinishEvent,
 )
 
+from .retry_utils import retry_stream
+
 if TYPE_CHECKING:
     pass
 
@@ -97,8 +99,21 @@ class AnthropicProvider(LLMProvider):
         anthropic_messages, extra_system = self._message_to_anthropic(ctx.messages)
         base_system = ctx.system_prompt or ""
         system = (base_system + "\n\n" + extra_system).strip() if extra_system else base_system
-
         tools = ctx.tools or []
+
+        def _make_stream() -> AsyncIterator[LLMStreamEvent]:
+            return self._raw_stream(ctx, anthropic_messages, system, tools)
+
+        async for event in retry_stream(_make_stream):
+            yield event
+
+    async def _raw_stream(
+        self,
+        ctx: LLMContext,
+        anthropic_messages: list[dict[str, Any]],
+        system: str,
+        tools: list[dict[str, Any]],
+    ) -> AsyncIterator[LLMStreamEvent]:
         async with self._client.messages.stream(
             model=ctx.model,
             max_tokens=ctx.max_tokens,

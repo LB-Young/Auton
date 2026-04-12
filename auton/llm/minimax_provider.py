@@ -22,6 +22,8 @@ from .base import (
     ToolUseEvent,
 )
 
+from .retry_utils import retry_stream
+
 if TYPE_CHECKING:
     pass
 
@@ -101,6 +103,18 @@ class MiniMaxProvider(LLMProvider):
         base_system = ctx.system_prompt or ""
         system = (base_system + "\n\n" + extra_system).strip() if extra_system else base_system
 
+        def _make_stream() -> AsyncIterator[LLMStreamEvent]:
+            return self._raw_stream(ctx, anthropic_messages, system)
+
+        async for event in retry_stream(_make_stream):
+            yield event
+
+    async def _raw_stream(
+        self,
+        ctx: LLMContext,
+        anthropic_messages: list[dict[str, Any]],
+        system: str,
+    ) -> AsyncIterator[LLMStreamEvent]:
         async with self._client.messages.stream(
             model=ctx.model,
             max_tokens=ctx.max_tokens,

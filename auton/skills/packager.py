@@ -46,7 +46,7 @@ class SkillPackager:
         """将 skill 目录打包为 .skill 文件
 
         Args:
-            skill_dir: skill 目录（如 ~/.auton/skills/github/）
+            skill_dir: skill 目录（如 ~/.auton/skill/github/）
             output_dir: 输出目录（默认与 skill_dir 同级）
 
         Returns:

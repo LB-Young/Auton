@@ -25,15 +25,17 @@ class SkillCommand(Command):
     """技能管理命令（M6 — Skills 里程碑完整实现）"""
 
     name = "skill"
-    description = "管理技能（list/info/create/delete/edit/check/install）"
+    description = "管理技能（list/info/create/delete/edit/check/install/tune/perf）"
     patterns = [
         ("/skill",),
-        ("/skill", "(list|info|create|delete|edit|check|install)"),
+        ("/skill", "(list|info|create|delete|edit|check|install|tune|perf)"),
         ("/skill", "info", "<name>"),
         ("/skill", "delete", "<name>"),
         ("/skill", "edit", "<name>"),
         ("/skill", "install", "<file>"),
         ("/skill", "search", "<query>"),
+        ("/skill", "tune", "<name>"),
+        ("/skill", "perf", "<name>"),
     ]
 
     async def handle(self, args: dict[str, Any]) -> CommandResult:
@@ -48,6 +50,8 @@ class SkillCommand(Command):
             "check": self._check,
             "install": self._install,
             "search": self._search,
+            "tune": self._tune,
+            "perf": self._perf,
         }.get(sub)
 
         if handler:
@@ -324,6 +328,98 @@ class SkillCommand(Command):
 
         return CommandResult(content=content)
 
+    # ─── /skill tune <name> ─────────────────────────────────────────────
+
+    async def _tune(self, args: dict) -> CommandResult:
+        """/skill tune <name> — 手动触发指定 skill 的 LLM 优化流程（force=True）。"""
+        name = args.get("<name>", "").strip()
+        if not name:
+            return CommandResult(content="用法：`/skill tune <name>`", success=False)
+
+        registry = _get_registry()
+        skill = registry.get(name)
+        if skill is None:
+            return CommandResult(content=f"未找到技能：`{name}`", success=False)
+
+        ctx = args.get("_ctx")
+        if ctx is None or not hasattr(ctx, "llm"):
+            return CommandResult(
+                content=(
+                    "⚠️ `/skill tune` 需要 LLM 支持，请在 REPL 模式下使用。\n\n"
+                    "提示：在 CLI 中启动 auton 后输入 `/skill tune <name>`。"
+                ),
+                success=False,
+            )
+
+        from ..skills.perf_tracker import SkillPerfTracker
+        from ..skills.optimizer import SkillOptimizer
+
+        tracker = SkillPerfTracker(skill)
+        optimizer = SkillOptimizer(tracker, ctx.llm)
+
+        try:
+            result = await optimizer.optimize(force=True)
+        except Exception as exc:
+            return CommandResult(content=f"优化失败：{exc}", success=False)
+
+        return CommandResult(content=result.changes_summary, success=result.error is None)
+
+    # ─── /skill perf <name> ─────────────────────────────────────────────
+
+    async def _perf(self, args: dict) -> CommandResult:
+        """/skill perf <name> — 查看指定 skill 的性能统计。"""
+        name = args.get("<name>", "").strip()
+        if not name:
+            return CommandResult(content="用法：`/skill perf <name>`", success=False)
+
+        registry = _get_registry()
+        skill = registry.get(name)
+        if skill is None:
+            return CommandResult(content=f"未找到技能：`{name}`", success=False)
+
+        from ..skills.perf_tracker import SkillPerfTracker
+
+        tracker = SkillPerfTracker(skill)
+        cum = tracker.get_stats("cumulative")
+        w7 = tracker.get_stats("7d")
+        cfg = tracker.get_config()
+        should, reason = tracker.should_optimize()
+        failures = tracker.get_fragments(limit=5, failed_only=True)
+
+        lines = [
+            f"## Skill `{skill.name}` 性能报告",
+            "",
+            "### 累积统计（全量）",
+            "| 总调用 | 成功 | 失败 | 成功率 | 平均工具调用 | 平均轮次 |",
+            "|-------|------|------|--------|------------|--------|",
+            f"| {cum.total_invocations} | {cum.successful_invocations} | {cum.failed_invocations} | {cum.success_rate:.1%} | {cum.avg_tool_calls:.1f} | {cum.avg_turns:.1f} |",
+            "",
+            "### 7 日窗口统计",
+            "| 总调用 | 成功 | 成功率 | 平均工具调用 | 平均轮次 |",
+            "|-------|------|--------|------------|--------|",
+            f"| {w7.total_invocations} | {w7.successful_invocations} | {w7.success_rate:.1%} | {w7.avg_tool_calls:.1f} | {w7.avg_turns:.1f} |",
+            "",
+            "### 阈值配置",
+            "| 指标 | 当前（7d） | 阈值 | 状态 |",
+            "|------|-----------|------|------|",
+            f"| 成功率 | {w7.success_rate:.1%} | ≥{cfg.success_rate_min:.1%} | {'🔴 超标' if w7.success_rate < cfg.success_rate_min else '✅ 正常'} |",
+            f"| 平均工具调用 | {w7.avg_tool_calls:.1f} | ≤{cfg.avg_tool_calls_max} | {'🔴 超标' if w7.avg_tool_calls > cfg.avg_tool_calls_max else '✅ 正常'} |",
+            f"| 平均轮次 | {w7.avg_turns:.1f} | ≤{cfg.avg_turns_max} | {'🔴 超标' if w7.avg_turns > cfg.avg_turns_max else '✅ 正常'} |",
+            "",
+            f"**优化触发**：{'⚠️ 是（' + reason + '）' if should else '✅ 否'}",
+        ]
+
+        if failures:
+            lines += ["", f"### 最近 {len(failures)} 条失败记录"]
+            for i, rec in enumerate(failures, 1):
+                err = rec.error_message or "（无错误信息）"
+                lines.append(f"{i}. `{rec.query[:60]}` — {err}")
+
+        if cum.total_invocations == 0:
+            lines += ["", "_尚无调用记录。使用该 skill 后此处会显示统计数据。_"]
+
+        return CommandResult(content="\n".join(lines))
+
     # ─── Usage ─────────────────────────────────────────────────────
 
     def _usage(self) -> str:
@@ -339,12 +435,14 @@ class SkillCommand(Command):
 /skill delete <name>    — 删除用户/项目级技能
 /skill check            — 检查所有技能的依赖
 /skill install <file>   — 从 .skill 包安装
+/skill perf <name>      — 查看技能性能统计（成功率、工具调用次数、轮次）
+/skill tune <name>      — 手动触发 LLM 优化，更新 SKILL.md + experiences
 ```
 
 ## 技能来源
-- **工作区** `.auton/skills/` — 当前目录
-- **项目** `.auton/skills/` — 项目根目录
-- **用户** `~/.auton/skills/` — 用户级（skill-creator 默认写入此处）
+- **工作区** `.auton/skill/` — 当前目录
+- **项目** `.auton/skill/` — 项目根目录
+- **用户** `~/.auton/skill/` — 用户级（skill-creator 默认写入此处）
 - **内置** `src/auton/skills/builtin/` — Auton 内置
 
 ## 内置技能

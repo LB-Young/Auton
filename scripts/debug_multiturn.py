@@ -86,13 +86,29 @@ async def run_single_turn(processor: SessionProcessor, query: str, turn: int) ->
     return buffer
 
 
-async def run_multiturn(queries: list[str], provider: str = "anthropic", model: str | None = None):
+async def run_multiturn(
+    queries: list[str],
+    provider: str = "anthropic",
+    model: str | None = None,
+    mode: str = "project",
+):
     setup_logging()
     log = get_logger("debug_multiturn")
     config = get_config()
 
     session_store = SessionStore(config.memory.storage_dir)
+    if mode == "chat":
+        session_store.set_date_mode()
+    else:
+        session_store.set_project_root(Path(__file__).parent.parent)
     session = Session.create()
+
+    # 构建系统提示词
+    from auton.llm.prompt import build_system_prompt
+    system_prompt = build_system_prompt(
+        include_env=True,
+        session_mode=session_store.mode,
+    )
 
     llm = create_llm(provider, model)
 
@@ -104,9 +120,10 @@ async def run_multiturn(queries: list[str], provider: str = "anthropic", model: 
         llm=llm,
         tools=tools,
         session_store=session_store,
+        system_prompt=system_prompt,
     )
 
-    log.info("session_id={}", session.meta.session_id)
+    log.info("session_id={} mode={}", session.meta.session_id, session_store.mode)
     log.info("provider={} model={}", provider, model or config.llm.model)
     log.info("turns={}", len(queries))
 
@@ -146,9 +163,11 @@ def main():
     parser.add_argument("--provider", "-p", default="anthropic",
                         choices=["anthropic", "minimax"], help="LLM Provider")
     parser.add_argument("--model", "-m", default=None, help="模型名称")
+    parser.add_argument("--mode", default="project", choices=["project", "chat"],
+                        help="Session 模式（project=工程, chat=闲聊）")
     args = parser.parse_args()
 
-    asyncio.run(run_multiturn(args.queries, args.provider, args.model))
+    asyncio.run(run_multiturn(args.queries, args.provider, args.model, args.mode))
 
 
 if __name__ == "__main__":

@@ -39,15 +39,15 @@ class SkillLoader:
         return {
             SkillSource.WORKSPACE: self._find_skill_dirs(cwd),  # 当前工作目录
             SkillSource.PROJECT: self._find_skill_dirs(cwd),  # 项目根（与 workspace 相同，待 find_project_root）
-            SkillSource.USER: [home / ".auton" / "skills"],
+            SkillSource.USER: [home / ".auton" / "skill"],
             SkillSource.BUILTIN: [Path(auton.__file__).parent / "skills" / "builtin"],
         }
 
     def _find_skill_dirs(self, start: Path) -> list[Path]:
-        """从 start 向上查找所有 .auton/skills/ 目录"""
+        """从 start 向上查找所有 .auton/skill/ 目录"""
         dirs: list[Path] = []
         for parent in [start] + list(start.parents):
-            skills_dir = parent / ".auton" / "skills"
+            skills_dir = parent / ".auton" / "skill"
             if skills_dir.exists() and skills_dir.is_dir():
                 dirs.append(skills_dir)
         return dirs

@@ -143,6 +143,8 @@ class SessionStore:
         # base64 媒体文件统一落盘到 ~/.auton/tmp/
         self.tmp_dir: Path = Path(storage_dir).parent / "tmp"
         self._logger = logger.bind(name="SessionStore")
+        # session_id → Path 的懒加载索引，用于 O(1) 全局查找
+        self._session_index: dict[str, Path] | None = None
 
         # 自动检测模式：优先用显式传入的 project_root
         # 未传入时，从当前目录往上遍历找 .auton/ 作为项目根
@@ -174,6 +176,11 @@ class SessionStore:
         target_date = target_date or date.today()
         self._base = self.storage_dir / "dates" / target_date.isoformat()
         self._logger.info("switched to date mode: base={base}", base=self._base)
+
+    @property
+    def mode(self) -> Literal["project", "date"]:
+        """当前存储模式（project / date）"""
+        return self._mode
 
     def has_existing_project_history(self, cwd: Path) -> bool:
         """当前目录是否已有项目历史记录（projects/<绝对路径字符串>/）"""
@@ -328,8 +335,13 @@ class SessionStore:
         self,
         session_id: str,
         content: str,
+        message_id: str | None = None,
     ) -> None:
-        """追加用户消息事件"""
+        """追加用户消息事件。
+
+        message_id 用于后续在 SUMMARY.md 中为每条摘要要点附加来源引用，
+        建议调用方传入 Message.message_id，保证与内存对象一致。
+        """
         self.append_event(
             session_id,
             {
@@ -337,6 +349,7 @@ class SessionStore:
                 "session_id": session_id,
                 "content": content,
                 "timestamp": time.time(),
+                "message_id": message_id or str(uuid.uuid4()),
             },
         )
 
@@ -370,6 +383,68 @@ class SessionStore:
             payload,
         )
 
+    # ─── Skill 调用事件 ──────────────────────────────────────────────────
+
+    def append_skill_invoke_start(
+        self,
+        session_id: str,
+        skill_name: str,
+        fragment_id: str,
+        trigger: str,
+        query: str,
+        turn_index: int,
+        skill_path: str = "",
+    ) -> None:
+        """记录 skill 被注入 context 的时刻（每轮 LLM 调用开始前）。
+
+        对应 OPTIMIZATION.md 7.2.2 中的 skill_invoke_start 事件。
+        """
+        self.append_event(
+            session_id,
+            {
+                "type": "skill_invoke_start",
+                "session_id": session_id,
+                "skill_name": skill_name,
+                "fragment_id": fragment_id,
+                "skill_path": skill_path,
+                "trigger": trigger,
+                "query": query,
+                "turn_index": turn_index,
+                "timestamp": time.time(),
+            },
+        )
+
+    def append_skill_invoke_end(
+        self,
+        session_id: str,
+        skill_name: str,
+        fragment_id: str,
+        success: bool,
+        tool_calls_count: int,
+        llm_turns: int,
+        duration_ms: float,
+        error_message: str | None = None,
+    ) -> None:
+        """记录一轮 skill 调用结束（工具链执行完毕后）。
+
+        对应 OPTIMIZATION.md 7.2.2 中的 skill_invoke_end 事件。
+        """
+        self.append_event(
+            session_id,
+            {
+                "type": "skill_invoke_end",
+                "session_id": session_id,
+                "skill_name": skill_name,
+                "fragment_id": fragment_id,
+                "success": success,
+                "tool_calls_count": tool_calls_count,
+                "llm_turns": llm_turns,
+                "duration_ms": duration_ms,
+                "error_message": error_message,
+                "timestamp": time.time(),
+            },
+        )
+
     # ─── 会话结束归档 ────────────────────────────────────────────────────
 
     def archive_session(
@@ -379,7 +454,12 @@ class SessionStore:
         ended_at: str,
         compaction_count: int,
     ) -> None:
-        """将会话路径追加到 index.jsonl"""
+        """将会话路径追加到 index.jsonl，并更新当前 scope 的 SUMMARY.md / MEMORY.md。
+
+        两种 scope 下都会在对应目录生成/追加摘要文件：
+          - 项目模式 → ~/.auton/memory/projects/<path>/memory/{SUMMARY,MEMORY}.md
+          - 日期模式 → ~/.auton/memory/dates/YYYY-MM-DD/memory/{SUMMARY,MEMORY}.md
+        """
         index_path = self.index_path()
         entry = {
             "session_id": session_id,
@@ -400,7 +480,17 @@ class SessionStore:
                 date.today(),
                 str(self.session_path(session_id)),
             )
+
+        # 生成 / 更新当前 scope 的 SUMMARY.md 和 MEMORY.md
+        self._update_memory_files(session_id)
+
         self._logger.info("archive session={id}", id=session_id)
+
+    def _update_memory_files(self, session_id: str) -> None:
+        """占位：SUMMARY.md 和 MEMORY.md 现由 SessionProcessor._generate_summary_and_memory() 异步生成。
+
+        此方法保留以防外部调用，但不再执行实质操作。
+        """
 
     # ─── 读取（供 memory_manager.py 调用）──────────────────────────────────
 
@@ -498,6 +588,42 @@ class SessionStore:
 
         return None
 
+    def build_index(self) -> dict[str, Path]:
+        """建立 session_id → Path 的内存索引（全量扫描，供首次调用时构建）。
+
+        遍历 storage_dir 下所有 dates/ 和 projects/ 目录，
+        将每个 .jsonl 文件的 stem 作为 session_id 加入索引。
+        索引仅在 scope="all" 的查找路径中使用，构建后缓存于 _session_index。
+        """
+        index: dict[str, Path] = {}
+
+        dates_dir = self.storage_dir / "dates"
+        if dates_dir.exists():
+            for date_dir in dates_dir.iterdir():
+                if not date_dir.is_dir():
+                    continue
+                sessions_dir = date_dir / "sessions"
+                if sessions_dir.is_dir():
+                    for p in sessions_dir.glob("*.jsonl"):
+                        index[p.stem] = p
+
+        projects_dir = self.storage_dir / "projects"
+        if projects_dir.exists():
+            for proj_dir in projects_dir.iterdir():
+                if not proj_dir.is_dir():
+                    continue
+                sessions_dir = proj_dir / "sessions"
+                if sessions_dir.is_dir():
+                    for p in sessions_dir.glob("*.jsonl"):
+                        index[p.stem] = p
+
+        self._logger.debug("session index built: {n} entries", n=len(index))
+        return index
+
+    def _invalidate_index(self) -> None:
+        """新 session 创建后使缓存失效，下次查找时重建。"""
+        self._session_index = None
+
     def read_session_by_id(
         self,
         session_id: str,
@@ -518,7 +644,18 @@ class SessionStore:
                     return self._read_session_file(path)
             return []
 
+        # scope="all": 使用内存索引实现 O(1) 查找，首次调用时构建
+        if self._session_index is None:
+            self._session_index = self.build_index()
+
+        path = self._session_index.get(session_id)
+        if path and path.exists():
+            return self._read_session_file(path)
+
+        # 索引未命中时降级为全量搜索（session 可能是新建的）
         found = self.find_session_path(self.storage_dir, session_id)
         if found and found.exists():
+            # 补充到索引，避免下次再次全量搜索
+            self._session_index[session_id] = found
             return self._read_session_file(found)
         return []

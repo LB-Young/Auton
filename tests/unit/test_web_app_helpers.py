@@ -3,12 +3,12 @@ from fastapi import HTTPException
 from auton.agent.message import Message
 from auton.agent.session import Session
 from auton.agent.session_store import SessionStore
-from auton.web.app import (
+from auton.adapters.web.app import (
     _build_project_context_message,
     _ensure_project_path,
     _inject_project_context_message,
 )
-from auton.web.session_utils import build_session_from_events
+from auton.adapters.web.session_utils import build_session_from_events
 
 
 def test_ensure_project_path_non_strict_returns_none(tmp_path):

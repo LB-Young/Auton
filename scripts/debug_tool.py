@@ -91,13 +91,25 @@ async def run_tool_query(
     model: str | None = None,
     selected_tool: str | None = None,
     security_mode: str = "yolo",
+    mode: str = "project",
 ):
     setup_logging()
     log = get_logger("debug_tool")
     config = get_config()
 
     session_store = SessionStore(config.memory.storage_dir)
+    if mode == "chat":
+        session_store.set_date_mode()
+    else:
+        session_store.set_project_root(Path(__file__).parent.parent)
     session = Session.create()
+
+    # 构建系统提示词（工具测试通常用 project 模式，但支持覆盖）
+    from auton.llm.prompt import build_system_prompt
+    system_prompt = build_system_prompt(
+        include_env=True,
+        session_mode=session_store.mode,
+    )
 
     llm = create_llm(provider, model)
 
@@ -136,11 +148,12 @@ async def run_tool_query(
         llm=llm,
         tools=all_tools,
         session_store=session_store,
+        system_prompt=system_prompt,
     )
 
     session.add_user_message(full_query)
 
-    log.info("session_id={}", session.meta.session_id)
+    log.info("session_id={} mode={}", session.meta.session_id, session_store.mode)
     log.info("tool={} security_mode={}", selected_tool, security_mode)
 
     print(f"\n{'='*60}")
@@ -218,6 +231,8 @@ def main():
     parser.add_argument("--security", "-s", default="yolo",
                         choices=["default", "auto", "bypass", "yolo"],
                         help="BashTool 权限模式（yolo=无限制）")
+    parser.add_argument("--mode", default="project", choices=["project", "chat"],
+                        help="Session 模式（project=工程, chat=闲聊）")
     args = parser.parse_args()
 
     asyncio.run(run_tool_query(
@@ -226,6 +241,7 @@ def main():
         model=args.model,
         selected_tool=args.tool,
         security_mode=args.security,
+        mode=args.mode,
     ))
 
 

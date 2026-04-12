@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Auton Web</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <div id="app">
+      <aside class="sidebar">
+        <div class="brand">Auton</div>
+        <div class="project-panel">
+          <label for="projectPath">项目路径（本地）</label>
+          <div class="path-input">
+            <input id="projectPath" type="text" placeholder="/Users/you/project" />
+            <button id="applyProject">应用</button>
+            <button id="clearProject" class="ghost">清除</button>
+          </div>
+          <p class="hint">留空则进入日期模式，展示最近 7 天的会话。</p>
+        </div>
+        <div class="sessions-header">
+          <span id="modeLabel">加载中...</span>
+          <button id="newSession" class="ghost">新建会话</button>
+        </div>
+        <div id="sessionList" class="session-list"></div>
+      </aside>
+      <main class="chat-panel">
+        <header class="chat-header">
+          <div>
+            <h1 id="chatTitle">对话</h1>
+            <p id="chatMeta" class="muted">请选择左侧会话或新建对话</p>
+          </div>
+          <div id="statusDot" class="status idle">闲置</div>
+        </header>
+        <section id="chatHistory" class="chat-history"></section>
+        <form id="composer" class="composer">
+          <textarea id="messageInput" placeholder="输入你的问题，按 Enter 发送，Shift+Enter 换行"></textarea>
+          <div class="composer-actions">
+            <div id="composerHint" class="muted"></div>
+            <button type="submit" id="sendButton">发送</button>
+          </div>
+        </form>
+      </main>
+    </div>
+    <script type="module" src="/static/app.js"></script>
+  </body>
+</html>

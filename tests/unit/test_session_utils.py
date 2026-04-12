@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 
 from auton.memory.storage_utils import project_storage_base
-from auton.web.session_utils import (
+from auton.adapters.web.session_utils import (
     build_session_from_events,
     list_project_sessions,
     list_recent_date_sessions,

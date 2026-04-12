@@ -4,6 +4,10 @@ import sys
 from pathlib import Path
 from loguru import logger as _logger
 
+from .redact import RedactingFilter
+
+_redacting_filter = RedactingFilter()
+
 
 def setup_logging(
     level: str = "INFO",
@@ -44,6 +48,7 @@ def setup_logging(
             colorize=True,
             backtrace=True,
             diagnose=True,
+            filter=_redacting_filter,
         )
 
     if enable_file and log_file is not None:
@@ -58,6 +63,7 @@ def setup_logging(
             serialize=True,
             backtrace=True,
             diagnose=True,
+            filter=_redacting_filter,
         )
 
 

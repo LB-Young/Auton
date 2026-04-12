@@ -97,7 +97,7 @@ async def test_compact_command_executes_immediately(tmp_path):
     assert any(event.get("type") == "compact" for event in stored)
     rebuilt = Session.create(session_id=session.meta.session_id)
     rebuilt.messages.clear()
-    from auton.web.session_utils import build_session_from_events
+    from auton.adapters.web.session_utils import build_session_from_events
     replayed = build_session_from_events(session.meta.session_id, stored)
     assert [msg.get_text() for msg in replayed.messages] == [
         msg.get_text() for msg in session.messages
@@ -214,7 +214,7 @@ async def test_compact_command_executes_in_non_stream_path(tmp_path):
     assert all(msg.get_text() != "/compact" for msg in session.messages if msg.role == "user")
     stored = store.read_session(session.meta.session_id)
     assert any(event.get("type") == "compact" for event in stored)
-    from auton.web.session_utils import build_session_from_events
+    from auton.adapters.web.session_utils import build_session_from_events
     replayed = build_session_from_events(session.meta.session_id, stored)
     assert [msg.get_text() for msg in replayed.messages] == [
         msg.get_text() for msg in session.messages

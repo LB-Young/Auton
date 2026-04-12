@@ -19,15 +19,18 @@ from .frontmatter import (
 from .injector import SkillInjector
 from .loader import SkillLoader
 from .packager import SkillPackager
+from .optimizer import OptimizationResult, SkillOptimizer
+from .perf_tracker import SkillPerfTracker, SkillPerfStats, SkillPerfRecord, skill_perf_tracker
 from .registry import SkillRegistry
 from .semantic_search import SkillSearcher, SearchResult
 from .skill_creator import SkillCreator
-from .types import Skill, SkillSource
+from .types import Skill, SkillSource, SkillPerfConfig
 
 __all__ = [
     # 类型
     "Skill",
     "SkillSource",
+    "SkillPerfConfig",
     "SkillFrontmatter",
     "SkillMetadata",
     "SearchResult",
@@ -39,6 +42,14 @@ __all__ = [
     "SkillChecker",
     "SkillPackager",
     "SkillCreator",
+    # 性能追踪
+    "SkillPerfTracker",
+    "SkillPerfStats",
+    "SkillPerfRecord",
+    "skill_perf_tracker",
+    # 优化器
+    "SkillOptimizer",
+    "OptimizationResult",
     # 工具
     "parse_skill_file",
     "parse_skill_text",
