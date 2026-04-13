@@ -31,26 +31,25 @@ class SubagentRegistry:
 
     def _load_built_ins(self) -> None:
         """延迟导入并注册所有内置 Subagent"""
-        from .planner import PlannerSubagent
-        from .debugging import DebuggingSubagent
-        from .tdd import TDDRunnerSubagent
-        from .code_review import CodeReviewSubagent
-        from .security import SecurityReviewSubagent
-        from .refactor import RefactorCleanerSubagent
-        from .architect import ArchitectureAdvisorSubagent
-        from .delegator import TaskDelegatorSubagent
+        subagent_map = [
+            ("planner", ".planner", "PlannerSubagent"),
+            ("debugging", ".debugging", "DebuggingSubagent"),
+            ("tdd", ".tdd", "TDDRunnerSubagent"),
+            ("code_review", ".code_review", "CodeReviewSubagent"),
+            ("security", ".security", "SecurityReviewSubagent"),
+            ("refactor", ".refactor", "RefactorCleanerSubagent"),
+            ("architect", ".architect", "ArchitectureAdvisorSubagent"),
+            ("delegator", ".delegator", "TaskDelegatorSubagent"),
+        ]
 
-        for cls_ in [
-            PlannerSubagent,
-            DebuggingSubagent,
-            TDDRunnerSubagent,
-            CodeReviewSubagent,
-            SecurityReviewSubagent,
-            RefactorCleanerSubagent,
-            ArchitectureAdvisorSubagent,
-            TaskDelegatorSubagent,
-        ]:
-            self.register_single(cls_())
+        for name, module_path, cls_name in subagent_map:
+            try:
+                import importlib
+                module = importlib.import_module(module_path, package=__package__)
+                subagent_cls = getattr(module, cls_name)
+                self.register_single(subagent_cls())
+            except ImportError:
+                self._logger.debug("subagent {n} not available yet", n=name)
 
         self._logger.info("loaded {n} built-in subagents", n=len(self._by_name))
 

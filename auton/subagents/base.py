@@ -38,7 +38,7 @@ class BaseSubagent(ABC):
     @abstractmethod
     def system_prompt(cls) -> str:
         """返回此 Subagent 的专用系统提示词（子类必须实现）"""
-        raise NotImplementedError
+        ...
 
     async def run(
         self,
@@ -73,4 +73,4 @@ class BaseSubagent(ABC):
         context: dict[str, Any],
     ) -> tuple[str, list[str], list[str]]:
         """核心执行逻辑（子类必须实现）。Returns: (output, findings, recommendations)"""
-        raise NotImplementedError
+        ...

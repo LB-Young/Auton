@@ -104,12 +104,26 @@ Then for each task:
         cwd: str,
         relevant_files: list[str],
     ) -> str:
-        """Generate task plan from template."""
+        """Generate task plan from context."""
         files_section = ""
         if relevant_files:
             files_section = "\n".join(f"- `{f}`" for f in relevant_files[:10])
 
-        return f"""# Implementation Plan
+        # Analyze task complexity
+        is_complex = len(task) > 200 or any(kw in task.lower() for kw in ["and", "then", "after", "before"])
+
+        task_count = 4 if is_complex else 3
+
+        extra_tasks = """
+## Task 4: Integration & Performance
+
+- [ ] **Step 1: Run integration tests**
+- [ ] **Step 2: Check performance implications**
+- [ ] **Step 3: Optimize if needed**
+""" if is_complex else ""
+
+        return f"""\
+# Implementation Plan
 
 **Goal:** {task}
 
@@ -118,11 +132,13 @@ Then for each task:
 **Relevant Files:**
 {files_section if files_section else "- (none provided)"}
 
+**Complexity:** {"Complex" if is_complex else "Simple"} — {task_count} main tasks identified.
+
 ---
 
 ## Task 1: Understand Requirements
 
-- [ ] **Step 1: Analyze the task requirements**
+- [ ] **Step 1: Analyze the task: {task[:100]}{"..." if len(task) > 100 else ""}**
 - [ ] **Step 2: Explore relevant source files**
 - [ ] **Step 3: Identify affected files and boundaries**
 
@@ -138,17 +154,6 @@ Then for each task:
 
 - [ ] **Step 1: Identify edge cases**
 - [ ] **Step 2: Add tests for edge cases**
-- [ ] **Step 3: Handle edge cases in implementation**
-
-## Task 4: Integration & Verify
-
-- [ ] **Step 1: Run all tests**
-- [ ] **Step 2: Verify functionality manually**
-- [ ] **Step 3: Commit changes**
-
-## Recommendations
-- Use TDD approach for each task
-- Keep commits small and focused
-- Test edge cases early
-- Verify >= 80% coverage
+- [ ] **Step 3: Handle edge cases in implementation**\
+{extra_tasks}
 """
