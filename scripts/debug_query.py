@@ -13,7 +13,7 @@ from auton.agent.session_store import SessionStore
 from auton.core.config import get_config
 from auton.core.events import EventBus
 from auton.core.logging import setup_logging, get_logger
-from auton.llm import AnthropicProvider, MiniMaxProvider
+from auton.llm import AnthropicProvider, MiniMaxProvider, MockProvider
 
 
 def create_llm(provider: str = "anthropic", model: str | None = None):
@@ -28,6 +28,12 @@ def create_llm(provider: str = "anthropic", model: str | None = None):
             max_tokens=cfg.max_tokens,
             temperature=cfg.temperature,
             timeout=cfg.timeout,
+        )
+    if provider == "mock":
+        return MockProvider(
+            model=model or "mock-echo",
+            max_tokens=cfg.max_tokens,
+            temperature=cfg.temperature,
         )
     else:
         return AnthropicProvider(
@@ -117,9 +123,15 @@ def main():
 
     parser = argparse.ArgumentParser(description="Auton Debug Query")
     parser.add_argument("query", nargs="?", default="你好，介绍一下你自己", help="要发送给 Auton 的问题")
-    parser.add_argument("--provider", "-p", default="anthropic", choices=["anthropic", "minimax"], help="LLM Provider")
+    parser.add_argument(
+        "--provider",
+        "-p",
+        default="anthropic",
+        choices=["anthropic", "minimax", "mock"],
+        help="LLM Provider",
+    )
     parser.add_argument("--model", "-m", default=None, help="模型名称")
-    parser.add_argument("--mode", default="project", choices=["project", "chat"], help="Session 模式（project=工程, chat=闲聊）")
+    parser.add_argument("--mode", default="chat", choices=["project", "chat"], help="Session 模式（project=工程, chat=闲聊）")
     args = parser.parse_args()
 
     asyncio.run(run_query(args.query, args.provider, args.model, args.mode))

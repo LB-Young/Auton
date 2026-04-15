@@ -7,6 +7,7 @@ from .message import Message, Part, TextPart, ReasoningPart, ToolPart, StepPart
 from .policies import DecisionPolicy, PolicyInput
 from .session import Session
 from .session_store import SessionStore
+from .system_prompt import PromptSection, SystemPromptBuilder, build_system_prompt
 from .types import (
     AgentDefinition,
     AgentRun,
@@ -40,4 +41,7 @@ __all__ = [
     "SessionMeta",
     "SessionStatus",
     "ToolStatus",
+    "PromptSection",
+    "SystemPromptBuilder",
+    "build_system_prompt",
 ]

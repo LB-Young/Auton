@@ -31,7 +31,9 @@ python scripts/debug_query.py "你好" --provider minimax --model MiniMax-M2.7
 `debug_query.py` 通过 `auton.core.config` 读取配置，配置优先级：
 
 ```
-CLI args > 环境变量 > ~/.auton/config.yaml > config/default.yaml
+CLI args > 环境变量 > ~/.auton/config.json
+> ~/.auton/config/extensions_abilities.json > ~/.auton/config/auton_config.json
+> ~/.auton/config/buildin_abilities.json > 内置默认值
 ```
 
 在使用特定 provider 前，确保对应的环境变量已设置：

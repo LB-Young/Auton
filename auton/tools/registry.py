@@ -20,6 +20,7 @@ from typing import TYPE_CHECKING, Any
 from loguru import logger
 
 from .base import Tool
+from ..core.config import is_capability_enabled
 
 if TYPE_CHECKING:
     from ..llm.base import LLMProvider
@@ -54,6 +55,13 @@ class ToolRegistry:
 
     def register(self, tool: Tool, *, source: str = "builtin") -> None:
         """注册单个工具"""
+        if not self._is_tool_enabled(source, tool.name):
+            self._logger.info(
+                "skip tool {name} from {src}（配置中禁用）",
+                name=tool.name,
+                src=source,
+            )
+            return
         if tool.name in self._tools:
             old_meta = self._metadata.get(tool.name)
             self._logger.warning(
@@ -184,6 +192,15 @@ class ToolRegistry:
 
     def __contains__(self, name: str) -> bool:
         return name in self._tools
+
+    def _is_tool_enabled(self, source: str, name: str) -> bool:
+        if source == "builtin":
+            scope = "builtin"
+        elif source.startswith("mcp:") or source.startswith("plugin:"):
+            scope = "extensions"
+        else:
+            scope = "project"
+        return is_capability_enabled(scope, "tools", name)
 
 
 # ─── 全局注册表 ──────────────────────────────────────────────────────────────

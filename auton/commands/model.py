@@ -25,8 +25,7 @@ class ModelCommand(Command):
     async def handle(self, args: dict[str, Any]) -> CommandResult:
         if not args:
             # /model — 显示当前模型
-            from ..llm.anthropic_provider import AnthropicProvider
-            from ..llm.minimax_provider import MiniMaxProvider
+            from ..llm import AnthropicProvider, MiniMaxProvider
 
             lines = [
                 "# Available Models",

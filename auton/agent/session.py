@@ -246,8 +246,91 @@ class Session:
         return self.apply_compact(summary_text, preparation)
 
     def should_compact(self, threshold: int = 150_000) -> bool:
-        """判断是否需要压缩（token 接近上限）"""
+        """判断是否需要压缩（单阈值，向后兼容）"""
         return self._token_count >= threshold
+
+    def should_compact_dual(
+        self,
+        context_length: int = 200_000,
+        *,
+        absolute_threshold: int = 150_000,
+        percent_threshold: float = 0.60,
+    ) -> bool:
+        """双阈值压缩触发判断（推荐使用）。
+
+        任一条件满足即触发：
+          1. token 数 >= 绝对阈值（默认 150,000）
+          2. token 数 >= 上下文窗口 * 比例阈值（默认 60%）
+
+        Args:
+            context_length:      模型上下文窗口大小
+            absolute_threshold:  绝对 token 阈值
+            percent_threshold:   上下文窗口比例阈值
+        """
+        from ..compress.boundary import should_compress
+        return should_compress(
+            self._token_count,
+            context_length,
+            absolute_threshold=absolute_threshold,
+            percent_threshold=percent_threshold,
+        )
+
+    async def compact_async(
+        self,
+        llm: "object",
+        *,
+        protect_turns: int = 2,
+        tail_token_budget: int = 40_000,
+    ) -> "CompactResult":
+        """异步压缩（使用 StandaloneCompressor，LLM 生成摘要）。
+
+        相比同步 compact()，此方法：
+          - 工具输出 pre-pass 截断
+          - tool pair 边界对齐
+          - LLM 生成高质量摘要
+          - 防抖保护
+
+        失败时自动降级到同步 compact()。
+
+        Args:
+            llm:               LLM Provider 实例
+            protect_turns:     保留最近几轮用户对话
+            tail_token_budget: 尾部 token 上限
+        """
+        try:
+            from ..compress import StandaloneCompressor, CompressConfig
+            config = CompressConfig(
+                protect_turns=protect_turns,
+                tail_token_budget=tail_token_budget,
+            )
+            compressor = StandaloneCompressor(llm=llm, config=config)
+            compressed = await compressor.compress(
+                self.messages, self.meta.session_id
+            )
+            if len(compressed) < len(self.messages):
+                old_count = len(self.messages)
+                self.messages = compressed
+                self.meta.compaction_count += 1
+                self._touch()
+                self._logger.info(
+                    "compact_async applied session={} {} → {} messages",
+                    self.meta.session_id,
+                    old_count,
+                    len(compressed),
+                )
+                return CompactResult(
+                    compacted_count=old_count - len(compressed),
+                    summary_text="[历史压缩]",
+                )
+            return CompactResult()
+        except Exception as exc:
+            self._logger.warning(
+                "compact_async failed ({}), falling back to sync compact", exc
+            )
+            return self.compact(
+                protect_turns=protect_turns,
+                recent_token_budget=tail_token_budget,
+            )
 
     def update_token_count(self, count: int) -> None:
         self._token_count = count

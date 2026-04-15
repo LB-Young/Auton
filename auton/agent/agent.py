@@ -32,6 +32,7 @@ from .types import LLMContext, ProcessResult
 if TYPE_CHECKING:
     from ..tools.base import Tool, ToolResult
     from ..skills.injector import SkillInjector
+    from ..memory.memory_read_hook import MemoryReadHook
 
 
 class SessionProcessor:
@@ -57,7 +58,6 @@ class SessionProcessor:
         command_registry=None,
         active_skills: "list | None" = None,
         system_prompt: str = "",
-        skill_injector: "SkillInjector | None" = None,
     ) -> None:
         self.session = session
         self.llm = llm
@@ -70,17 +70,31 @@ class SessionProcessor:
         self._last_stored_msg_index = -1
         self._command_registry = command_registry
         self.last_command_result = None
-        # 基础系统提示词（不含 Skill 内容，Skill 按 query 动态注入）
-        self._base_system_prompt: str = system_prompt
-        self._system_prompt: str = system_prompt
-        # per-query Skill 注入器
-        self._skill_injector: "SkillInjector | None" = skill_injector
+        # System Prompt：会话启动时构建一次，包含完整上下文（skills/tools/subagents/MCP）
+        self._system_prompt = system_prompt
         # Skill 性能追踪：active_skills 由调用方注入，存 Skill 对象列表
         self._active_skills: list = active_skills or []
         self._skill_trackers: dict = {}   # skill_name → SkillPerfTracker
-        self._skill_fragment_ids: dict = {}  # skill_name → fragment_id (当前轮)
+        self._skill_fragment_ids: dict = {}  # skill_name → (fragment_id, msg_id_start) 元组
         self._turn_index: int = 0         # 全局轮次计数器
         self._turn_start_time: float = 0.0
+        # 记忆读取 Hook（检索命中分析）
+        self._memory_read_hook: "MemoryReadHook | None" = None
+        # 工具输出最大字符数：基于模型上下文窗口，防止单条输出撑爆上下文
+        # 计算逻辑：context_window * 4 chars/token * 0.4（留 60% 给其他消息）
+        context_window = getattr(llm, "context_window", 8192)
+        self._max_tool_output_chars: int = max(4_000, min(40_000, context_window * 4 * 2 // 5))
+
+    def set_memory_read_hook(self, hook: "MemoryReadHook") -> None:
+        """注入 MemoryReadHook，启用检索命中分析。
+
+        由外层（SessionFactory / Gateway）在创建 SessionProcessor 后调用：
+            from auton.memory.memory_read_hook import MemoryReadHook
+            from auton.memory.retrieval_analytics import RetrievalAnalytics
+            analytics = RetrievalAnalytics(storage_path)
+            processor.set_memory_read_hook(MemoryReadHook(analytics))
+        """
+        self._memory_read_hook = hook
 
     # ─── 主循环 ────────────────────────────────────────────────────────────
 
@@ -101,7 +115,7 @@ class SessionProcessor:
             )
         )
 
-        # 首次：存储所有已有的 user/system 消息
+        # 首次：存储所有已有的 user 消息（system 消息在 ctx.system_prompt 阶段统一合并写入）
         for i in range(self._last_stored_msg_index + 1, len(self.session.messages)):
             msg = self.session.messages[i]
             if msg.role == "user":
@@ -111,26 +125,38 @@ class SessionProcessor:
                     content,
                     message_id=msg.message_id,
                 )
-            elif msg.role == "system":
-                self.session_store.append_system_message(
-                    self.session.meta.session_id,
-                    msg.get_text(),
-                )
         self._last_stored_msg_index = len(self.session.messages) - 1
 
         while True:
-            # 1. 按当前 query 动态注入 Skill，构建上下文
+            # 1. 构建上下文：system_prompt 在 __init__ 时一次性拼装完整
+            #    （含 skills/tools/subagents/MCP），后续不再变化；
+            #    compact 只压缩 session.messages，system_prompt 不参与
             _query = self._last_user_query()
-            self._system_prompt = self._build_system_prompt_for_query(_query)
-            ctx = self._ctx_builder.build(self.session, system_prompt=self._system_prompt)
+            ctx = self._ctx_builder.build(
+                self.session,
+                system_prompt=self._system_prompt,
+            )
             self._update_token_count(ctx)
+            # 同步当前 query 到记忆读取 Hook（用于检索命中分析）
+            if self._memory_read_hook and _query:
+                self._memory_read_hook.set_current_query(_query)
 
-            # 系统提示词只存一次
-            if ctx.system_prompt and not self._ctx_builder.system_stored:
-                self.session_store.append_system_message(
-                    self.session.meta.session_id,
-                    ctx.system_prompt,
-                )
+            # 系统提示词只存一次（合并 session.messages 中的 system 消息到末尾）
+            if not self._ctx_builder.system_stored:
+                extra_systems: list[str] = []
+                for msg in self.session.messages:
+                    if msg.role == "system":
+                        text = msg.get_text()
+                        if text.strip():
+                            extra_systems.append(text)
+                combined_prompt = ctx.system_prompt
+                if extra_systems:
+                    combined_prompt = (ctx.system_prompt or "") + "\n\n" + "\n\n".join(extra_systems)
+                if combined_prompt:
+                    self.session_store.append_system_message(
+                        self.session.meta.session_id,
+                        combined_prompt,
+                    )
                 self._ctx_builder.mark_system_stored()
 
             # 2. LLM streaming
@@ -283,18 +309,35 @@ class SessionProcessor:
             return
 
         while True:
-            # 按当前 query 动态注入 Skill，构建上下文
+            # 构建上下文：system_prompt 已一次性拼装完整（含 skills/tools/subagents/MCP），
+            # 后续不再变化；compact 只压缩 session.messages，system_prompt 不参与
             query = self._last_user_query()
-            self._system_prompt = self._build_system_prompt_for_query(query)
-            ctx = self._ctx_builder.build(self.session, system_prompt=self._system_prompt)
+            ctx = self._ctx_builder.build(
+                self.session,
+                system_prompt=self._system_prompt,
+            )
             self._update_token_count(ctx)
+            # 同步当前 query 到记忆读取 Hook（用于检索命中分析）
+            if self._memory_read_hook and query:
+                self._memory_read_hook.set_current_query(query)
 
-            # 系统提示词只存一次
-            if ctx.system_prompt and not self._ctx_builder.system_stored:
-                self.session_store.append_system_message(
-                    self.session.meta.session_id,
-                    ctx.system_prompt,
-                )
+            # 系统提示词只存一次（合并 session.messages 中的 system 消息到末尾）
+            if not self._ctx_builder.system_stored:
+                # 收集 session.messages 中的 system 消息内容，拼接到 ctx.system_prompt 末尾
+                extra_systems: list[str] = []
+                for msg in self.session.messages:
+                    if msg.role == "system":
+                        text = msg.get_text()
+                        if text.strip():
+                            extra_systems.append(text)
+                combined_prompt = ctx.system_prompt
+                if extra_systems:
+                    combined_prompt = (ctx.system_prompt or "") + "\n\n" + "\n\n".join(extra_systems)
+                if combined_prompt:
+                    self.session_store.append_system_message(
+                        self.session.meta.session_id,
+                        combined_prompt,
+                    )
                 self._ctx_builder.mark_system_stored()
 
             # 存储新出现的 user message（跳过已存储的）
@@ -308,10 +351,7 @@ class SessionProcessor:
                         message_id=msg.message_id,
                     )
                 elif msg.role == "system":
-                    self.session_store.append_system_message(
-                        self.session.meta.session_id,
-                        msg.get_text(),
-                    )
+                    pass  # system 消息已合并到上面的 system prompt
             self._last_stored_msg_index = len(self.session.messages) - 1
 
             # ── Skill 追踪：本轮开始 ────────────────────────────────────────
@@ -485,6 +525,10 @@ class SessionProcessor:
                 clean_output = self.session_store.sanitize_tool_output(
                     result.content, part.tool_name
                 )
+                # 截断过大的工具输出，防止单条输出超过模型上下文窗口
+                clean_output = _truncate_tool_output(
+                    clean_output, self._max_tool_output_chars, part.tool_name
+                )
                 part.status = "completed"
                 part.tool_output = clean_output
                 self.events.emit_sync(
@@ -495,6 +539,14 @@ class SessionProcessor:
                         tool_call_id=part.tool_call_id,
                     )
                 )
+                # 记忆读取 Hook：拦截文件读取，记录检索命中来源
+                if self._memory_read_hook is not None:
+                    self._memory_read_hook.on_tool_result(
+                        tool_name=part.tool_name,
+                        tool_input=part.tool_input,
+                        result=clean_output,
+                        session_id=self.session.meta.session_id,
+                    )
                 # 添加 tool result 作为 user message 续上下文（由 run/run_stream 的存储循环统一写入）
                 result_content = f"[tool: {part.tool_name}]\n{clean_output}"
                 result_msg = Message(role="user")
@@ -655,27 +707,18 @@ class SessionProcessor:
                 return msg.get_text()[:500]
         return ""
 
-    def _build_system_prompt_for_query(self, query: str) -> str:
-        """根据当前 query 动态注入 Skill 内容，返回完整系统提示词。
-
-        若无 SkillInjector 或注入失败，返回基础系统提示词。
-        """
-        if not self._skill_injector or not query:
-            return self._base_system_prompt
-        try:
-            skill_ctx = self._skill_injector.inject_for_query(query, cwd=None)
-        except Exception as exc:
-            self._logger.debug("skill inject failed: {e}", e=exc)
-            return self._base_system_prompt
-        if not skill_ctx:
-            return self._base_system_prompt
-        return self._base_system_prompt + "\n\n---\n\n# Active Skills\n\n" + skill_ctx.strip()
+    def _last_message_id(self) -> str:
+        """获取会话中最后一条消息的 message_id（UUID），用于精确定位片段。"""
+        if self.session.messages:
+            return self.session.messages[-1].message_id
+        return ""
 
     def _record_skill_turn_start(self, query: str) -> None:
         """本轮 LLM 调用开始：为所有 active_skills 记录 invoke_start 事件。"""
         if not self._active_skills:
             return
         session_id = self.session.meta.session_id
+        msg_id_start = self._last_message_id()
         for skill in self._active_skills:
             tracker = self._get_skill_tracker(skill)
             if tracker is None:
@@ -685,7 +728,7 @@ class SessionProcessor:
                 query=query,
                 turn_index=self._turn_index,
             )
-            self._skill_fragment_ids[skill.name] = fragment_id
+            self._skill_fragment_ids[skill.name] = (fragment_id, msg_id_start)
             self.session_store.append_skill_invoke_start(
                 session_id=session_id,
                 skill_name=skill.name,
@@ -694,6 +737,7 @@ class SessionProcessor:
                 query=query,
                 turn_index=self._turn_index,
                 skill_path=str(skill.path),
+                msg_id_start=msg_id_start,
             )
 
     def _record_skill_turn_end(self, success: bool, tool_calls: int) -> None:
@@ -704,9 +748,11 @@ class SessionProcessor:
         session_id = self.session.meta.session_id
         duration_ms = (_time.time() - self._turn_start_time) * 1000
         session_path = self.session_store.session_path(session_id)
+        msg_id_end = self._last_message_id()
 
         for skill in self._active_skills:
-            fragment_id = self._skill_fragment_ids.pop(skill.name, "")
+            stored = self._skill_fragment_ids.pop(skill.name, ("", ""))
+            fragment_id, msg_id_start = stored if isinstance(stored, tuple) else (stored, "")
             if not fragment_id:
                 continue
             tracker = self._get_skill_tracker(skill)
@@ -723,6 +769,8 @@ class SessionProcessor:
                 trigger="auto",
                 query=self._last_user_query(),
                 session_path=session_path,
+                msg_id_start=msg_id_start,
+                msg_id_end=msg_id_end,
             )
             self.session_store.append_skill_invoke_end(
                 session_id=session_id,
@@ -732,4 +780,33 @@ class SessionProcessor:
                 tool_calls_count=tool_calls,
                 llm_turns=1,
                 duration_ms=duration_ms,
+                msg_id_end=msg_id_end,
             )
+
+
+# ─── 工具输出截断 ────────────────────────────────────────────────────────────
+
+def _truncate_tool_output(output: str, max_chars: int, tool_name: str = "") -> str:
+    """将工具输出截断到 max_chars，防止单条输出超过模型上下文窗口。
+
+    截断时在末尾附加说明，告诉 LLM 输出已被截断。
+
+    Args:
+        output:    工具返回的原始文本
+        max_chars: 允许的最大字符数（基于 LLM context_window 计算）
+        tool_name: 工具名（用于截断提示）
+
+    Returns:
+        截断后的文本（如果未超限则原样返回）
+    """
+    if len(output) <= max_chars:
+        return output
+
+    kept = output[:max_chars]
+    omitted = len(output) - max_chars
+    hint = (
+        f"\n\n[⚠ 工具输出已截断：原始输出 {len(output):,} 字符，"
+        f"显示前 {max_chars:,} 字符，省略 {omitted:,} 字符。"
+        f"如需查看完整输出，请缩小查询范围或分批读取。]"
+    )
+    return kept + hint

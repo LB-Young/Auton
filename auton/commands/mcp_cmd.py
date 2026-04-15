@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import json
 from typing import Any
 
 from loguru import logger
 
 from ..core.config import get_config
+from ..core.paths import resolve_userspace_path
 from ..tools.mcp import MCPClient, MCPClientConfig, load_mcp_servers, stop_mcp_servers
 from .base import Command, CommandResult
 
@@ -75,14 +77,23 @@ class MCPCommand(Command):
     def _empty_state(self) -> str:
         return (
             "**当前没有配置 MCP Server。**\n\n"
-            "在 `~/.auton/config.yaml` 中添加配置：\n"
-            "```yaml\n"
-            "mcp:\n"
-            "  servers:\n"
-            "    - name: github\n"
-            "      command: [npx, -y, @modelcontextprotocol/server-github]\n"
-            "      env:\n"
-            "        GITHUB_TOKEN: ${GITHUB_TOKEN}\n"
+            "在 `~/.auton/config/auton_config.json` 的 `global.mcp.servers` 中添加配置：\n"
+            "```json\n"
+            "{\n"
+            "  \"global\": {\n"
+            "    \"mcp\": {\n"
+            "      \"servers\": [\n"
+            "        {\n"
+            "          \"name\": \"github\",\n"
+            "          \"command\": [\"npx\", \"-y\", \"@modelcontextprotocol/server-github\"],\n"
+            "          \"env\": {\n"
+            "            \"GITHUB_TOKEN\": \"${GITHUB_TOKEN}\"\n"
+            "          }\n"
+            "        }\n"
+            "      ]\n"
+            "    }\n"
+            "  }\n"
+            "}\n"
             "```\n\n"
             "或使用 `/mcp add` 引导添加。"
         )
@@ -180,14 +191,23 @@ class MCPCommand(Command):
                 "2. **启动命令**（如 `npx -y @modelcontextprotocol/server-github`）\n"
                 "3. **环境变量**（如有，如 `GITHUB_TOKEN`）\n"
                 "4. **参数**（如有，如允许的路径列表）\n\n"
-                "示例配置格式：\n"
-                "```yaml\n"
-                "mcp:\n"
-                "  servers:\n"
-                "    - name: github\n"
-                "      command: [npx, -y, @modelcontextprotocol/server-github]\n"
-                "      env:\n"
-                "        GITHUB_TOKEN: ${GITHUB_TOKEN}\n"
+                "示例配置格式（`~/.auton/config/auton_config.json`）：\n"
+                "```json\n"
+                "{\n"
+                "  \"global\": {\n"
+                "    \"mcp\": {\n"
+                "      \"servers\": [\n"
+                "        {\n"
+                "          \"name\": \"github\",\n"
+                "          \"command\": [\"npx\", \"-y\", \"@modelcontextprotocol/server-github\"],\n"
+                "          \"env\": {\n"
+                "            \"GITHUB_TOKEN\": \"${GITHUB_TOKEN}\"\n"
+                "          }\n"
+                "        }\n"
+                "      ]\n"
+                "    }\n"
+                "  }\n"
+                "}\n"
                 "```"
             )
         )
@@ -199,30 +219,38 @@ class MCPCommand(Command):
         if not name:
             return CommandResult(content="用法：`/mcp remove <name>`", success=False)
 
-        import yaml
+        import json
         from pathlib import Path
 
-        config_path = Path("~/.auton/config.yaml").expanduser()
+        config_path = resolve_userspace_path("config", "auton_config.json")
         if not config_path.exists():
             return CommandResult(content=f"配置文件不存在：`{config_path}`", success=False)
 
         try:
-            with open(config_path, encoding="utf-8") as f:
-                data = yaml.safe_load(f) or {}
+            raw = config_path.read_text(encoding="utf-8") or "{}"
+            data = json.loads(raw)
+            if not isinstance(data, dict):
+                data = {}
 
-            servers = data.get("mcp", {}).get("servers", [])
+            global_cfg = data.get("global")
+            if not isinstance(global_cfg, dict):
+                global_cfg = {}
+            mcp_cfg = global_cfg.get("mcp")
+            if not isinstance(mcp_cfg, dict):
+                mcp_cfg = {}
+            servers = mcp_cfg.get("servers", [])
             before = len(servers)
             servers = [s for s in servers if s.get("name") != name]
 
             if len(servers) == before:
                 return CommandResult(content=f"未找到 MCP Server：`{name}`", success=False)
 
-            if "mcp" not in data:
-                data["mcp"] = {}
-            data["mcp"]["servers"] = servers
+            data.setdefault("global", {}).setdefault("mcp", {})["servers"] = servers
 
-            with open(config_path, "w", encoding="utf-8") as f:
-                yaml.dump(data, f, allow_unicode=True, default_flow_style=False)
+            config_path.write_text(
+                json.dumps(data, indent=2, ensure_ascii=False) + "\n",
+                encoding="utf-8",
+            )
 
             return CommandResult(content=f"✅ 已从配置中移除 `{name}`（重启生效）。")
         except Exception as exc:
@@ -252,16 +280,27 @@ class MCPCommand(Command):
 /mcp stop filesystem
 ```
 
-## 配置格式（~/.auton/config.yaml）
-```yaml
-mcp:
-  servers:
-    - name: github
-      command: [npx, -y, @modelcontextprotocol/server-github]
-      env:
-        GITHUB_TOKEN: ${GITHUB_TOKEN}
-    - name: filesystem
-      command: [npx, -y, @modelcontextprotocol/server-filesystem]
-      args: [/Users/liubaoyang/allowed]
+## 配置格式（~/.auton/config/auton_config.json）
+```json
+{
+  "global": {
+    "mcp": {
+      "servers": [
+        {
+          "name": "github",
+          "command": ["npx", "-y", "@modelcontextprotocol/server-github"],
+          "env": {
+            "GITHUB_TOKEN": "${GITHUB_TOKEN}"
+          }
+        },
+        {
+          "name": "filesystem",
+          "command": ["npx", "-y", "@modelcontextprotocol/server-filesystem"],
+          "args": ["/Users/liubaoyang/allowed"]
+        }
+      ]
+    }
+  }
+}
 ```
 """

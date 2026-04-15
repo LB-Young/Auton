@@ -6,6 +6,8 @@ from pathlib import Path
 
 from loguru import logger
 
+from ..core.paths import resolve_userspace_path
+
 from .frontmatter import write_skill_file, SkillFrontmatter, SkillMetadata
 from .packager import SkillPackager
 
@@ -30,7 +32,7 @@ class SkillCreator:
 
     def get_user_skills_dir(self) -> Path:
         """用户级技能目录：~/.auton/skill/"""
-        return Path.home() / ".auton" / "skill"
+        return resolve_userspace_path("skill")
 
     def init_skill(
         self,

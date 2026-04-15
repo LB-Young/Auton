@@ -49,13 +49,22 @@ read / write / edit / glob / grep / bash / web_search / web_fetch
 
 **MCP 工具**（动态注册）：
 ```python
-# config.yaml
-mcp:
-  servers:
-    - name: "github"
-      command: ["npx", "-y", "@modelcontextprotocol/server-github"]
-      env:
-        GITHUB_TOKEN: "${GITHUB_TOKEN}"
+# ~/.auton/config/auton_config.json
+{
+  "global": {
+    "mcp": {
+      "servers": [
+        {
+          "name": "github",
+          "command": ["npx", "-y", "@modelcontextprotocol/server-github"],
+          "env": {
+            "GITHUB_TOKEN": "${GITHUB_TOKEN}"
+          }
+        }
+      ]
+    }
+  }
+}
 ```
 
 ## BashTool 7 层安全防线

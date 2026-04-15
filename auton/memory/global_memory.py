@@ -15,6 +15,8 @@ from pathlib import Path
 
 from loguru import logger
 
+from ..core.paths import resolve_userspace_path
+
 
 class GlobalMemory:
     """全局记忆管理器（按日期组织）
@@ -35,7 +37,7 @@ class GlobalMemory:
 
     def __init__(self, storage_dir: Path | None = None) -> None:
         if storage_dir is None:
-            storage_dir = Path("~/.auton/memory").expanduser()
+            storage_dir = resolve_userspace_path("memory")
         self.storage_dir = Path(storage_dir)
         self._logger = logger.bind(name="GlobalMemory")
 

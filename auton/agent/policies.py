@@ -26,15 +26,26 @@ class DecisionPolicy:
 
     def __init__(
         self,
-        compact_threshold: int = 180_000,
+        compact_threshold: int = 0,
         max_turns: int = 500,
         recent_protect_turns: int = 2,
         recent_token_budget: int = 40_000,
+        context_window: int = 8_192,
     ) -> None:
-        self.compact_threshold = compact_threshold
+        # 若调用方传入 compact_threshold > 0，直接使用；
+        # 否则基于 context_window 自动计算：在达到窗口 70% 时触发压缩
+        if compact_threshold > 0:
+            self.compact_threshold = compact_threshold
+        else:
+            self.compact_threshold = max(4_000, int(context_window * 0.70))
         self.max_turns = max_turns
         self.recent_protect_turns = recent_protect_turns
-        self.recent_token_budget = recent_token_budget
+        # recent_token_budget：保留最近消息的 token 预算（不压缩），
+        # 上限为 compact_threshold 的 30%
+        self.recent_token_budget = min(
+            recent_token_budget,
+            int(self.compact_threshold * 0.30),
+        )
         self._logger = logger.bind(name="DecisionPolicy")
 
     def decide(self, inp: PolicyInput) -> ProcessResult:

@@ -11,6 +11,8 @@ from pathlib import Path
 
 from loguru import logger
 
+from ..core.paths import resolve_userspace_path
+
 from .dsl import DSLParser, DSLParseError
 from .types import WorkflowDefinition, WorkflowRun
 
@@ -19,7 +21,7 @@ class WorkflowStore:
     """工作流定义存储"""
 
     def __init__(self, storage_dir: Path | None = None) -> None:
-        self.storage_dir = storage_dir or Path("~/.auton/workflows").expanduser()
+        self.storage_dir = storage_dir or resolve_userspace_path("workflows")
         self.storage_dir.mkdir(parents=True, exist_ok=True)
         self.parser = DSLParser()
         self._logger = logger.bind(name="WorkflowStore")
@@ -138,7 +140,7 @@ class RunStore:
     """工作流执行记录存储"""
 
     def __init__(self, storage_dir: Path | None = None) -> None:
-        self.storage_dir = storage_dir or Path("~/.auton/workflow_runs").expanduser()
+        self.storage_dir = storage_dir or resolve_userspace_path("workflow_runs")
         self.storage_dir.mkdir(parents=True, exist_ok=True)
         self._logger = logger.bind(name="RunStore")
 

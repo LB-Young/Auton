@@ -26,6 +26,7 @@ class SubagentConfig:
     name: str
     description: str
     model: str | None = None          # None = 继承主 Agent
+    provider: str | None = None       # None = 继承主 Agent 的 LLM 平台
     max_turns: int | None = None      # None = 无限制
     timeout_seconds: int = 300          # 默认 5 分钟超时
     tools: list[str] | None = None    # None = 全部工具

@@ -11,6 +11,7 @@ from loguru import logger
 
 from .frontmatter import parse_skill_file, FrontmatterError
 from .types import Skill, SkillSource
+from ..core.config import is_capability_enabled
 
 
 class SkillLoader:
@@ -39,7 +40,7 @@ class SkillLoader:
         return {
             SkillSource.WORKSPACE: self._find_skill_dirs(cwd),  # 当前工作目录
             SkillSource.PROJECT: self._find_skill_dirs(cwd),  # 项目根（与 workspace 相同，待 find_project_root）
-            SkillSource.USER: [home / ".auton" / "skill"],
+            SkillSource.USER: [home / ".auton" / "skills"],
             SkillSource.BUILTIN: [Path(auton.__file__).parent / "skills" / "builtin"],
         }
 
@@ -80,6 +81,13 @@ class SkillLoader:
                         continue
                     try:
                         skill = self._load_skill(skill_file, source)
+                        if not self._skill_enabled(source, skill.name):
+                            self._logger.info(
+                                "skip skill {name} from {src}（配置中禁用）",
+                                name=skill.name,
+                                src=source.value,
+                            )
+                            continue
                         result[source].append(skill)
                     except FrontmatterError as exc:
                         self._logger.warning(
@@ -121,6 +129,15 @@ class SkillLoader:
             emoji=fm.metadata.emoji,
             required_bins=fm.metadata.requires.get("bins", []),
         )
+
+    def _skill_enabled(self, source: SkillSource, name: str) -> bool:
+        if source is SkillSource.BUILTIN:
+            scope = "builtin"
+        elif source in (SkillSource.WORKSPACE, SkillSource.PROJECT):
+            scope = "project"
+        else:
+            scope = "extensions"
+        return is_capability_enabled(scope, "skills", name)
 
     def load_skill(self, name: str, cwd: Path | None = None) -> Skill | None:
         """按名称加载单个 Skill（从所有来源）"""

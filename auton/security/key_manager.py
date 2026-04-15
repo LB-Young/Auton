@@ -17,6 +17,8 @@ from typing import Literal
 
 from loguru import logger
 
+from ..core.paths import resolve_userspace_path
+
 
 @dataclass
 class KeyInfo:
@@ -135,9 +137,7 @@ class KeyManager:
 
     def _get_from_config(self, key_name: str) -> str | None:
         """从配置目录读取（仅开发模式）"""
-        from pathlib import Path
-
-        config_path = Path("~/.auton/credentials").expanduser()
+        config_path = resolve_userspace_path("credentials")
         if not config_path.exists():
             return None
 

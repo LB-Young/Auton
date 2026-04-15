@@ -139,9 +139,9 @@ class SessionStore:
         storage_dir: Path,
         project_root: Path | None = None,
     ) -> None:
-        self.storage_dir = Path(storage_dir)
+        self.storage_dir = Path(storage_dir).expanduser()
         # base64 媒体文件统一落盘到 ~/.auton/tmp/
-        self.tmp_dir: Path = Path(storage_dir).parent / "tmp"
+        self.tmp_dir: Path = self.storage_dir.parent / "tmp"
         self._logger = logger.bind(name="SessionStore")
         # session_id → Path 的懒加载索引，用于 O(1) 全局查找
         self._session_index: dict[str, Path] | None = None
@@ -394,10 +394,12 @@ class SessionStore:
         query: str,
         turn_index: int,
         skill_path: str = "",
+        msg_id_start: str = "",
     ) -> None:
         """记录 skill 被注入 context 的时刻（每轮 LLM 调用开始前）。
 
         对应 OPTIMIZATION.md 7.2.2 中的 skill_invoke_start 事件。
+        msg_id_start 为此时刻最后一条会话消息的 message_id，用于在 session.jsonl 中定位片段起点。
         """
         self.append_event(
             session_id,
@@ -410,6 +412,7 @@ class SessionStore:
                 "trigger": trigger,
                 "query": query,
                 "turn_index": turn_index,
+                "msg_id_start": msg_id_start,
                 "timestamp": time.time(),
             },
         )
@@ -424,10 +427,12 @@ class SessionStore:
         llm_turns: int,
         duration_ms: float,
         error_message: str | None = None,
+        msg_id_end: str = "",
     ) -> None:
         """记录一轮 skill 调用结束（工具链执行完毕后）。
 
         对应 OPTIMIZATION.md 7.2.2 中的 skill_invoke_end 事件。
+        msg_id_end 为此时刻最后一条会话消息的 message_id，用于在 session.jsonl 中定位片段终点。
         """
         self.append_event(
             session_id,
@@ -441,6 +446,7 @@ class SessionStore:
                 "llm_turns": llm_turns,
                 "duration_ms": duration_ms,
                 "error_message": error_message,
+                "msg_id_end": msg_id_end,
                 "timestamp": time.time(),
             },
         )

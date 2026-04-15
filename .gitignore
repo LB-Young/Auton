@@ -45,4 +45,5 @@ Thumbs.db
 
 # Auton runtime files
 .auton/
+.auton_local/
 .HEARTBEAT_OK.log

@@ -10,6 +10,8 @@ from pathlib import Path
 
 from loguru import logger
 
+from ..core.paths import resolve_userspace_path
+
 from .types import Alternative, Plan, PlanStep, Risk, RiskLevel, PlanStatus
 
 
@@ -17,7 +19,7 @@ class PlanStorage:
     """计划存储（持久化到 ~/.auton/plans/）"""
 
     def __init__(self, storage_dir: Path | None = None) -> None:
-        self.storage_dir = storage_dir or Path("~/.auton/plans").expanduser()
+        self.storage_dir = storage_dir or resolve_userspace_path("plans")
         self.storage_dir.mkdir(parents=True, exist_ok=True)
         self._logger = logger.bind(name="PlanStorage")
 

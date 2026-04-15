@@ -15,6 +15,8 @@ from pathlib import Path
 
 from loguru import logger
 
+from ..core.paths import resolve_userspace_path
+
 
 @dataclass
 class AutonMDEntry:
@@ -42,7 +44,7 @@ class AutonMDManager:
         Returns:
             {"high": Path|None, "medium": Path|None, "low": Path|None}
         """
-        high = Path("~/.auton").expanduser() / self.FILENAME
+        high = resolve_userspace_path(self.FILENAME)
         if not high.exists():
             high = None
 
@@ -175,7 +177,7 @@ class AutonMDManager:
         from .conflict_resolver import ConflictResolver
 
         if level == "high":
-            path = Path("~/.auton").expanduser() / self.FILENAME
+            path = resolve_userspace_path(self.FILENAME)
         elif level == "medium":
             from .project_memory import ProjectMemory
 

@@ -14,10 +14,12 @@
                 print(event.delta, end="", flush=True)
 
 支持的接入方式：
-    - CLI      : auton/cli/main.py
-    - Web      : auton/web/app.py
-    - Slack    : auton/gateway/adapters/slack.py  （待实现）
-    - 飞书      : auton/gateway/adapters/feishu.py （待实现）
+    - CLI      : auton/adapters/cli/main.py
+    - Web      : auton/adapters/web/app.py
+    - Slack    : auton/adapters/slack/adapter.py
+    - Discord  : auton/adapters/discord/adapter.py
+    - WhatsApp : auton/adapters/whatsapp/adapter.py
+    - Feishu   : auton/adapters/feishu/adapter.py
 """
 
 from .session_factory import SessionFactory

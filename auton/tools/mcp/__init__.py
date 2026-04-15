@@ -9,16 +9,27 @@ MCP 协议简介：
   - Agent 通过 tools/call 调用工具
   - 工具结果通过 JSON-RPC 返回
 
-配置方式（config/default.yaml）：
-  mcp:
-    servers:
-      - name: "github"
-        command: ["npx", "-y", "@modelcontextprotocol/server-github"]
-        env:
-          GITHUB_TOKEN: "${GITHUB_TOKEN}"
-      - name: "filesystem"
-        command: ["npx", "-y", "@modelcontextprotocol/server-filesystem"]
-        args: ["/allowed/path"]
+配置方式（~/.auton/config/auton_config.json）：
+  {
+    "global": {
+      "mcp": {
+        "servers": [
+          {
+            "name": "github",
+            "command": ["npx", "-y", "@modelcontextprotocol/server-github"],
+            "env": {
+              "GITHUB_TOKEN": "${GITHUB_TOKEN}"
+            }
+          },
+          {
+            "name": "filesystem",
+            "command": ["npx", "-y", "@modelcontextprotocol/server-filesystem"],
+            "args": ["/allowed/path"]
+          }
+        ]
+      }
+    }
+  }
 """
 
 from __future__ import annotations
@@ -315,12 +326,16 @@ class MCPTool(Tool):
             return ToolResult(
                 content=(
                     f"MCP server '{server}' is not configured or not started.\n"
-                    "To enable MCP servers, add them to config/default.yaml:\n"
-                    "  mcp:\n"
-                    "    servers:\n"
-                    f"      - name: {server!r}\n"
-                    "        command: [...]\n"
-                    f"Configure MCP servers in your ~/.auton/config.yaml"
+                    "To enable MCP servers, add them to ~/.auton/config/auton_config.json (global.mcp.servers):\n"
+                    "{\n"
+                    '  "global": {\n'
+                    '    "mcp": {\n'
+                    '      "servers": [\n'
+                    f"        {{ \"name\": {server!r}, \"command\": [\"...\"] }}\n"
+                    "      ]\n"
+                    "    }\n"
+                    "  }\n"
+                    "}"
                 ),
                 success=False,
                 error=f"MCP server '{server}' not found",

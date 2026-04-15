@@ -27,6 +27,8 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from ..core.paths import resolve_userspace_path
+
 if TYPE_CHECKING:
     from .chunking import Chunk
 
@@ -51,7 +53,7 @@ class KeywordStore:
     """关键词长期记忆检索器（L0）"""
 
     def __init__(self, storage_dir: Path | None = None) -> None:
-        self.storage_dir = storage_dir or Path("~/.auton/memory").expanduser()
+        self.storage_dir = storage_dir or resolve_userspace_path("memory")
         self.chunks_path = self.storage_dir / "chunks.jsonl"
         self.access_path = self.storage_dir / ".access_index.json"
         self._doc_freq: dict[str, int] = {}  # 词 → 包含该词的文档数

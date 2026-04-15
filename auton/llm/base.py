@@ -77,7 +77,12 @@ LLMEvent = (
 # ─── Provider 接口 ────────────────────────────────────────────────────────
 
 class LLMProvider(ABC):
-    """LLM Provider 抽象基类"""
+    """LLM Provider 抽象基类
+
+    context_window: 模型的输入上下文窗口大小（token 数）。
+        各 Provider 子类应在 __init__ 中根据 model 名称覆盖此值。
+        默认 8192 为保守估计，防止未知模型超窗口。
+    """
 
     def __init__(
         self,
@@ -94,6 +99,8 @@ class LLMProvider(ABC):
         self.max_tokens = max_tokens
         self.temperature = temperature
         self.timeout = timeout
+        # 输入上下文窗口大小（token 数），子类应根据模型名覆盖
+        self.context_window: int = 8192
 
     @abstractmethod
     async def stream(self, ctx: "LLMContext") -> AsyncIterator[LLMEvent]:

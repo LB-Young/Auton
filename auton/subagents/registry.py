@@ -6,6 +6,7 @@ from loguru import logger
 
 from .base import BaseSubagent
 from .types import SubagentConfig
+from ..core.config import is_capability_enabled
 
 
 class SubagentRegistry:
@@ -47,7 +48,14 @@ class SubagentRegistry:
                 import importlib
                 module = importlib.import_module(module_path, package=__package__)
                 subagent_cls = getattr(module, cls_name)
-                self.register_single(subagent_cls())
+                instance = subagent_cls()
+                if not is_capability_enabled("builtin", "subagents", instance.name):
+                    self._logger.info(
+                        "skip builtin subagent {n} (disabled via config)",
+                        n=instance.name,
+                    )
+                    continue
+                self.register_single(instance)
             except ImportError:
                 self._logger.debug("subagent {n} not available yet", n=name)
 

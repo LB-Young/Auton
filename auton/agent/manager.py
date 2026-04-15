@@ -5,87 +5,19 @@ from __future__ import annotations
 import asyncio
 import re
 import uuid
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from loguru import logger
 
+from ..core.paths import resolve_userspace_path
+
 from .types import AgentDefinition, AgentRun, AgentStatus
 
 if TYPE_CHECKING:
     pass
-
-
-# ─── 内置 Agent 定义 ────────────────────────────────────────────────────────
-
-_BUILTIN_AGENTS: list[AgentDefinition] = [
-    AgentDefinition(
-        name="explore",
-        description="代码探索专家。当需要全面分析项目结构、理解复杂模块、搜索多种模式时使用。",
-        system_prompt="""你是代码探索专家。你擅长全面分析项目结构、理解模块边界、快速定位关键代码。
-你专注于观察和总结，不做修改决策。""",
-        model=None,
-        tools=["read", "glob", "grep"],
-        disallowed_tools=[],
-        permission_mode="auto",
-        max_turns=10,
-        skills=[],
-        mcp_servers=[],
-        background=False,
-        isolation=None,
-        source="builtin",
-    ),
-    AgentDefinition(
-        name="coder",
-        description="编程专家。当需要写代码、改代码、重构、修复 bug 时使用。",
-        system_prompt="""你是编程专家。你擅长根据需求写代码、修改现有代码、重构以提升质量。
-你遵循最佳实践，注重代码可读性和安全性。""",
-        model=None,
-        tools=None,  # 全部工具
-        disallowed_tools=[],
-        permission_mode="default",
-        max_turns=20,
-        skills=[],
-        mcp_servers=[],
-        background=False,
-        isolation=None,
-        source="builtin",
-    ),
-    AgentDefinition(
-        name="reviewer",
-        description="审查专家。当需要 review 代码、审查 PR、检查质量时使用。",
-        system_prompt="""你是代码审查专家。你擅长发现代码问题、安全漏洞、性能隐患和风格不一致。
-审查要客观、有建设性，区分必须修复和建议改进。""",
-        model=None,
-        tools=["read", "glob", "grep", "bash"],
-        disallowed_tools=["write", "edit"],
-        permission_mode="auto",
-        max_turns=10,
-        skills=[],
-        mcp_servers=[],
-        background=False,
-        isolation=None,
-        source="builtin",
-    ),
-    AgentDefinition(
-        name="planner",
-        description="规划专家。当需要任务分解、方案设计、架构决策时使用。",
-        system_prompt="""你是规划专家。你擅长将复杂需求分解为可执行的步骤，评估风险，设计方案。
-你输出结构清晰、分层有序，适合直接执行。""",
-        model=None,
-        tools=["read", "glob", "grep"],
-        disallowed_tools=[],
-        permission_mode="auto",
-        max_turns=8,
-        skills=[],
-        mcp_servers=[],
-        background=False,
-        isolation=None,
-        source="builtin",
-    ),
-]
 
 
 # ─── AgentManager ────────────────────────────────────────────────────────────
@@ -101,7 +33,7 @@ class AgentManager:
     """Agent 管理器
 
     职责：
-      - 加载内置 + 用户 + 项目 agent 定义
+      - 加载用户 + 项目 agent 定义（从 .md 文件）
       - 维护活跃的 sub-agent 运行列表
       - 提供 agent 检索
     """
@@ -116,25 +48,19 @@ class AgentManager:
     # ─── 加载 ──────────────────────────────────────────────────────────────
 
     def _load_agents(self) -> None:
-        """加载所有 agent（builtin + 用户 + 项目）"""
-        # 内置
-        for agent in _BUILTIN_AGENTS:
-            self._agents[agent.name] = agent
-        self._logger.debug("loaded {n} builtin agents", n=len(_BUILTIN_AGENTS))
-
+        """加载所有 agent（用户 + 项目）"""
         # 用户级：~/.auton/agents/
-        user_dir = Path.home() / ".auton" / "agents"
+        user_dir = resolve_userspace_path("agents")
         if user_dir.exists():
             self._load_from_dir(user_dir, source="user")
 
         # 项目级：.auton/agents/
-        import os
         cwd = Path.cwd()
         project_dir = cwd / ".auton" / "agents"
         if project_dir.exists():
             self._load_from_dir(project_dir, source="project")
 
-        self._logger.info("loaded {n} total agents", n=len(self._agents))
+        self._logger.info("loaded {n} agents", n=len(self._agents))
 
     def _load_from_dir(self, directory: Path, source: str) -> None:
         """从目录加载 *.md agent 定义"""
@@ -156,6 +82,7 @@ class AgentManager:
         name = Path(content.split("\n")[0] if "\n" in content else content).stem  # fallback
         description = ""
         model: str | None = None
+        provider: str | None = None
         tools: list[str] | None = None
         disallowed_tools: list[str] = []
         permission_mode = "default"
@@ -178,6 +105,8 @@ class AgentManager:
                     description = value
                 elif key == "model":
                     model = value if value else None
+                elif key == "provider":
+                    provider = value.lower() if value else None
                 elif key == "permissionMode":
                     permission_mode = value or "default"
                 elif key == "maxTurns":
@@ -228,6 +157,7 @@ class AgentManager:
             description=description,
             system_prompt=body.strip(),
             model=model,
+            provider=provider,
             tools=tools,
             disallowed_tools=disallowed_tools,
             permission_mode=permission_mode,
@@ -242,8 +172,53 @@ class AgentManager:
     # ─── 查询 ──────────────────────────────────────────────────────────────
 
     def get(self, name: str) -> AgentDefinition | None:
-        """根据名称获取 agent 定义"""
-        return self._agents.get(name)
+        """根据名称获取 agent 定义。
+
+        优先查找用户 / 项目定义的 .md 文件，找不到时回退到内置 SubagentRegistry。
+        内置 subagent 的 model / provider 从 buildin_abilities.json 的 params 中读取。
+        """
+        if name in self._agents:
+            return self._agents[name]
+        return self._load_builtin_as_definition(name)
+
+    def _load_builtin_as_definition(self, name: str) -> AgentDefinition | None:
+        """将内置 SubagentRegistry 中的 subagent 包装为 AgentDefinition。
+
+        model / provider 优先级：
+          config.json subagents 节 > buildin_abilities.json params > 继承主 Agent
+        """
+        try:
+            from ..subagents.registry import SubagentRegistry
+            from ..core.config import get_capability_toggle, get_config
+        except ImportError:
+            return None
+
+        registry = SubagentRegistry.get_instance()
+        subagent = registry.get(name)
+        if subagent is None:
+            return None
+
+        # 1. config.json subagents 节（最高优先级）
+        cfg = get_config()
+        override = cfg.subagents.get(name)
+        cfg_provider: str | None = (override.provider or None) if override else None
+        cfg_model: str | None = (override.model or None) if override else None
+
+        # 2. 回退到 buildin_abilities.json params
+        if not cfg_provider and not cfg_model:
+            toggle = get_capability_toggle("builtin", "subagents", name)
+            params = toggle.params if toggle else {}
+            cfg_provider = params.get("provider") or None
+            cfg_model = params.get("model") or None
+
+        return AgentDefinition(
+            name=subagent.name,
+            description=subagent.description,
+            system_prompt=subagent.system_prompt(),
+            model=cfg_model,
+            provider=cfg_provider,
+            source="builtin",
+        )
 
     def list(self) -> list[AgentDefinition]:
         """列出所有 agent"""
@@ -352,8 +327,8 @@ class AgentManager:
         else:
             allowed = all_tools
 
-        # LLM
-        llm = get_llm_provider()
+        # LLM — 优先使用该 agent 自己配置的 provider / model，否则继承主 Agent 设置
+        llm = get_llm_provider(provider=agent.provider, model=agent.model)
 
         # 构建 system prompt（包含 agent 上下文）
         system_parts = [

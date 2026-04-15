@@ -22,6 +22,8 @@ from typing import TYPE_CHECKING
 
 from loguru import logger
 
+from ..core.paths import resolve_userspace_path
+
 from .types import SkillPerfConfig
 
 if TYPE_CHECKING:
@@ -59,8 +61,8 @@ class SkillPerfRecord:
     error_message: str | None
     timestamp: float
     session_path: Path | None = None
-    line_start: int = 0
-    line_end: int = 0
+    msg_id_start: str = ""          # skill 片段起始消息的 message_id（session.jsonl 中）
+    msg_id_end: str = ""            # skill 片段结束消息的 message_id（session.jsonl 中）
 
 
 # ─── 内部数据结构 ─────────────────────────────────────────────────────────────
@@ -191,8 +193,8 @@ class SkillPerfTracker:
         success: bool,
         error_message: str | None = None,
         session_path: Path | None = None,
-        line_start: int = 0,
-        line_end: int = 0,
+        msg_id_start: str = "",
+        msg_id_end: str = "",
         trigger: str = "auto",
         query: str = "",
     ) -> None:
@@ -208,8 +210,8 @@ class SkillPerfTracker:
             success: 是否成功
             error_message: 失败时的错误信息
             session_path: session JSONL 文件路径（用于片段回放定位）
-            line_start: skill 片段在 JSONL 中的起始行号
-            line_end: skill 片段在 JSONL 中的结束行号
+            msg_id_start: skill 片段起始消息的 message_id（session.jsonl 中，对应 invoke_start 时刻）
+            msg_id_end: skill 片段结束消息的 message_id（session.jsonl 中，对应 invoke_end 时刻）
             trigger: 触发方式
             query: 用户原始请求
         """
@@ -226,8 +228,8 @@ class SkillPerfTracker:
             success=success,
             error_message=error_message,
             session_path=session_path,
-            line_start=line_start,
-            line_end=line_end,
+            msg_id_start=msg_id_start,
+            msg_id_end=msg_id_end,
             timestamp=ts,
         )
         self._update_window_7d()  # 先追加 fragment，再全量重算 7 日窗口
@@ -331,8 +333,8 @@ class SkillPerfTracker:
                     error_message=entry.get("error_message"),
                     timestamp=ts,
                     session_path=Path(sp) if sp else None,
-                    line_start=entry.get("line_start", 0),
-                    line_end=entry.get("line_end", 0),
+                    msg_id_start=entry.get("msg_id_start", ""),
+                    msg_id_end=entry.get("msg_id_end", ""),
                 )
             )
             if len(records) >= limit:
@@ -500,10 +502,13 @@ class SkillPerfTracker:
     ) -> str:
         """收集用于 LLM 优化分析的上下文文本。
 
+        通过 msg_id_start / msg_id_end 在 session.jsonl 中定位完整对话片段，
+        用于回放 skill 执行期间的原始交互。
+
         格式：
           - 7 日统计摘要
-          - 成功片段列表（query + 关键指标）
-          - 失败片段列表（query + 错误信息）
+          - 成功片段列表（query + msg_id + 关键指标）
+          - 失败片段列表（query + msg_id + 错误信息）
         """
         data = self._read_perf()
         w = data["window_7d"]
@@ -629,11 +634,15 @@ class SkillPerfTracker:
         success: bool,
         error_message: str | None,
         session_path: Path | None,
-        line_start: int,
-        line_end: int,
+        msg_id_start: str,
+        msg_id_end: str,
         timestamp: float,
     ) -> None:
-        """追加一条记录到 fragments_index.jsonl（只追加，不修改已有行）。"""
+        """追加一条记录到 fragments_index.jsonl（只追加，不修改已有行）。
+
+        通过 msg_id_start / msg_id_end 可在 session.jsonl 中精确定位 skill 片段，
+        msg_id 不随内容插入而变化，比行号更稳定。
+        """
         entry = {
             "fragment_id": fragment_id,
             "session_id": session_id,
@@ -645,8 +654,8 @@ class SkillPerfTracker:
             "success": success,
             "error_message": error_message,
             "session_path": str(session_path) if session_path else None,
-            "line_start": line_start,
-            "line_end": line_end,
+            "msg_id_start": msg_id_start,
+            "msg_id_end": msg_id_end,
             "timestamp": timestamp,
         }
         self._fragments_path.parent.mkdir(parents=True, exist_ok=True)
@@ -720,7 +729,7 @@ def skill_perf_tracker(skill_name: str, skills_dir: Path | None = None) -> "Skil
     from .types import SkillSource
 
     search_dirs = [skills_dir] if skills_dir else []
-    search_dirs.append(Path.home() / ".auton" / "skill")
+    search_dirs.append(resolve_userspace_path("skill"))
 
     for base in search_dirs:
         skill_dir = base / skill_name

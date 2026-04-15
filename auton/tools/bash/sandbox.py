@@ -70,13 +70,49 @@ def get_sandbox_exec_cmd(command: str, config: SandboxConfig) -> list[str]:
 
 # ─── macOS Sandbox Profile ───────────────────────────────────────────────────
 
-MACOS_SANDBOX_PROFILE = """
-(name "auton-agent")
+# 默认允许的可写路径（临时目录、用户目录）
+DEFAULT_ALLOW_WRITE_PATHS = [
+    "/tmp/",
+    "/var/tmp/",
+    "/Users/",  # 用户 home
+]
+
+# 危险路径（绝对禁止）
+DENY_WRITE_PATHS = [
+    "/System/",
+    "/etc/",
+    "/usr/libexec/",
+    "/bin/",
+    "/sbin/",
+    "/usr/sbin/",
+]
+
+
+def _build_macos_profile(workspace_dir: str | None = None) -> str:
+    """构建 macOS 沙箱配置"""
+    deny_rules = "\n".join(
+        f'(deny file-write*\n  (regex #"^{path}"))' for path in DENY_WRITE_PATHS
+    )
+
+    # 可写路径：临时目录 + workspace
+    writable_paths = DEFAULT_ALLOW_WRITE_PATHS.copy()
+    if workspace_dir:
+        # 确保 workspace 路径以 / 结尾
+        wpath = workspace_dir.rstrip("/") + "/"
+        if wpath not in writable_paths:
+            writable_paths.append(wpath)
+
+    allow_write_rules = "\n".join(
+        f'(allow file-write*\n  (regex #"^{path}"))' for path in writable_paths
+    )
+
+    return f"""(name "auton-agent")
 (version 1)
 (allow default)
 
-(deny file-write*
-  (regex #"^(/etc/|/System/|/usr/libexec/)"))
+{deny_rules}
+
+{allow_write_rules}
 
 (allow file-read*
   (regex #"^/"))
@@ -85,7 +121,7 @@ MACOS_SANDBOX_PROFILE = """
   (regex #"^/bin/|/usr/bin/|/usr/local/bin/"))
 
 (allow network*
-  (regex #"^tcp://|:\\d{4}/"))
+  (regex #"^tcp://|:\\d{{4}}/"))
 
 (allow ipc-posix-shm-read*
   (regex #""))
@@ -95,17 +131,19 @@ MACOS_SANDBOX_PROFILE = """
 """
 
 
+MACOS_SANDBOX_PROFILE = _build_macos_profile()
+
+
 # ─── macOS sandbox-exec ─────────────────────────────────────────────────────
 
 def run_with_macos_sandbox(command: str, config: SandboxConfig) -> SandboxResult:
     """使用 macOS sandbox-exec 执行命令"""
     import tempfile
 
-    # 写入沙箱配置文件
-    profile = MACOS_SANDBOX_PROFILE
-    if config.workspace_dir:
-        # 允许写入 workspace
-        profile += f'\n(allow file-write*\n  (regex #"^{config.workspace_dir}/"))\n'
+    # 构建沙箱配置（包含 workspace 可写路径）
+    profile = _build_macos_profile(
+        workspace_dir=str(config.workspace_dir) if config.workspace_dir else None
+    )
 
     with tempfile.NamedTemporaryFile(
         mode="w",

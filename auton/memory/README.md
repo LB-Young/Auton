@@ -52,7 +52,7 @@ query → MEMORY.md（顶层索引）
 
 ```
 ~/.auton/
-├── config.yaml              # 用户配置文件
+├── config.json              # 用户配置文件（主 Agent LLM）
 ├── memory/                  # 记忆数据
 │   ├── execution/            # append-only jsonl 会话记录
 │   │   ├── <session_id>.jsonl

@@ -16,7 +16,6 @@ if TYPE_CHECKING:
     from ..agent.session_store import SessionStore
     from ..core.events import EventBus
     from ..llm.base import LLMProvider
-    from ..skills.injector import SkillInjector
 
 
 @dataclass
@@ -34,7 +33,6 @@ class SessionContext:
     session_store: "SessionStore"
     llm: "LLMProvider"
     event_bus: "EventBus"
-    skill_injector: "SkillInjector | None"
     system_prompt: str
 
     # 便捷属性

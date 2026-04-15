@@ -15,6 +15,8 @@ from typing import Literal
 
 from loguru import logger
 
+from ..core.paths import resolve_userspace_path
+
 
 @dataclass
 class AuditEntry:
@@ -35,7 +37,7 @@ class AuditEntry:
     error: str | None = None
 
 
-AUDIT_LOG_DIR = Path("~/.auton/logs").expanduser()
+AUDIT_LOG_DIR = resolve_userspace_path("logs")
 BASH_AUDIT_LOG = AUDIT_LOG_DIR / "commands.log"
 
 

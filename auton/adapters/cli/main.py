@@ -14,7 +14,14 @@ from rich.panel import Panel
 from rich.syntax import Syntax
 from rich.text import Text
 
+import enum
 from typing import Literal
+
+
+class SessionMode(str, enum.Enum):
+    auto = "auto"
+    project = "project"
+    chat = "chat"
 
 from ...agent.agent import SessionProcessor
 from ...agent.session import Session
@@ -103,14 +110,18 @@ async def _start_session(
     permission: str | None,
     no_stream: bool,
     yes_all: bool,
-    session_mode: Literal["auto", "project", "chat"],
+    session_mode: SessionMode | str,
 ) -> None:
     setup_logging()
     log = get_logger("cli")
     config = get_config()
 
+    # 校验并初始化 ~/.auton 用户目录结构（首次运行时创建）
+    from ...userspace.bootstrap import ensure_userspace
+    ensure_userspace()
+
     # 通过统一工厂构建会话上下文
-    from ..gateway import SessionFactory
+    from ...gateway import SessionFactory
     ctx = await SessionFactory().build(
         session_mode=session_mode,
         project_root=project,
@@ -131,7 +142,7 @@ async def _start_session(
     )
 
     # 启动 MemoryWatcher 后台定时扫描
-    from ..memory.memory_watcher import MemoryWatcher
+    from ...memory.memory_watcher import MemoryWatcher
     watcher = MemoryWatcher(
         storage_dir=config.memory.storage_dir,
         llm=ctx.llm,
@@ -167,10 +178,10 @@ def main(
     permission: str | None = typer.Option(None, "--permission", help="Permission mode: default/auto/bypass/yolo"),
     no_stream: bool = typer.Option(False, "--no-stream", help="Disable streaming"),
     yes_all: bool = typer.Option(False, "--yes", "-y", help="Auto-confirm all permission prompts"),
-    session_mode: Literal["auto", "project", "chat"] = typer.Option(
-        "auto",
+    session_mode: SessionMode = typer.Option(
+        SessionMode.auto,
         "--session-mode",
-        help="Choose between auto/project/chat modes when starting the TUI",
+        help="Session mode: auto / project / chat",
     ),
 ) -> None:
     """启动 Auton 会话"""
@@ -195,7 +206,8 @@ def web(
 ) -> None:
     import uvicorn
     from ..web.app import app as web_app
-
+    from ...userspace.bootstrap import ensure_userspace
+    ensure_userspace()
     console.print(f"[green]Starting Auton Web UI at http://{host}:{port}[/green]")
     uvicorn.run(web_app, host=host, port=port, log_level="info")
 
@@ -254,7 +266,7 @@ async def _run_stream_once(processor: SessionProcessor) -> None:
 async def _run_repl(
     processor: SessionProcessor,
     *,
-    session_mode: Literal["auto", "project", "chat"] = "auto",
+    session_mode: SessionMode | str = "auto",
 ) -> None:
     """交互式 REPL 循环：问候 → 添加消息 → 流式响应 → 循环"""
     store = processor.session_store

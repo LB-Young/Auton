@@ -31,101 +31,17 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from ..llm.base import LLMProvider
+    from .compression_improver import CompressionImprover
 
 
-# ─── LLM 提示词 ──────────────────────────────────────────────────────────────
+# ─── 提示词（从独立模块导入，解耦 prompt 与生成逻辑）──────────────────────────
 
-_SUMMARY_SYSTEM_PROMPT = (
-    "你是专业的技术对话摘要助手，擅长从技术对话中提取最关键的非显而易见的信息。"
-    "只输出纯文本，不要调用任何工具。"
-    "摘要用于后续语义检索，应简洁精准——每条要点只写结论和理由，不写可从代码库直接查到的内容。"
-    "每条要点末尾附引用标签 [↑msg:xxxxxxxx]（message_id 前 8 位）。"
+from .summary_prompts import (
+    SUMMARY_SYSTEM_PROMPT as _SUMMARY_SYSTEM_PROMPT,
+    get_session_summary_prompt as _get_session_summary_prompt,
+    build_conversation_text as _build_conversation_text,
+    has_meaningful_content as _has_meaningful_content,
 )
-
-_SUMMARY_PROMPT_TEMPLATE = """\
-严重警告：只输出纯文本，不要调用任何工具。
-
-会话 {session_id} 的对话片段（事件 {start_idx}–{end_idx}，共 {count} 条）：
-
-<conversation>
-{conversation_text}
-</conversation>
-
-**引用规则**：每条要点末尾加 [↑msg:xxxxxxxx]；涉及多条则 [↑msg:aaa, msg:bbb]。
-
-**不要写入摘要的内容**（可从代码库推导，写了也是噪声）：
-- 文件路径、函数名、代码结构（grep 可查）
-- shell 命令和工作流（可重跑）
-- 通用技术描述（查文档即可）
-
-**输出格式（4 个字段，每字段 1–4 条要点，没有则写"无"）**：
-
-**请求摘要**：
-[用户提出了什么，一句话每条，突出意图而非措辞]
-
-**关键决策**：
-[选了什么方案、为什么、放弃了什么——非显然的判断才值得记]
-
-**错误与教训**：
-[出了什么问题、如何修复、为何之前的做法不对——避免重蹈覆辙]
-
-**待处理**：
-[明确提出但未完成的事项]
-"""
-
-
-# ─── 对话文本提取（独立实现避免循环导入；只取原始对话，不含 compact 内容）────────
-
-def _build_conversation_text(events: list[dict]) -> str:
-    """从事件列表提取可读对话文本，用于 LLM 摘要输入。
-
-    只使用原始对话内容：用户消息、助手文本回复。
-    排除 compact 压缩内容——摘要应基于真实对话元内容，不引入二次压缩的噪声。
-    每条消息标注 message_id 前缀（前 8 位），供 LLM 生成引用标签时对应。
-    截断：过长的助手回复（保留前 600 字符），避免 prompt 超长。
-    """
-    parts: list[str] = []
-    for ev in events:
-        ev_type = ev.get("type", "")
-        msg_id = ev.get("message_id", "")
-        id_tag = f" #msg:{msg_id[:8]}" if msg_id else ""
-
-        if ev_type == "user-message":
-            content = ev.get("content", "").strip()
-            if content:
-                parts.append(f"[用户{id_tag}] {content}")
-
-        elif ev.get("role") == "assistant":
-            # 助手消息的 message_id 在顶层字段
-            a_id = ev.get("message_id", "")
-            a_tag = f" #msg:{a_id[:8]}" if a_id else ""
-            # 从 parts 数组中提取 text 块（Message.to_dict 格式）
-            raw_parts = ev.get("parts", [])
-            for block in raw_parts:
-                if isinstance(block, dict) and block.get("type") == "text":
-                    text = block.get("content", "").strip()
-                    if text:
-                        if len(text) > 600:
-                            text = text[:600] + "…（截断）"
-                        parts.append(f"[助手{a_tag}] {text}")
-                        break  # 每条助手消息只取第一段文字
-
-    return "\n\n".join(parts)
-
-
-def _has_meaningful_content(events: list[dict]) -> bool:
-    """检查事件列表是否包含有意义的对话内容（非空用户消息或助手回复）。"""
-    for ev in events:
-        ev_type = ev.get("type", "")
-        if ev_type == "user-message" and ev.get("content", "").strip():
-            return True
-        if ev.get("role") == "assistant":
-            # Message.to_dict() 格式：parts 数组，TextPart.content 字段
-            for block in ev.get("parts", []):
-                if isinstance(block, dict) and block.get("type") == "text":
-                    if block.get("content", "").strip():
-                        return True
-    return False
 
 
 # ─── 摘要条目格式化 ───────────────────────────────────────────────────────────
@@ -205,8 +121,13 @@ async def _call_llm_for_summary(
     conversation_text: str,
     start_idx: int,
     end_idx: int,
+    *,
+    custom_prompt: str | None = None,
 ) -> str:
     """调用 LLM 生成对话片段的结构化摘要。
+
+    Args:
+        custom_prompt: 若提供，则替换默认 prompt（用于 CompressionImprover 改进 prompt）
 
     Returns:
         摘要文本（纯文本，无工具调用）
@@ -217,15 +138,15 @@ async def _call_llm_for_summary(
     from ..agent.message import Message
     from ..agent.types import LLMContext
 
-    prompt = _SUMMARY_PROMPT_TEMPLATE.format(
-        session_id=session_id,
-        start_idx=start_idx,
-        end_idx=end_idx,
-        count=end_idx - start_idx + 1,
-        start_line=start_idx + 1,
-        end_line=end_idx + 1,
-        conversation_text=conversation_text,
-    )
+    if custom_prompt is not None:
+        prompt = custom_prompt
+    else:
+        prompt = _get_session_summary_prompt(
+            session_id=session_id,
+            start_idx=start_idx,
+            end_idx=end_idx,
+            conversation_text=conversation_text,
+        )
 
     user_msg = Message(role="user")
     user_msg.add_text(prompt)
@@ -260,6 +181,7 @@ async def generate_and_append_summary(
     start_idx: int,
     summary_path: Path,
     scope: str = "",
+    compression_improver: "CompressionImprover | None" = None,
 ) -> int:
     """为 events[start_idx:] 生成 LLM 摘要并追加到 SUMMARY.md。
 
@@ -270,6 +192,8 @@ async def generate_and_append_summary(
         start_idx: 本次摘要起始事件索引（上次摘要结束后的下一条）
         summary_path: SUMMARY.md 的绝对路径
         scope: 标题说明（项目路径或日期）
+        compression_improver: 若提供，则用检索质量分析生成改进 prompt，
+            替换默认 prompt，逐步提升 summary 的检索命中率。
 
     Returns:
         新的 last_summarized_idx（即 len(events) - 1）；
@@ -287,9 +211,27 @@ async def generate_and_append_summary(
     if not conversation_text.strip():
         return start_idx - 1
 
+    # 尝试用 CompressionImprover 生成改进 prompt（有则用，无则降级到默认 prompt）
+    custom_prompt: str | None = None
+    if compression_improver is not None:
+        try:
+            current_summary = (
+                summary_path.read_text(encoding="utf-8")
+                if summary_path.exists()
+                else ""
+            )
+            custom_prompt = compression_improver.generate_improvement_prompt(
+                session_id=session_id,
+                session_jsonl=events_slice,
+                current_summary=current_summary,
+            )
+        except Exception:
+            custom_prompt = None  # 改进 prompt 生成失败时静默降级
+
     # 生成 LLM 摘要
     summary_text = await _call_llm_for_summary(
-        llm, session_id, conversation_text, start_idx, end_idx
+        llm, session_id, conversation_text, start_idx, end_idx,
+        custom_prompt=custom_prompt,
     )
 
     # 确定段落编号（基于已有段落数 + 1）

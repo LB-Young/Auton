@@ -24,8 +24,7 @@ from ...commands.base import CommandResult
 from ...core.config import get_config
 from ...core.events import EventBus
 from ...core.logging import setup_logging, get_logger
-from ...llm.anthropic_provider import AnthropicProvider
-from ...llm.minimax_provider import MiniMaxProvider
+from ...llm import AnthropicProvider, MiniMaxProvider
 from ...llm.base import LLMProvider
 from ...tools import get_default_tools
 from .session_utils import (
@@ -131,7 +130,7 @@ def _inject_project_context_message(
 @asynccontextmanager
 async def _lifespan(app: FastAPI):  # type: ignore[misc]
     """应用生命周期：启动 MemoryWatcher，关闭时先 flush 再停止。"""
-    from ..memory.memory_watcher import MemoryWatcher
+    from ...memory.memory_watcher import MemoryWatcher
 
     config = get_config()
     llm = _create_llm()
@@ -269,7 +268,7 @@ def create_app() -> FastAPI:
             )
 
         # 通过统一工厂构建会话上下文（注入已有 session 和 session_store）
-        from ..gateway import SessionFactory
+        from ...gateway import SessionFactory
         _mode = "project" if project_path else "chat"
         _gw_ctx = await SessionFactory().build(
             session_mode=_mode,
@@ -279,7 +278,7 @@ def create_app() -> FastAPI:
             event_bus=EventBus(),
         )
         # Web 端 session_store 由上方 create_session_store 创建（含 base_override），
-        # 保留不替换；只取 processor / llm / skill_injector
+        # 保留不替换；只取 processor / llm
         processor = SessionProcessor(
             session=session,
             llm=_gw_ctx.llm,
@@ -287,7 +286,6 @@ def create_app() -> FastAPI:
             session_store=session_store,
             event_bus=_gw_ctx.event_bus,
             system_prompt=_gw_ctx.system_prompt,
-            skill_injector=_gw_ctx.skill_injector,
         )
         processor.prepare_streaming_session(session)
         session.add_user_message(msg)

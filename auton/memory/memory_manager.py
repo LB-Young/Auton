@@ -16,6 +16,8 @@ from typing import Literal
 
 from loguru import logger
 
+from ..core.paths import resolve_userspace_path
+
 from .auton_md import AutonMDManager
 from .conflict_resolver import ConflictResolver
 from .forgetting import run_gc, get_forgetting_stats
@@ -53,7 +55,7 @@ class MemoryManager:
         project_root: Path | None = None,
     ) -> None:
         if storage_dir is None:
-            storage_dir = Path("~/.auton/memory").expanduser()
+            storage_dir = resolve_userspace_path("memory")
         self.storage_dir = Path(storage_dir)
         self.project_root = project_root
 

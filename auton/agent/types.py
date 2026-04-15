@@ -22,6 +22,7 @@ class AgentDefinition:
     description: str                             # 何时使用（供主 Agent 决策）
     system_prompt: str                           # 系统提示词
     model: str | None = None                     # 模型（None = 继承主 Agent）
+    provider: str | None = None                  # LLM 平台（None = 继承主 Agent）
     tools: list[str] | None = None               # 允许的工具（None = 全部）
     disallowed_tools: list[str] = field(default_factory=list)  # 禁止的工具
     permission_mode: str = "default"             # 权限模式

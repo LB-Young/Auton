@@ -10,6 +10,8 @@ from pathlib import Path
 
 from loguru import logger
 
+from ..core.paths import resolve_userspace_path
+
 from .types import Task, TaskStatus, is_terminal, can_transition
 
 
@@ -17,7 +19,7 @@ class TaskStore:
     """任务存储（JSON 文件持久化）"""
 
     def __init__(self, storage_dir: Path | None = None) -> None:
-        self.storage_dir = storage_dir or Path("~/.auton/tasks").expanduser()
+        self.storage_dir = storage_dir or resolve_userspace_path("tasks")
         self.storage_dir.mkdir(parents=True, exist_ok=True)
         self.index_path = self.storage_dir / "index.jsonl"
         self._logger = logger.bind(name="TaskStore")

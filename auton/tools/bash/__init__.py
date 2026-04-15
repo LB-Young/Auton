@@ -27,6 +27,7 @@ from loguru import logger
 
 from ..base import Tool, ToolResult
 from ...security.permission import PermissionManager, PermissionMode
+from ...core.paths import resolve_userspace_path
 
 from .path_validator import validate_command_paths, check_null_byte, normalize_path
 from .sandbox import SandboxConfig, get_sandbox_config, run_sandboxed
@@ -52,7 +53,7 @@ def truncate_output(output: str, max_bytes: int = MAX_OUTPUT_BYTES) -> str:
 
 # ─── 审计日志 ───────────────────────────────────────────────────────────────
 
-AUDIT_LOG_PATH = Path("~/.auton/logs/commands.log").expanduser()
+AUDIT_LOG_PATH = resolve_userspace_path("logs", "commands.log")
 
 
 def write_audit_log(

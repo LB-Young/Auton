@@ -6,11 +6,16 @@ import re
 from pathlib import Path
 
 from ..base import Tool, ToolResult
+from ..file_filter import should_skip_for_search
 
 
 class GrepTool(Tool):
     name = "grep"
-    description = "Search for a pattern in files"
+    description = (
+        "Search for a pattern in files. "
+        "Automatically skips binary files, compiled caches (__pycache__, .pyc), "
+        "version control dirs (.git), session logs, and other noise."
+    )
 
     def input_schema(self) -> dict:
         return {
@@ -26,11 +31,11 @@ class GrepTool(Tool):
                 },
                 "glob": {
                     "type": "string",
-                    "description": "Only match files matching this glob",
+                    "description": "Only match files matching this glob (e.g. '*.py')",
                 },
                 "context": {
                     "type": "integer",
-                    "description": "Number of context lines before/after",
+                    "description": "Number of context lines before/after each match",
                 },
             },
             "required": ["pattern"],
@@ -48,6 +53,9 @@ class GrepTool(Tool):
             base = Path(path)
             for f in base.rglob(glob or "*"):
                 if not f.is_file():
+                    continue
+                # 跳过二进制文件、编译缓存目录、session 日志等噪声
+                if should_skip_for_search(f):
                     continue
                 try:
                     lines = f.read_text(encoding="utf-8", errors="replace").splitlines()
