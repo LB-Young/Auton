@@ -683,6 +683,18 @@ class SkillPerfTracker:
             c=alert["alert_count"],
         )
 
+    def _clear_alert(self) -> None:
+        """清除 alert_triggered 标志。
+
+        在 SkillOptimizer.optimize() 成功后调用，确保同一 skill 不会重复触发优化。
+        """
+        data = self._read_perf()
+        data["window_7d"]["alert_triggered"] = False
+        data["alert"]["alert_count"] = 0
+        data["updated_at"] = _now_iso()
+        self._write_perf(data)
+        self._logger.debug("cleared alert flag for skill {n}", n=self.skill.name)
+
     # ─── JSON 读写 ─────────────────────────────────────────────────────────────
 
     def _read_perf(self) -> dict:
@@ -744,3 +756,48 @@ def skill_perf_tracker(skill_name: str, skills_dir: Path | None = None) -> "Skil
                 return None
 
     return None
+
+
+def get_skills_with_pending_alerts(
+    skills_dir: Path | None = None,
+) -> list["SkillPerfTracker"]:
+    """扫描 skills 目录，返回所有 alert_triggered=true 的 SkillPerfTracker 列表。
+
+    用于会话结束时后台触发待优化的 skill。
+
+    Args:
+        skills_dir: 可选，默认使用 ~/.auton/skill/
+
+    Returns:
+        alert_triggered=true 的 skill 对应的 SkillPerfTracker 列表（可能为空）
+    """
+    base = skills_dir or resolve_userspace_path("skill")
+    if not base.exists():
+        return []
+
+    trackers: list["SkillPerfTracker"] = []
+    for skill_dir in base.iterdir():
+        if not skill_dir.is_dir():
+            continue
+        perf_file = skill_dir / SkillPerfTracker.PERF_FILE
+        if not perf_file.exists():
+            continue
+        try:
+            data = json.loads(perf_file.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            continue
+        if not data.get("window_7d", {}).get("alert_triggered", False):
+            continue
+        # 构造 Skill 对象（只用于创建 SkillPerfTracker）
+        skill_md = skill_dir / "SKILL.md"
+        if not skill_md.exists():
+            continue
+        try:
+            from .frontmatter import parse_skill_file
+            from .types import SkillSource
+            skill = parse_skill_file(skill_md, source=SkillSource.USER)
+            trackers.append(SkillPerfTracker(skill))
+        except Exception as exc:
+            logger.debug("skip skill with pending alert {n}: {e}", n=skill_dir.name, e=exc)
+
+    return trackers

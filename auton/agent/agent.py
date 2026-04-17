@@ -675,7 +675,10 @@ class SessionProcessor:
         return result.compacted_count
 
     async def _do_stop(self, reason: str) -> None:
-        """Session 显式结束：归档记录。摘要与记忆由 MemoryWatcher 后台处理。"""
+        """Session 显式结束：归档记录。摘要与记忆由 MemoryWatcher 后台处理。
+
+        归档后触发已标记 skill 的后台优化（不阻塞主进程）。
+        """
         self.session.update_status("idle", reason=reason)
         session_id = self.session.meta.session_id
         self.session_store.archive_session(
@@ -684,7 +687,52 @@ class SessionProcessor:
             ended_at=self.session.meta.updated_at.isoformat(),
             compaction_count=self.session.meta.compaction_count,
         )
+        # 后台：触发已标记的 skill 优化（fire-and-forget，不阻塞）
+        self._trigger_pending_skill_optimizations()
         self._logger.info("session stopped reason={r}", r=reason)
+
+    def _trigger_pending_skill_optimizations(self) -> None:
+        """扫描所有 skill，对 alert_triggered=true 的在后台触发优化。
+
+        使用 asyncio.create_task() fire-and-forget，不阻塞主进程。
+        """
+        import asyncio
+        from ..skills import get_skills_with_pending_alerts
+
+        skills_dir = self.session_store.base / "skill"
+        if not skills_dir.exists():
+            return
+
+        try:
+            pending_trackers = get_skills_with_pending_alerts(skills_dir)
+        except Exception:
+            return
+
+        for tracker in pending_trackers:
+            asyncio.create_task(
+                self._optimize_skill_async(tracker),
+                name=f"skill-optimize-{tracker.skill.name}",
+            )
+            self._logger.info(
+                "queued skill optimization: {n} (alert_triggered=true)",
+                n=tracker.skill.name,
+            )
+
+    async def _optimize_skill_async(self, tracker) -> None:
+        """后台执行单个 skill 的优化。异常内部消化，不影响主进程。"""
+        from ..skills.optimizer import SkillOptimizer
+
+        try:
+            optimizer = SkillOptimizer(tracker, self.llm)
+            result = await optimizer.optimize()
+            self._logger.info(
+                "skill {n} optimized: updated={u} error={e}",
+                n=tracker.skill.name,
+                u=result.skill_md_updated,
+                e=result.error,
+            )
+        except Exception:
+            self._logger.exception("skill optimization failed: {n}", n=tracker.skill.name)
 
     # ─── Skill 追踪辅助方法 ────────────────────────────────────────────────────
 

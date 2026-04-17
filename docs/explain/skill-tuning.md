@@ -34,16 +34,23 @@ flowchart TB
         G --> K["_update_window_7d()\n重算 7 日窗口"]
         G --> L["_check_alert() → should_optimize()"]
         L --> M{条件满足?}
+        M -->|是| M1["window_7d.alert_triggered=true\n写入 SKILL_PERF.json"]
+        M -->|否| M2["跳过"]
     end
 
-    subgraph AFTER["会话结束后（archive_session）"]
-        M -->|否 跳过| Z[结束]
-        M -->|是 触发| N["SkillOptimizer.optimize()\n时机：会话归档时异步触发\n或 /skill tune 手动触发"]
-        N --> O["collect_optimization_context()\n读 fragments_index.jsonl\n用 msg_id 在 session.jsonl 回放片段"]
-        O --> P["LLM 生成优化建议\n===ANALYSIS===\n===NEW_SKILL_MD===\n===EXPERIENCE_ENTRY==="]
-        P --> Q["_apply_to_skill_md()\n写入 SKILL.md"]
-        P --> R["_append_experiences()\n追加到 experiences/README.md"]
-        Q --> S[优化完成 下次调用生效]
+    subgraph AFTER["会话结束后（SessionProcessor._do_stop）"]
+        M1 --> N["_trigger_pending_skill_optimizations()\n扫描 skills 目录\n找 alert_triggered=true 的 skill"]
+        N --> O["asyncio.create_task()\n对每个 skill 启动后台协程\n→ _optimize_skill_async()"]
+        O --> P["SkillOptimizer.optimize()\n（后台异步执行，不阻塞主进程）"]
+        M2 --> Z[结束]
+        P --> Q["collect_optimization_context()\n读 fragments_index.jsonl\n用 msg_id 在 session.jsonl 回放片段"]
+        Q --> R["LLM 生成优化建议\n===ANALYSIS===\n===NEW_SKILL_MD===\n===EXPERIENCE_ENTRY==="]
+        R --> S["_apply_to_skill_md()\n写入 SKILL.md"]
+        R --> T["_append_experiences()\n追加到 experiences/README.md"]
+        R --> U["_clear_alert()\n清除 alert_triggered 标志"]
+        S --> V[优化完成 下次调用生效]
+        T --> V
+        U --> V
     end
 
     classDef sessionFill fill:#e8f5e9,stroke:#4caf50
@@ -314,7 +321,7 @@ async def calibrate_thresholds(llm, overhead_factor=1.2):
 
 | 命令 | 功能 | 时机 |
 |------|------|------|
-| 自动触发 | 每次 Skill 调用结束时 `should_optimize()` 检查，在 `record_invocation_end()` 内执行 | 会话执行中 |
+| 自动触发 | 会话结束时（`_do_stop()` → `archive_session()`），扫描所有 skill，对 `alert_triggered==true` 的以 `asyncio.create_task()` fire-and-forget 后台执行 | 会话结束时（后台，不阻塞） |
 | `/skill tune <name>` | 手动触发优化（跳过条件检查） | 任何时候 |
 
 ---

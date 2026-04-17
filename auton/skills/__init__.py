@@ -20,7 +20,13 @@ from .injector import SkillInjector
 from .loader import SkillLoader
 from .packager import SkillPackager
 from .optimizer import OptimizationResult, SkillOptimizer
-from .perf_tracker import SkillPerfTracker, SkillPerfStats, SkillPerfRecord, skill_perf_tracker
+from .perf_tracker import (
+    SkillPerfTracker,
+    SkillPerfStats,
+    SkillPerfRecord,
+    skill_perf_tracker,
+    get_skills_with_pending_alerts,
+)
 from .registry import SkillRegistry
 from .semantic_search import SkillSearcher, SearchResult
 from .skill_creator import SkillCreator

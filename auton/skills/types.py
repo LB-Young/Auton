@@ -28,7 +28,7 @@ class SkillSource(enum.Enum):
     WORKSPACE = "workspace"  # .auton/skills/（当前工作目录）
     PROJECT = "project"  # .auton/skills/（项目根）
     USER = "user"  # ~/.auton/skills/
-    BUILTIN = "builtin"  # src/auton/skills/builtin/
+    BUILTIN = "builtin"  # ~/.auton/buildin_skills/（安装时从包内复制）
 
 
 # 优先级：workspace > project > user > builtin

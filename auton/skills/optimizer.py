@@ -6,7 +6,8 @@
   3. 调 LLM 生成结构化优化建议（分析 + 新 SKILL.md body + 新经验条目）
   4. 将新 body 写回 SKILL.md
   5. 将经验条目追加到 experiences/README.md
-  6. 返回 OptimizationResult
+  6. 清除 alert_triggered 标志（防止重复触发）
+  7. 返回 OptimizationResult
 
 输出格式：LLM 生成的内容用 ===SECTION=== 分隔，解析稳定、无需 JSON。
 """
@@ -186,7 +187,13 @@ class SkillOptimizer:
             except Exception as exc:
                 self._logger.warning("failed to append experiences: {e}", e=exc)
 
-        # 6. 生成变更摘要
+        # 6. 清除 alert 标志（确保不重复触发）
+        try:
+            self.tracker._clear_alert()
+        except Exception as exc:
+            self._logger.warning("failed to clear alert flag: {e}", e=exc)
+
+        # 7. 生成变更摘要
         parts = [f"**Skill `{self.tracker.skill.name}` 优化完成**\n"]
         parts.append(f"**触发原因**：{trigger_reason}\n")
         parts.append(f"**分析**：\n{analysis}\n")

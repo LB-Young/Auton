@@ -73,9 +73,13 @@ def resolve_userspace_path(*parts: str | os.PathLike[str] | Path) -> Path:
 
 
 def expand_auton_path(value: str | os.PathLike[str] | Path) -> Path:
-    """Expand a path that may start with ``~/.auton`` using the runtime root."""
-    path_str = str(value)
+    """Expand a path that may start with ``~/.auton`` using the runtime root.
+
+    Normalises path separators before matching so that Windows paths using
+    backslashes (e.g. ``~\\.auton\\memory``) are handled correctly.
+    """
+    path_str = str(value).replace("\\", "/")
     if path_str.startswith("~/.auton"):
-        suffix = path_str[len("~/.auton") :].lstrip("/")
+        suffix = path_str[len("~/.auton"):].lstrip("/")
         return resolve_userspace_path(suffix)
-    return Path(path_str).expanduser()
+    return Path(value).expanduser()

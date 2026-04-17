@@ -44,6 +44,13 @@ app = typer.Typer(help="Auton — Personal AI Agent", no_args_is_help=True)
 console = Console()
 
 
+@app.callback()
+def _cli_init(ctx: typer.Context) -> None:
+    """每条命令执行前自动初始化 ~/.auton 用户目录。"""
+    from ...userspace.bootstrap import ensure_userspace
+    ensure_userspace(quiet=True)
+
+
 class CLIRenderer:
     """CLI 流式渲染器
 
@@ -114,11 +121,8 @@ async def _start_session(
 ) -> None:
     setup_logging()
     log = get_logger("cli")
+    # ensure_userspace() 已由 app.callback() 提前执行，此处直接加载配置
     config = get_config()
-
-    # 校验并初始化 ~/.auton 用户目录结构（首次运行时创建）
-    from ...userspace.bootstrap import ensure_userspace
-    ensure_userspace()
 
     # 通过统一工厂构建会话上下文
     from ...gateway import SessionFactory
@@ -199,6 +203,18 @@ def main(
     )
 
 
+@app.command(help="初始化 ~/.auton 用户目录（安装后首次运行）")
+def init() -> None:
+    from ...userspace.bootstrap import ensure_userspace
+    layout = ensure_userspace()
+    console.print(f"[green]✓ 用户目录已就绪：{layout.root}[/green]")
+    console.print(f"\n接下来请编辑配置文件，填写你的 LLM API Key：")
+    console.print(f"  [cyan]{layout.config_json}[/cyan]")
+    console.print(f"\n填好后即可运行：")
+    console.print(f"  [dim]auton web[/dim]   # 启动 Web 界面")
+    console.print(f"  [dim]auton run \"你好\"[/dim]   # 命令行对话")
+
+
 @app.command(help="启动 Auton Web 界面")
 def web(
     host: str = typer.Option("127.0.0.1", "--host", help="监听地址"),
@@ -206,8 +222,7 @@ def web(
 ) -> None:
     import uvicorn
     from ..web.app import app as web_app
-    from ...userspace.bootstrap import ensure_userspace
-    ensure_userspace()
+    # ensure_userspace() 已由 app.callback() 提前执行
     console.print(f"[green]Starting Auton Web UI at http://{host}:{port}[/green]")
     uvicorn.run(web_app, host=host, port=port, log_level="info")
 

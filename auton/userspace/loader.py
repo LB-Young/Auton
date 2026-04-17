@@ -2,7 +2,7 @@
 
 每次 Session 启动时调用 ``UserspaceLoader.load()``，它会：
 
-  1. **Skills**     — 通过 SkillRegistry 自动加载（SkillLoader 会扫描 ~/.auton/skills/）
+  1. **Skills**     — 扫描 ~/.auton/skills/<name>/SKILL.md，注入为 User Skills 块
   2. **Subagents**  — 扫描 ~/.auton/subagents/<name>/AGENT.md，注册为声明式 Subagent
   3. **Workflows**  — 扫描 ~/.auton/workflows/*.{yaml,yml}，注册为可调用工作流
   4. **auton.md**   — 注入用户全局指令到系统提示词（已在 SystemPromptBuilder.load_context_from_disk 中处理）
@@ -39,13 +39,16 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 import yaml
 from loguru import logger
 
 from .bootstrap import UserspaceLayout, get_layout
 from ..core.config import is_capability_enabled
+
+if TYPE_CHECKING:
+    from ..skills.types import Skill
 
 
 # ─── 声明式 Subagent（从 AGENT.md 加载）────────────────────────────────────────
@@ -90,16 +93,19 @@ class UserWorkflowDef:
 class UserspaceContent:
     """一次 load() 的加载结果"""
 
+    skills: "list[Skill]" = field(default_factory=list)
     subagents: list[UserSubagentDef] = field(default_factory=list)
     workflows: list[UserWorkflowDef] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)
 
     @property
     def is_empty(self) -> bool:
-        return not self.subagents and not self.workflows
+        return not self.skills and not self.subagents and not self.workflows
 
     def summary(self) -> str:
         parts = []
+        if self.skills:
+            parts.append(f"skills×{len(self.skills)}")
         if self.subagents:
             parts.append(f"subagents×{len(self.subagents)}")
         if self.workflows:
@@ -132,6 +138,7 @@ class UserspaceLoader:
             UserspaceContent：包含所有加载结果和任何加载错误。
         """
         content = UserspaceContent()
+        self._load_skills(content)
         self._load_subagents(content)
         self._load_workflows(content)
 
@@ -144,6 +151,35 @@ class UserspaceLoader:
             self._log.debug("userspace 无用户扩展内容")
 
         return content
+
+    # ─── Skills ─────────────────────────────────────────────────────────────
+
+    def _load_skills(self, content: UserspaceContent) -> None:
+        """扫描 ~/.auton/skills/<name>/SKILL.md，加载用户安装的 skill。
+
+        直接使用 SkillLoader 并只取 USER 来源，避免与 _inject_skill_context
+        里的全量扫描重复。
+        """
+        from ..skills.loader import SkillLoader
+        from ..skills.types import SkillSource
+
+        skills_dir = self._layout.skills_dir
+        if not skills_dir.exists():
+            return
+
+        loader = SkillLoader()
+        try:
+            by_source = loader.scan_skill_dirs()
+            user_skills = by_source.get(SkillSource.USER, [])
+        except Exception as exc:
+            msg = f"加载用户 skill 失败: {exc}"
+            self._log.warning(msg)
+            content.errors.append(msg)
+            return
+
+        for skill in sorted(user_skills, key=lambda s: s.name.lower()):
+            content.skills.append(skill)
+            self._log.debug("加载用户 skill: {n} from {p}", n=skill.name, p=skill.path)
 
     # ─── Subagents ──────────────────────────────────────────────────────────
 
@@ -254,17 +290,43 @@ class UserspaceLoader:
     ) -> None:
         """将用户扩展内容以 section 形式注入 SystemPromptBuilder。
 
+        格式与内置 Subagent/Tool 保持一致：Markdown 表格 + 完整元数据。
+
         Args:
             content: load() 返回的加载结果
             builder: 当前会话的 SystemPromptBuilder
         """
-        from ..agent.system_prompt import SystemPromptBuilder
+        if content.skills:
+            lines = [
+                "以下 Skill 由用户安装（含 skill-creator 生成），可通过名称激活：\n",
+                "| Skill | 描述 | 路径 |",
+                "|-------|------|------|",
+            ]
+            for sk in content.skills:
+                desc = sk.description or "（未提供描述）"
+                lines.append(f"| **{sk.name}** | {desc} | `{sk.path}` |")
+            builder.add_section(
+                "\n".join(lines),
+                title="User Skills",
+                priority=44,
+            )
 
         if content.subagents:
-            lines = ["以下 Subagent 由用户安装，可通过名称调用：\n"]
+            lines = [
+                "以下 Subagent 由用户安装，可通过 `/agents run <name>` 调用：\n",
+                "| Subagent | 用途 | 元数据 |",
+                "|----------|------|--------|",
+            ]
             for sa in content.subagents:
-                desc = f"  - **{sa.name}**: {sa.description}" if sa.description else f"  - **{sa.name}**"
-                lines.append(desc)
+                desc = sa.description or "（未提供描述）"
+                meta_parts: list[str] = []
+                if sa.model:
+                    meta_parts.append(f"模型: {sa.model}")
+                if sa.max_turns is not None:
+                    meta_parts.append(f"最大轮次: {sa.max_turns}")
+                meta_parts.append(f"超时: {sa.timeout_seconds}s")
+                meta = "，".join(meta_parts)
+                lines.append(f"| **{sa.name}** | {desc} | {meta} |")
             builder.add_section(
                 "\n".join(lines),
                 title="User Subagents",
@@ -272,10 +334,15 @@ class UserspaceLoader:
             )
 
         if content.workflows:
-            lines = ["以下工作流由用户定义，可通过 `/workflow run <name>` 触发：\n"]
+            lines = [
+                "以下工作流由用户定义，可通过 `/workflow run <name>` 触发：\n",
+                "| Workflow | 描述 | 步骤数 |",
+                "|----------|------|--------|",
+            ]
             for wf in content.workflows:
-                desc = f"  - **{wf.name}**: {wf.description}" if wf.description else f"  - **{wf.name}**"
-                lines.append(desc)
+                desc = wf.description or "（未提供描述）"
+                step_count = len(wf.steps)
+                lines.append(f"| **{wf.name}** | {desc} | {step_count} |")
             builder.add_section(
                 "\n".join(lines),
                 title="User Workflows",

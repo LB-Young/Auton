@@ -432,9 +432,9 @@ class SystemPromptBuilder:
                 priority=self.P_PROJECT - 5,
             )
 
-        # 2. 项目级指令（只取优先级最高的一个）
+        # 2. 项目级指令
         search_dir = active_root or cwd
-        for guide_name in ("CLAUDE.md", "AGENTS.md", ".auton.md"):
+        for guide_name in ("auton.md"):
             guide_path = search_dir / guide_name
             if guide_path.exists():
                 self.add_section(

@@ -33,6 +33,7 @@
 
 from __future__ import annotations
 
+import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -258,6 +259,7 @@ class UserspaceLayout:
 
     dirs: list[str] = field(default_factory=lambda: [
         "config",           # 新版配置目录
+        "buildin_skills",   # 内建 Skill（安装时从包内复制）
         "skills",           # 用户安装的 Skill
         "subagents",        # 用户安装的 Subagent
         "workflows",        # 用户定义的工作流
@@ -282,6 +284,10 @@ class UserspaceLayout:
     })
 
     # ─── 便捷属性 ────────────────────────────────────────────────────────────
+
+    @property
+    def buildin_skills_dir(self) -> Path:
+        return self.root / "buildin_skills"
 
     @property
     def skills_dir(self) -> Path:
@@ -361,10 +367,50 @@ def ensure_userspace(
         else:
             log.debug("文件已存在: {p}", p=f)
 
+    _install_builtin_skills(layout, log, quiet)
+
     if created_root:
         log.info("Auton 用户目录初始化完成: {p}", p=layout.root)
 
     return layout
+
+
+def _install_builtin_skills(
+    layout: UserspaceLayout,
+    log: "loguru.Logger",
+    quiet: bool,
+) -> None:
+    """将包内 skills/builtin/ 下的每个 skill 复制到 ~/.auton/buildin_skills/。
+
+    复制策略：
+    - 目标 skill 目录不存在 → 整体复制（新安装或新增 skill）
+    - 目标 skill 目录已存在 → 逐文件覆盖（版本升级时更新内容）
+    """
+    import auton
+
+    src_base = Path(auton.__file__).parent / "skills" / "builtin"
+    dst_base = layout.buildin_skills_dir
+
+    if not src_base.exists():
+        log.warning("内建 skill 源目录不存在，跳过安装: {p}", p=src_base)
+        return
+
+    for skill_dir in src_base.iterdir():
+        if not skill_dir.is_dir():
+            continue
+        dst_skill = dst_base / skill_dir.name
+        if not dst_skill.exists():
+            shutil.copytree(skill_dir, dst_skill)
+            _log(log, quiet, "info", "安装内建 skill: {name}", name=skill_dir.name)
+        else:
+            # 逐文件覆盖，保留用户可能添加的额外文件
+            for src_file in skill_dir.rglob("*"):
+                if src_file.is_file():
+                    rel = src_file.relative_to(skill_dir)
+                    dst_file = dst_skill / rel
+                    dst_file.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(src_file, dst_file)
+            log.debug("更新内建 skill: {name}", name=skill_dir.name)
 
 
 def _log(log: "loguru.Logger", quiet: bool, level: str, msg: str, **kwargs: object) -> None:

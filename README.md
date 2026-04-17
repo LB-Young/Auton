@@ -20,15 +20,20 @@ conda activate auton_env
 
 ```bash
 cd /path/to/Auton
-pip install -e ".[dev]"
+pip install -e .
 ```
 
-> `pip install -e .` 会以 editable（开发）模式安装，代码修改后无需重新安装。  
-> `[dev]` 包含 pytest / pytest-asyncio / ruff / mypy 等开发工具。
+### 3. 初始化用户目录
 
-### 3. 配置 API Key
+```bash
+auton init
+```
 
-首次运行 Auton 会自动创建 `~/.auton/config.json`，这是**最小必填**的 LLM 配置，填好即可立即启动：
+执行后会在 `~/.auton/` 下生成所有配置文件，并提示配置文件路径。
+
+### 4. 配置 API Key
+
+编辑 `~/.auton/config.json`，这是**最小必填**的 LLM 配置，填好即可立即启动：
 
 ```json
 {

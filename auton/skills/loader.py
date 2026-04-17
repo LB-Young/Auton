@@ -30,18 +30,18 @@ class SkillLoader:
         Returns:
             {source: [dir_paths]}
         """
-        import auton
+        from ..core.paths import get_userspace_root
 
         if cwd is None:
             cwd = Path.cwd()
 
-        home = Path.home()
+        userspace = get_userspace_root()
 
         return {
             SkillSource.WORKSPACE: self._find_skill_dirs(cwd),  # 当前工作目录
-            SkillSource.PROJECT: self._find_skill_dirs(cwd),  # 项目根（与 workspace 相同，待 find_project_root）
-            SkillSource.USER: [home / ".auton" / "skills"],
-            SkillSource.BUILTIN: [Path(auton.__file__).parent / "skills" / "builtin"],
+            SkillSource.PROJECT: self._find_skill_dirs(cwd),    # 项目根（与 workspace 相同，待 find_project_root）
+            SkillSource.USER: [userspace / "skills"],
+            SkillSource.BUILTIN: [userspace / "buildin_skills"],
         }
 
     def _find_skill_dirs(self, start: Path) -> list[Path]:

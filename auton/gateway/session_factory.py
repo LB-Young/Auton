@@ -164,10 +164,10 @@ class SessionFactory:
         self._inject_mcp_context(prompt_builder, config)
 
         # ── 10. 加载用户扩展（~/.auton/subagents、workflows）────────────────
-        userspace_content = UserspaceLoader(layout).load()
+        userspace_loader = UserspaceLoader(layout)
+        userspace_content = userspace_loader.load()
         if not userspace_content.is_empty:
-            userspace_content_loader = UserspaceLoader(layout)
-            userspace_content_loader.inject_into_prompt(userspace_content, prompt_builder)
+            userspace_loader.inject_into_prompt(userspace_content, prompt_builder)
 
         # ── 11. System Prompt（会话启动时构建一次，包含完整上下文）
         system_prompt = prompt_builder.build_base()
