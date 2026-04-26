@@ -210,9 +210,28 @@ def _contains_internal_messages(messages: "Sequence[Message]") -> bool:
 
 
 def _align_boundary_backward(messages: "list[Message]", idx: int) -> int:
-    """将边界回拉到 tool pair 开始处，确保 tool_call + tool_result 不被切断。"""
-    while idx > 0 and messages[idx - 1].role == "tool":
-        idx -= 1
+    """将边界回拉到 tool pair 开始处，确保 tool_call + tool_result 不被切断。
+
+    本项目中工具结果以 role='user'、内容带 '[tool:' 前缀的消息写入，
+    而非标准 role='tool' 格式。对齐逻辑：
+      1. 若边界前方紧邻一条或多条工具结果消息，将它们整体划入 tail；
+      2. 若工具结果消息之前还有一条携带工具调用的 assistant 消息，
+         也一并拉入 tail，避免调用方与结果方分离。
+    """
+    # Step 1：将所有紧邻的工具结果（[tool:] 前缀 user 消息）拉入 tail
+    while idx > 0:
+        prev = messages[idx - 1]
+        if prev.role == "user" and prev.get_text().strip().startswith("[tool:"):
+            idx -= 1
+        else:
+            break
+
+    # Step 2：若工具结果之前是发起调用的 assistant 消息，也一并拉入
+    if idx > 0:
+        prev = messages[idx - 1]
+        if prev.role == "assistant" and prev.get_tools():
+            idx -= 1
+
     return idx
 
 
