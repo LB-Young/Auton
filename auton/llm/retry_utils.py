@@ -131,8 +131,10 @@ async def retry_stream(
 ) -> AsyncIterator[T]:
     """带重试的流式生成器包装器。
 
-    流式调用的特殊性：一旦开始 yield，中途失败无法回溯，
-    因此仅在流开始前（第一次 __anext__ 前）捕获并重试。
+    流式调用的特殊性：一旦开始向调用方 yield（例如 Web 已把 token
+    推给浏览器），失败时**不能**再启动第二条完整流，否则同一条
+    回复会展示两遍。因此：若本趟迭代已产生过任何事件，则直接抛出，
+    由上层以错误收束；仅当尚未 yield 过任何项时才按可重试错误退避重试。
 
     Args:
         stream_factory: 返回 AsyncIterator 的无参函数（每次调用产生新流）
@@ -144,11 +146,16 @@ async def retry_stream(
         流中的每个事件对象
     """
     for attempt in range(max_retries + 1):
+        yielded = False
         try:
             async for item in stream_factory():
+                yielded = True
                 yield item
             return
         except BaseException as exc:
+            if yielded:
+                # 已开始向 Web/Agent 消费端推送，禁止整流重放
+                raise
             if not is_retryable_error(exc) or attempt >= max_retries:
                 raise
             wait = jittered_backoff(attempt + 1, base_delay=base_delay, max_delay=max_delay)

@@ -522,7 +522,7 @@ def create_app() -> FastAPI:
                             })
             except Exception as exc:  # pragma: no cover - streamed to client
                 # 异常通过事件流传递，不抛到外层（StreamingResponse 不能处理外层异常）
-                log.error("stream error: {exc}", exc=exc)
+                log.exception("stream error: {exc}", exc=exc)
                 yield _jsonl({"type": "error", "message": str(exc)})
             finally:
                 # 发送 session 结束标记，前端收到后可以清理状态

@@ -191,8 +191,10 @@ class OpenAICompatProvider(LLMProvider):
         # 工具调用 delta 缓冲：index → {id, name, arguments}
         tool_calls_buf: dict[int, dict[str, str]] = {}
         text_started = False
+        text_finish_emitted = False
         full_text_buf = ""
         reasoning_started = False
+        reasoning_finish_emitted = False
 
         stream = await self._client.chat.completions.create(**kwargs)
         async for chunk in stream:
@@ -235,17 +237,23 @@ class OpenAICompatProvider(LLMProvider):
                             buf["arguments"] += tc_delta.function.arguments
 
             # ── 结束信号 ──────────────────────────────────────────────────
+            # 部分网关/代理会在多帧中重复带 finish_reason，只应发出一次
+            # TextFinish/ReasoningFinish，否则 Web 端会收到多条 message 而重复整段展示。
             if finish_reason in ("stop", "end_turn", "length"):
-                if reasoning_started:
+                if reasoning_started and not reasoning_finish_emitted:
                     yield ReasoningFinishEvent()
-                if text_started:
+                    reasoning_finish_emitted = True
+                if text_started and not text_finish_emitted:
                     yield TextFinishEvent(full_text=full_text_buf)
+                    text_finish_emitted = True
 
             elif finish_reason == "tool_calls":
-                if reasoning_started:
+                if reasoning_started and not reasoning_finish_emitted:
                     yield ReasoningFinishEvent()
-                if text_started:
+                    reasoning_finish_emitted = True
+                if text_started and not text_finish_emitted:
                     yield TextFinishEvent(full_text=full_text_buf)
+                    text_finish_emitted = True
                 for buf in tool_calls_buf.values():
                     try:
                         tool_input = json.loads(buf["arguments"]) if buf["arguments"] else {}

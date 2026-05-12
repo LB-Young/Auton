@@ -39,7 +39,6 @@ from .message import Message
 from .policies import DecisionPolicy, PolicyInput
 from .session import CompactResult, Session
 from .session_store import SessionStore
-from .token_utils import estimate_context_tokens
 from .types import LLMContext, ProcessResult
 
 if TYPE_CHECKING:
@@ -108,6 +107,9 @@ class SessionProcessor:
 
         # 记忆读取 Hook（检索命中分析）
         self._memory_read_hook: "MemoryReadHook | None" = None
+
+        # compact 返回 0（无可压内容）时，下一拍强制 continue，避免 token 因静态 system 仍超标而死循环
+        self._force_continue_once: bool = False
 
         # 工具输出最大字符数：基于模型上下文窗口，防止单条输出撑爆上下文
         # 计算逻辑：context_window * 4 chars/token * 0.4（留 60% 给其他消息）
@@ -260,7 +262,9 @@ class SessionProcessor:
 
             if decision.status == "compact":
                 self._last_stored_msg_index = len(self.session.messages) - 1
-                await self._do_compact()
+                n = await self._do_compact()
+                if n == 0:
+                    self._force_continue_once = True
                 continue
             elif decision.status == "stop":
                 # 触发2：session 结束
@@ -519,7 +523,9 @@ class SessionProcessor:
                 )
 
             if decision.status == "compact":
-                await self._do_compact()
+                n = await self._do_compact()
+                if n == 0:
+                    self._force_continue_once = True
                 continue
             elif decision.status == "stop":
                 await self._do_stop(decision.reason)
@@ -758,7 +764,7 @@ class SessionProcessor:
 
         DecisionPolicy 根据以下输入做决策：
           - message_count：消息总数（影响 token 消耗）
-          - token_count：当前上下文 token 数（触发 compact 的主要指标）
+          - token_count：当前聊天消息估算 token（不含工厂静态 system；用于 compact 决策）
           - last_user_message：最后一条用户消息（可能包含特殊指令）
           - step_count：总步数（防止无限循环）
 
@@ -766,6 +772,12 @@ class SessionProcessor:
           决策逻辑可能随业务需求变化（调整 compact 阈值、添加 stop 条件等）。
           独立 policy 对象使得决策逻辑可测试、可替换。
         """
+        if self._force_continue_once:
+            self._force_continue_once = False
+            return ProcessResult(
+                status="continue",
+                reason="compact was no-op, advance one LLM turn",
+            )
         last_user = ""
         for msg in reversed(self.session.messages):
             if msg.role == "user":
@@ -781,17 +793,15 @@ class SessionProcessor:
         return self.policy.decide(inp)
 
     def _update_token_count(self, ctx: LLMContext) -> None:
-        """估算当前上下文 token 数并更新到 session。
+        """估算「随消息增长」的 token 并更新到 session，供决策策略使用。
 
-        为什么需要手动更新？
-          DecisionPolicy 需要根据 token_count 决定是否触发 compact。
-          每次 LLM 调用前需要重新估算，因为 session.messages 可能增加了新消息。
-
-        为什么用 estimate_context_tokens 而不是直接让 LLM 返回？
-          不同 LLM Provider 返回的 usage 字段不同（有的有，有的没有）。
-          统一用本地估算确保跨 provider 一致性。
+        必须**不要**把工厂注入的 system_prompt（ skills / 工具 schema 等静态块）
+        算进本数值：compact 只能压缩 `session.messages`，与静态 system 无关。
+        若把 `estimate_context_tokens(..., system_prompt)` 合并进来，会在 compact
+        后下一圈又立刻超过 compact 阈值，形成「不停 compact 直到某处越界」的死循环
+       （与 _finalize_compact 里用纯 messages 估 token 的语义也不一致）。
         """
-        token_count = estimate_context_tokens(ctx.messages, ctx.system_prompt)
+        token_count = self.session._estimate_tokens(ctx.messages)
         self.session.update_token_count(token_count)
 
     # ─── Compact / Stop ─────────────────────────────────────────────────
