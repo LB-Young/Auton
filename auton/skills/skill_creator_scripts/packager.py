@@ -184,7 +184,7 @@ class SkillPackager:
         # 检查 frontmatter
         if skill_file.exists():
             try:
-                from .frontmatter import parse_skill_file
+                from ..frontmatter import parse_skill_file
 
                 parse_skill_file(skill_file)
             except Exception as exc:

@@ -182,18 +182,34 @@ class PermissionManager:
 
         import asyncio
         import sys
+        import time
 
         def _read() -> bool:
             stdout = self.stdout or sys.stdout
             stdin = self.stdin or sys.stdin
-            print(
-                f"\n⚠️  命令需要确认：\n  命令：{command}\n  原因：{reason}\n",
-                file=stdout,
-            )
-            print("是否允许执行？（yes/no）", end=" ", file=stdout)
+            
+            # 等待一小段时间，让 Live 渲染完成
+            time.sleep(0.3)
+            
+            # 清空当前行并移动到新行，确保提示在渲染内容下方
+            # 使用多个换行来"推开" Live 渲染的内容
+            print("\n" * 5, file=stdout)
+            stdout.flush()
+            
+            # 再等待一下，确保输出已刷新
+            time.sleep(0.1)
+            
+            print("┌" + "─" * 68 + "┐", file=stdout)
+            print("│  ⚠️  命令需要确认" + " " * 49 + "│", file=stdout)
+            print("├" + "─" * 68 + "┤", file=stdout)
+            print(f"│  命令: {command:<58}│", file=stdout)
+            print(f"│  原因: {reason:<58}│", file=stdout)
+            print("└" + "─" * 68 + "┘", file=stdout)
+            print("\n是否允许执行？(yes/no) ", end="", file=stdout)
             stdout.flush()
             try:
                 response = stdin.readline().strip().lower()
+                print("", file=stdout)  # 添加空行
                 return response in ("yes", "y", "是", "true", "1")
             except (EOFError, AttributeError):
                 return False
@@ -205,12 +221,10 @@ class PermissionManager:
             return _read()
 
         # 用独立线程池读 stdin，避免阻塞事件循环
-        # REPL 的 console.input 可以在同一终端交替读 stdin
         import concurrent.futures
         executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
         try:
             future = executor.submit(_read)
-            # 把普通 Future 转成 asyncio.Future 以便 await
             return asyncio.wrap_future(future)
         finally:
             executor.shutdown(wait=False)

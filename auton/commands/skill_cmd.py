@@ -7,9 +7,9 @@ from pathlib import Path
 from typing import Any
 
 from ..skills import SkillRegistry
-from ..skills.skill_creator import SkillCreator
-from ..skills.packager import SkillPackager
-from ..skills.checker import SkillChecker
+from ..skills.skill_creator_scripts.skill_creator import SkillCreator
+from ..skills.skill_creator_scripts.packager import SkillPackager
+from ..skills.skill_creator_scripts.checker import SkillChecker
 from ..skills.semantic_search import SkillSearcher
 from ..skills.injector import SkillInjector
 from ..skills.types import SkillSource

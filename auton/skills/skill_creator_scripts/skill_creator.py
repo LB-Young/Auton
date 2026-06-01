@@ -6,9 +6,9 @@ from pathlib import Path
 
 from loguru import logger
 
-from ..core.paths import resolve_userspace_path
+from ...core.paths import resolve_userspace_path
 
-from .frontmatter import write_skill_file, SkillFrontmatter, SkillMetadata
+from ..frontmatter import write_skill_file, SkillFrontmatter, SkillMetadata
 from .packager import SkillPackager
 
 
@@ -88,9 +88,9 @@ class SkillCreator:
         self._logger.debug("created experiences/README.md for {n}", n=name)
 
         # 初始化 SKILL_PERF.json（性能追踪基准文件）
-        from .perf_tracker import SkillPerfTracker
-        from .frontmatter import parse_skill_file
-        from .types import SkillSource as _SkillSource
+        from ..perf_tracker import SkillPerfTracker
+        from ..frontmatter import parse_skill_file
+        from ..types import SkillSource as _SkillSource
         skill_obj = parse_skill_file(skill_dir / "SKILL.md", source=_SkillSource.USER)
         SkillPerfTracker(skill_obj)  # _ensure_init() 在 __init__ 中自动执行
         self._logger.debug("initialized SKILL_PERF.json for {n}", n=name)
@@ -184,9 +184,9 @@ LLM 在执行本 skill 时读取此文件，避免重复犯错、复用成功路
             cwd=cwd,
         )
         try:
-            from .perf_tracker import SkillPerfTracker
-            from .frontmatter import parse_skill_file
-            from .types import SkillSource
+            from ..perf_tracker import SkillPerfTracker
+            from ..frontmatter import parse_skill_file
+            from ..types import SkillSource
             skill = parse_skill_file(skill_dir / "SKILL.md", source=SkillSource.USER)
             tracker = SkillPerfTracker(skill)
             config = await tracker.calibrate_thresholds(llm, overhead_factor=overhead_factor)

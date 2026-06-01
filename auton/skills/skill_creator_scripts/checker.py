@@ -10,7 +10,7 @@ from typing import Literal
 
 from loguru import logger
 
-from .registry import SkillRegistry
+from ..registry import SkillRegistry
 
 
 @dataclass

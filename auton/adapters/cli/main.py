@@ -57,27 +57,54 @@ class CLIRenderer:
     支持两类事件：
     - LLMStreamEvent  (llm/base.py): run_stream() yield 的 LLM 原始事件
     - AutonEvent      (core/event_types.py): EventBus 分发的结构化事件
+    
+    渲染顺序：思考1 → 工具调用1 → 思考2 → 工具调用2 → ... → 思考n → 最终结论
     """
 
     def __init__(self) -> None:
-        self._lines: list[str] = []
-        self._tool_outputs: list[str] = []
-        self._reasoning_chunks: list[str] = []
+        # 使用统一的内容列表，按顺序存储所有内容（思考、文本、工具输出）
+        self._content_items: list[tuple[str, str]] = []  # (type, content)
+        self._current_text_buffer: list[str] = []  # 缓存连续的文本块
+        self._current_reasoning_buffer: list[str] = []  # 缓存当前思考块
         self._done = False
         self._thinking = False
 
+    def _flush_text_buffer(self) -> None:
+        """将缓存的文本块添加到内容列表"""
+        if self._current_text_buffer:
+            text = "".join(self._current_text_buffer)
+            self._content_items.append(("text", text))
+            self._current_text_buffer.clear()
+
+    def _flush_reasoning_buffer(self) -> None:
+        """将缓存的思考块添加到内容列表"""
+        if self._current_reasoning_buffer:
+            reasoning_text = "".join(self._current_reasoning_buffer)
+            # 格式化思考内容，使其更易读，添加明显的分隔
+            self._content_items.append(("reasoning", f"\n\n💭 **[思考]**\n{reasoning_text}\n"))
+            self._current_reasoning_buffer.clear()
+
     def render(self) -> str:
         parts = []
-        if self._thinking and self._reasoning_chunks:
-            thinking_text = "".join(self._reasoning_chunks)
-            if len(thinking_text) > 200:
-                thinking_text = thinking_text[-200:] + "..."
-            parts.append(f"[dim][思考中...][/dim]\n\n")
-        if self._lines:
-            parts.append("".join(self._lines))
-        if self._tool_outputs:
-            tools_str = "\n".join(self._tool_outputs)
-            parts.append(f"\n[Tool outputs]\n{tools_str}")
+        
+        # 按顺序渲染所有内容（思考、文本、工具输出交错）
+        for item_type, content in self._content_items:
+            parts.append(content)
+        
+        # 添加当前正在进行的思考（实时显示）
+        if self._thinking and self._current_reasoning_buffer:
+            thinking_text = "".join(self._current_reasoning_buffer)
+            # 如果思考内容太长，只显示最后部分
+            if len(thinking_text) > 300:
+                preview = "..." + thinking_text[-300:]
+            else:
+                preview = thinking_text
+            parts.append(f"\n\n💭 **[思考中...]**\n{preview}\n")
+        
+        # 添加当前正在缓存的文本
+        if self._current_text_buffer:
+            parts.append("".join(self._current_text_buffer))
+        
         return "".join(parts)
 
     def handle(self, event) -> None:
@@ -85,28 +112,47 @@ class CLIRenderer:
         event_type = getattr(event, "type", None)
         if event_type == "text_delta":
             self._thinking = False
-            self._lines.append(getattr(event, "delta", ""))
+            self._current_text_buffer.append(getattr(event, "delta", ""))
         elif event_type == "reasoning_start":
+            # 开始新的思考轮次
             self._thinking = True
+            self._current_reasoning_buffer.clear()
         elif event_type == "reasoning_delta":
-            self._reasoning_chunks.append(getattr(event, "delta", ""))
+            # 累积思考内容
+            self._current_reasoning_buffer.append(getattr(event, "delta", ""))
         elif event_type == "reasoning_finish":
+            # 思考结束，将完整的思考内容保存到内容列表
             self._thinking = False
+            self._flush_reasoning_buffer()
         elif event_type == "tool_use":
-            self._tool_outputs.append(f"\n[{getattr(event, 'name', '?')}] ...")
+            # 工具调用时，先刷新文本和思考缓存，然后添加工具输出占位符
+            self._flush_reasoning_buffer()
+            self._flush_text_buffer()
+            tool_name = getattr(event, 'name', '?')
+            self._content_items.append(("tool", f"\n\n🔧 **[{tool_name}]**\n执行中...\n"))
         # ── AutonEvent (EventBus 分发的结构化事件) ────────────────────────────
         elif isinstance(event, AutonEvent):
             if isinstance(event, TextDeltaEvent):
                 self._thinking = False
-                self._lines.append(event.delta)
+                self._current_text_buffer.append(event.delta)
             elif isinstance(event, ToolCallEvent):
-                self._tool_outputs.append(f"\n[{event.tool_name}] ...")
+                # 工具调用时，先刷新文本和思考缓存，然后添加工具输出占位符
+                self._flush_reasoning_buffer()
+                self._flush_text_buffer()
+                self._content_items.append(("tool", f"\n\n🔧 **[{event.tool_name}]**\n执行中...\n"))
             elif isinstance(event, ToolResultEvent):
-                if self._tool_outputs:
-                    self._tool_outputs[-1] = f"\n[{event.tool_name}]\n{event.output[:500]}"
+                # 更新最后一个工具输出
+                for i in range(len(self._content_items) - 1, -1, -1):
+                    if self._content_items[i][0] == "tool" and event.tool_name in self._content_items[i][1]:
+                        output_preview = event.output[:500] if event.output else "(no output)"
+                        self._content_items[i] = ("tool", f"\n\n🔧 **[{event.tool_name}]**\n```\n{output_preview}\n```\n")
+                        break
             elif isinstance(event, ToolErrorEvent):
-                if self._tool_outputs:
-                    self._tool_outputs[-1] = f"\n[{event.tool_name}] ERROR: {event.error}"
+                # 更新最后一个工具输出为错误信息
+                for i in range(len(self._content_items) - 1, -1, -1):
+                    if self._content_items[i][0] == "tool" and event.tool_name in self._content_items[i][1]:
+                        self._content_items[i] = ("tool", f"\n\n🔧 **[{event.tool_name}]**\n❌ ERROR: {event.error}\n")
+                        break
 
 
 async def _start_session(
@@ -254,6 +300,8 @@ async def _render_stream(processor: SessionProcessor, live) -> None:
                 ))
                 continue
             renderer.handle(event)
+            
+            # 更新显示
             live.update(Panel(
                 Markdown(renderer.render()),
                 title="Auton",
@@ -270,7 +318,8 @@ async def _render_stream(processor: SessionProcessor, live) -> None:
 async def _run_stream_once(processor: SessionProcessor) -> None:
     """单次运行（用于有初始消息的场景）"""
     try:
-        with Live(console=console, refresh_per_second=10) as live:
+        # 降低刷新频率，避免覆盖确认提示
+        with Live(console=console, refresh_per_second=4) as live:
             await _render_stream(processor, live)
     except KeyboardInterrupt:
         console.print("\n[yellow]Interrupted[/yellow]")
