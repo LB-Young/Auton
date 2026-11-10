@@ -35,60 +35,48 @@
 
 ## 2. 系统全景
 
-```
- ┌──────────── Clients ─────────────┐
- │  CLI     Web     Slack/飞书/...   │
- └──────────────┬───────────────────┘
-                │  本地 API（HTTP + WebSocket 流）
- ┌──────────────▼──────────────────────────────────────────────────────┐
- │ autond（守护进程）                                                    │
- │                                                                      │
- │  ┌────────────── 前台：Runtime ───────────────┐                      │
- │  │ Session → Agent Loop → Model / Tools       │                      │
- │  │        ↑ Context Engine（从 Genome 装配）   │                      │
- │  └───────────────┬────────────────────────────┘                      │
- │                  │ events                                            │
- │  ┌───────────────▼───────────────┐   ┌───────────────────────────┐   │
- │  │ Event Log（SQLite, append-only）│──▶│ Projections               │   │
- │  └───────────────────────────────┘   │ sessions / episodes /     │   │
- │                                      │ asset usage / metrics     │   │
- │                                      └────────────┬──────────────┘   │
- │  ┌────────────── 后台：Evolution Engine ──────────▼──────────────┐   │
- │  │ Assess → Reflect → Propose → Verify(Arena) → Release → Monitor│   │
- │  └───────────────────────────────────────┬───────────────────────┘   │
- │                                          │ git commit / branch       │
- │  ┌───────────────────────────────────────▼───────────────────────┐   │
- │  │ Genome（git 仓库）  skills · knowledge · insights · prompts ·   │   │
- │  │                    roles · tools · policies                     │   │
- │  └────────────────────────────────────────────────────────────────┘   │
- │  Constitution（只读）：安全规则 · 评估 rubric · 进化边界               │
- └──────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+  CL["Clients<br/>CLI · Web · Slack / 飞书"] <-->|"本地 API · HTTP + WebSocket 流"| API["autond · Server / Session Manager"]
+  API --> RT
+  subgraph RT["前台 Runtime"]
+    direction LR
+    CE["Context Engine<br/>装配 · 检索 · 压缩"] --> LOOP["Agent Loop"]
+    LOOP <--> MG["Model Gateway<br/>主模型 · 辅助 · judge"]
+    LOOP <--> TH["Tool Host<br/>内置 · MCP · tool 资产<br/>权限 · 沙箱"]
+  end
+  RT -->|"events"| LOG[("Event Log<br/>SQLite append-only")]
+  LOG --> PJ["Projections<br/>sessions · episodes · asset usage · metrics"]
+  PJ --> EV
+  subgraph EV["后台 Evolution Engine"]
+    direction LR
+    AS["Assess"] --> RF["Reflect"] --> PR["Propose"] --> GD["Guard"] --> VF["Verify<br/>Arena"] --> RL["Release"] --> MO["Monitor"]
+  end
+  EV -->|"proposal 分支 · merge main · revert"| G[("Genome · git 仓库<br/>skills · knowledge · insights · prompts · roles · tools · policies")]
+  G -->|"Resolver → Snapshot"| RT
+  CON[/"Constitution（只读）<br/>安全规则 · rubric · 进化边界"/]
+  CON -.->|约束| RT
+  CON -.->|约束| EV
 ```
 
 ---
 
 ## 3. 进化闭环
 
-```
-        ┌─────────────────────────────────────────────────────────┐
-        ▼                                                         │
-   ① RESOLVE        为本次会话选定每个资产的版本（含灰度分流）      │
-        ▼                                                         │
-   ② ACT            执行任务，产生事件                             │
-        ▼                                                         │
-   ③ RECORD         事件 → episode，记录 assets_used               │
-        ▼                                                         │
-   ④ ASSESS         信号 → Outcome → 回写各资产版本的 fitness       │
-        ▼                                                         │
-   ⑤ REFLECT        批量分析 episode：失败模式 / 成功模式 / 能力缺口 │
-        ▼                                                         │
-   ⑥ PROPOSE        Mutator 生成候选修改（git 分支）                │
-        ▼                                                         │
-   ⑦ VERIFY         Arena 中回放对比 + 回归测试 + 规则检查           │
-        ▼                                                         │
-   ⑧ RELEASE        灰度 → 合并到 main（或人工审批）               │
-        ▼                                                         │
-   ⑨ MONITOR        上线后持续比较；劣于父版本则自动 revert ─────────┘
+```mermaid
+flowchart TB
+  subgraph ROW1["运行与观测（每个会话）"]
+    direction LR
+    R["① RESOLVE<br/>选资产版本<br/>含灰度分流"] --> A["② ACT<br/>执行任务<br/>产生事件"] --> RC["③ RECORD<br/>事件 → episode<br/>记 assets_used"] --> AS["④ ASSESS<br/>信号 → Outcome<br/>回写 fitness"]
+  end
+  subgraph ROW2["进化（中 / 慢回路）"]
+    direction LR
+    RF["⑤ REFLECT<br/>失败 / 成功模式<br/>能力缺口 · 冗余"] --> P["⑥ PROPOSE<br/>Mutator 生成候选<br/>proposal 分支"] --> V{"⑦ VERIFY<br/>Guard · Arena"}
+    V -->|通过| RL["⑧ RELEASE<br/>灰度 → 合并 main<br/>或人工审批"] --> M{"⑨ MONITOR<br/>新旧对比"}
+    V -->|不通过| X["丢弃分支<br/>标记已尝试"]
+    M -->|显著变差| RB["git revert"]
+  end
+  ROW1 <==>|"↓ episodes + fitness<br/>↑ 新 Genome 版本（main / 灰度）"| ROW2
 ```
 
 ### 3.1 三种节奏
@@ -169,6 +157,15 @@ fitness 等运行统计**不进 git**（频繁变化），存在 SQLite，按 `(
 2. 对处于灰度中的资产，用 **Thompson sampling** 在"当前版本 / 候选版本"间选择（按两者 fitness 的 Beta 分布采样）。好的候选自然获得更多流量，差的自然被淘汰，同时得到在线 A/B 数据。
 3. 产出 `Snapshot{id, base_commit, overrides: {asset_id: blob_hash}}`，写入事件日志。
 
+```mermaid
+flowchart LR
+  MAIN["main commit"] --> OV["叠加项目 overlay<br/>projects/{hash}"] --> Q{"该资产<br/>在灰度中?"}
+  Q -->|否| KEEP["用 main 版本"]
+  Q -->|是| TS["Thompson sampling<br/>Beta(当前) vs Beta(候选)"]
+  KEEP & TS --> SNAP["Snapshot<br/>base_commit + overrides"] --> EVT[("SessionStarted 事件")]
+```
+
+
 ---
 
 ## 5. Runtime
@@ -207,6 +204,45 @@ fitness 等运行统计**不进 git**（频繁变化），存在 SQLite，按 `(
 | `Feedback` | 显式反馈（👍👎、文字） |
 | `SessionEnded` | reason |
 | `Evolution.*` | Proposal 创建、验证结果、发布、回滚（进化流程自身也被记录） |
+
+### 5.4 一次会话的时序
+
+```mermaid
+sequenceDiagram
+  autonumber
+  participant U as Client
+  participant S as Session
+  participant GR as GenomeResolver
+  participant CE as ContextEngine
+  participant L as AgentLoop
+  participant M as ModelGateway
+  participant T as ToolHost
+  participant E as EventLog
+  U->>S: 新会话
+  S->>GR: resolve(project)
+  GR-->>S: Snapshot（含灰度版本）
+  S->>E: SessionStarted(snapshot_id)
+  U->>S: 用户消息
+  S->>E: UserMessage
+  loop 每轮，直到无工具调用或被中断
+    L->>CE: assemble(history, query)
+    Note over CE: Constitution + prompt 片段 + 目录<br/>检索 skill / insight / knowledge<br/>超阈值则压缩历史
+    CE->>E: AssetUsed × n · ContextCompacted
+    CE-->>L: context
+    L->>M: call(context)
+    M->>E: ModelCall(tokens, latency)
+    M-->>L: 文本 / tool_calls（流式）
+    L-->>U: 流式输出
+    opt 有工具调用
+      L->>T: execute（权限检查 + 沙箱）
+      T->>E: ToolCall · ToolResult
+      T-->>L: result
+    end
+  end
+  L->>E: AssistantMessage
+  U->>S: 结束 / 超时
+  S->>E: SessionEnded（触发中回路）
+```
 
 ---
 
@@ -249,6 +285,26 @@ Outcome 按以下方式分配给 `assets_used`：
 - `invoked`（如执行了某 skill 的流程）权重最高，`injected`（常驻）权重最低。
 - 用 **同类任务的基线** 计算增量：`credit = outcome − baseline(task_type)`，避免"简单任务里用到的资产都显得很好"。
 - 每个 `(asset, blob_hash)` 维护 Beta 分布形式的 fitness，供 Resolver 采样和 Monitor 比较。
+
+```mermaid
+flowchart LR
+  subgraph SIG["信号"]
+    direction TB
+    s1["工具：错误 · 重试 · 测试"]
+    s2["行为：纠正 · 重问 · 中断"]
+    s3["显式：👍👎 · /feedback"]
+    s4["结果：产物检查"]
+    s5["Judge：rubric 抽样"]
+  end
+  SIG --> O["Outcome<br/>score · confidence · label"]
+  O --> CR["credit = outcome − baseline<br/>× how 权重 × confidence"]
+  BL["同类基线<br/>baseline(task_type)"] --> CR
+  CR --> F[("fitness<br/>Beta(α, β) · per asset@blob")]
+  F --> RS["Resolver 灰度采样"]
+  F --> MO["Monitor 新旧对比"]
+  F --> RF["Reflect 定位可疑资产"]
+```
+
 
 ---
 
@@ -310,6 +366,18 @@ Arena 是离线评测环境，比较"候选 Genome"与"当前 Genome"在同一�
 - **判定**：目标集显著改善且回归集不显著变差 → `verified`。
 - **成本控制**：按风险等级决定样本量；低风险资产只做规则检查。
 
+```mermaid
+flowchart LR
+  P["Proposal"] --> T1["目标集<br/>Diagnosis 证据 episode"] & T2["回归集<br/>同类高分 episode + benchmark"]
+  T1 & T2 --> W["隔离工作区<br/>目录副本 / worktree<br/>外部副作用 stub"]
+  W --> B["Baseline<br/>main Genome"] & C["Candidate<br/>proposal 分支"]
+  B & C --> CMP["对比<br/>硬指标 + judge 盲评<br/>随机左右位置"]
+  CMP --> D{"目标集显著改善<br/>且回归集不变差?"}
+  D -->|是| OK["verified"]
+  D -->|否| NO["rejected"]
+```
+
+
 ### 7.4 Release 与 Monitor
 
 | 风险 | 例子 | 流程 |
@@ -318,6 +386,32 @@ Arena 是离线评测环境，比较"候选 Genome"与"当前 Genome"在同一�
 | medium | skill 修订、policy 调整 | Arena → 灰度（Thompson sampling）→ 合并 |
 | high | 新 skill、prompt 片段、role、user 资产 | Arena → **人工审批** → 灰度 → 合并 |
 | critical | 新 tool | Arena + 代码审查 → **人工审批** → 合并 |
+
+提案生命周期：
+
+```mermaid
+stateDiagram-v2
+  direction LR
+  [*] --> Drafted: Mutator 提案
+  Drafted --> Rejected: Guard 拒绝（越界 / 超预算 / 敏感内容）
+  Drafted --> Checked: Guard 定级 + 规则检查
+  Checked --> Merged: low
+  Checked --> Arena: medium / high / critical
+  Arena --> Rejected: 未改善或回归变差
+  Arena --> Canary: medium
+  Arena --> Review: high / critical
+  Review --> Canary: approve（high）
+  Review --> Merged: approve（critical）
+  Review --> Rejected: reject
+  Canary --> Merged: 灰度胜出
+  Canary --> Rejected: 灰度落败
+  Merged --> Monitored
+  Monitored --> Stable: 样本充足且不劣化
+  Monitored --> Reverted: 显著劣化，git revert
+  Rejected --> [*]: Diagnosis 标记已尝试
+  Reverted --> [*]
+  Stable --> [*]
+```
 
 Monitor：合并后在线比较新旧版本的 fitness，若在足够样本下显著变差，则自动 `git revert` 并把该 Diagnosis 标记为"已尝试"，避免反复提出同样的修改。
 
@@ -389,9 +483,14 @@ auton/
 
 ### 10.3 依赖规则（CI 强制）
 
-```
-clients → server → evolve → assess → experience → agent → context → genome/tools/model → kernel
-                                                               constitution → kernel
+```mermaid
+flowchart LR
+  clients --> server --> evolve --> assess --> experience --> agent --> context
+  context --> genome & tools & model
+  genome & tools & model --> kernel
+  constitution --> kernel
+  context & assess & evolve -.->|只读| constitution
+  evolve ==>|"仅 release 可写 main"| genome
 ```
 
 - `agent` 及以下不得 import `experience / assess / evolve`。学习只能通过订阅事件发生。
