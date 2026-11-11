@@ -1,35 +1,49 @@
 # Auton 架构设计：自进化 Agent（Greenfield 版）
 
-> 状态：设计稿 v0.2（2026-11-10），从零构建，不考虑现有代码兼容
-> 取代 v0.1（基于现有代码的重构方案）
+> 状态：设计稿 v0.3（2026-11-11），从零构建，不考虑现有代码兼容
+> v0.3 变更：吸收《一篇讲透 Agent 自进化飞轮怎么搭：评测→记忆→落地→控制》（腾讯技术工程）中的工程经验：评测集三分、评估器校准、同等预算比较、Skill 四层验证、记忆三级晋升与预算、诊断分流、Playbook、Diff 模式、五道门禁、分级自主、批量审核、方向漂移防护、先跑通手动闭环。
 
 ---
 
-## 0. 目标与定义
+## 0. 目标与范围
 
-**Auton 是一个会随使用变强的个人 Agent。** 它每完成一个任务，都会留下可归因的经验；经验被评估和反思后，变成对自身"基因组"的候选修改；候选修改在隔离环境中验证通过后才上线，上线后持续监测，变差就回滚。
+**Auton 是一个会随使用变强的个人 Agent。** 每完成一个任务，它都会留下可归因的经验；经验经过可信的评测和诊断，变成对自身"基因组"的候选补丁；补丁通过分层门禁后灰度上线，上线后持续监测，劣化就回滚，新的失败样本回流成为下一轮进化的输入。
 
-衡量"自进化是否有效"的北极星指标（可在 `/evolve report` 中查看）：
+### 0.1 进化发生在哪一层
+
+| 层 | 改什么 | 持久性 | Auton 的态度 |
+|---|---|---|---|
+| Artifacts | 单次任务的产出物（self-refine、多次重试） | 任务结束即消失 | 运行时能力，不算进化 |
+| **Harness** | 记忆、Skill、Prompt 片段、子 Agent、工具组合、参数 | 跨会话持久，立即生效，可回滚 | **本设计的主战场** |
+| Model | 模型权重（RL / 微调） | 最持久，成本和风险最高 | 不做；Harness 积累的轨迹和评测集将来可作为训练数据导出 |
+
+### 0.2 北极星指标与方向指标
+
+结果指标（应向好）：
 
 | 指标 | 含义 |
 |---|---|
-| 任务成功率（滚动 30 天） | Outcome = success 的 episode 占比，应持续上升 |
-| 用户纠正率 | 需要用户纠正/重问的 episode 占比，应下降 |
-| 单任务成本 | tokens / 工具调用 / 耗时，同类任务应下降 |
+| 任务成功率（滚动 30 天） | Outcome = success 的 episode 占比 |
+| 用户纠正率 | 需要用户纠正/重问的 episode 占比 |
+| 单任务成本 | 同类任务的 tokens / 工具调用 / 耗时 |
 | 进化有效率 | 已发布变更中，上线后指标确实改善的比例 |
-| 回滚率 | 应低且稳定；过高说明验证门禁不够强 |
+| 回滚率 | 应低且稳定；过高说明门禁不够强 |
+
+方向指标（应稳定，超出人设阈值即告警，用于发现"每步都在变好，整体却跑偏"）：平均输出长度、平均工具调用数、拒答/反问率、Genome 规模（skill 数、记忆条数、常驻 token）。
 
 ---
 
 ## 1. 设计原则
 
-1. **代码固定，能力是数据。** Agent = 模型（外部）+ Harness（代码，稳定）+ Genome（声明式资产，可进化）。进化只修改 Genome，不修改 Harness 代码。这让进化可审查、可 diff、可回滚，也避免自修改代码带来的不可控性。
-2. **事件溯源。** 唯一事实来源是 append-only 事件日志。会话、episode、指标、记忆索引都是日志的投影（projection），因此可以重放、重算、追溯。
-3. **归因优先。** 每个 episode 都记录用了哪些资产的哪个版本。没有归因，就没有进化。
-4. **评估者独立于被评估者。** 评估规则（Constitution）在 Genome 之外，进化流程无权修改，防止 Agent 通过改标准来"变好"。
-5. **先验证再发布，发布后仍可回滚。** 所有变更都走统一管道：提案 → 验证 → 灰度 → 发布 → 监测。
-6. **常驻进程。** Auton 以本地守护进程运行。前台处理会话，空闲时在后台进化。CLI、Web、IM 都只是客户端。
-7. **人类可读。** Genome 是一个 git 仓库中的 Markdown/YAML 文件，用户可以直接阅读、编辑、回退。
+1. **代码固定，能力是数据。** Agent = 模型 + Harness 代码（稳定）+ Genome（声明式资产，可进化）。进化只改 Genome，因此可审查、可 diff、可回滚。
+2. **评测可信度 > 系统复杂度。** 错误的正反馈会让 Agent 自信地学到错误经验，比没有反馈更糟。先保证信号可信，再谈自动化。
+3. **闭环的价值在环节之间的衔接。** 评测结果必须自动流入记忆和 Skill 更新；更新必须被评测验证；验证结果和线上新失败必须自动回流到下一轮。任何一条数据通路断了，飞轮就停。
+4. **记忆是治理问题，不是存储问题。** 版本、来源、晋升门槛、主动遗忘、冲突解决、预算，比"存得多"重要。
+5. **自动化 ≠ 全自动。** 自动化覆盖"生成候选 → 验证 → 筛选"，关键决策点由人把关；人的角色是教练和裁判，不是操作员。
+6. **同等预算下的提升才是进化。** 多花算力换来的提升不算。
+7. **事件溯源 + 归因优先。** 唯一事实来源是 append-only 事件日志；每个 episode 都记录用了哪些资产的哪个版本。
+8. **评估者独立于被评估者。** 评测规则、评测集的验证/测试部分、安全边界在 Genome 之外，进化流程无权修改。
+9. **常驻、人类可读。** Auton 以本地守护进程运行，空闲时进化；Genome 是 git 仓库中的 Markdown/YAML。
 
 ---
 
@@ -41,7 +55,7 @@ flowchart TB
   API --> RT
   subgraph RT["前台 Runtime"]
     direction LR
-    CE["Context Engine<br/>装配 · 检索 · 压缩"] --> LOOP["Agent Loop"]
+    CE["Context Engine<br/>分层装配 · 检索 · 预算 · 压缩"] --> LOOP["Agent Loop"]
     LOOP <--> MG["Model Gateway<br/>主模型 · 辅助 · judge"]
     LOOP <--> TH["Tool Host<br/>内置 · MCP · tool 资产<br/>权限 · 沙箱"]
   end
@@ -50,14 +64,27 @@ flowchart TB
   PJ --> EV
   subgraph EV["后台 Evolution Engine"]
     direction LR
-    AS["Assess"] --> RF["Reflect"] --> PR["Propose"] --> GD["Guard"] --> VF["Verify<br/>Arena"] --> RL["Release"] --> MO["Monitor"]
+    AS["Assess<br/>+ 诊断"] --> RF["Reflect<br/>同步 · Dreaming"] --> PR["Propose<br/>N 个 diff 候选"] --> GT["Gates<br/>G1–G5"] --> RL["Release<br/>灰度"] --> MO["Monitor<br/>+ 回流"]
   end
   EV -->|"proposal 分支 · merge main · revert"| G[("Genome · git 仓库<br/>skills · knowledge · insights · prompts · roles · tools · policies")]
   G -->|"Resolver → Snapshot"| RT
-  CON[/"Constitution（只读）<br/>安全规则 · rubric · 进化边界"/]
+  EV <-->|"读 train · 写失败样本"| ES[("Eval Store<br/>train / val / test<br/>meta-eval")]
+  EV <--> PB[("Playbook<br/>进化经验")]
+  EV -->|"每日 digest"| HU(["用户：审核 · 方向审计"])
+  CON[/"Constitution（只读）<br/>安全边界 · rubric · 自主等级上限"/]
   CON -.->|约束| RT
   CON -.->|约束| EV
 ```
+
+三个新增的一等存储：
+
+| 存储 | 内容 | 谁能写 |
+|---|---|---|
+| **Genome** | Agent 用来做事的资产 | 只有 `evolve.release`（和用户手改） |
+| **Eval Store** | 评测用例及 train/val/test 划分、元评测集 | 自动只能追加 train；val/test/meta 只能由用户或定期轮换流程写入 |
+| **Playbook** | "怎么改进 Agent"的经验：试过什么方向、有效/无效、踩过的坑 | `evolve` 流程 |
+
+Genome 中的记忆服务于"Agent 怎么做任务"，Playbook 服务于"怎么改 Agent"，两者分开存储、分开注入。
 
 ---
 
@@ -67,67 +94,118 @@ flowchart TB
 flowchart TB
   subgraph ROW1["运行与观测（每个会话）"]
     direction LR
-    R["① RESOLVE<br/>选资产版本<br/>含灰度分流"] --> A["② ACT<br/>执行任务<br/>产生事件"] --> RC["③ RECORD<br/>事件 → episode<br/>记 assets_used"] --> AS["④ ASSESS<br/>信号 → Outcome<br/>回写 fitness"]
+    R["① RESOLVE<br/>选资产版本<br/>含灰度分流"] --> A["② ACT<br/>执行任务<br/>产生事件"] --> RC["③ RECORD<br/>事件 → episode<br/>记 assets_used"] --> AS["④ ASSESS<br/>分层评测 → Outcome<br/>回写 fitness"]
   end
   subgraph ROW2["进化（中 / 慢回路）"]
     direction LR
-    RF["⑤ REFLECT<br/>失败 / 成功模式<br/>能力缺口 · 冗余"] --> P["⑥ PROPOSE<br/>Mutator 生成候选<br/>proposal 分支"] --> V{"⑦ VERIFY<br/>Guard · Arena"}
-    V -->|通过| RL["⑧ RELEASE<br/>灰度 → 合并 main<br/>或人工审批"] --> M{"⑨ MONITOR<br/>新旧对比"}
-    V -->|不通过| X["丢弃分支<br/>标记已尝试"]
-    M -->|显著变差| RB["git revert"]
+    RF["⑤ DIAGNOSE<br/>归因 + 分流<br/>同步 / Dreaming"] --> P["⑥ PROPOSE<br/>三路信号汇聚<br/>N 个 diff 候选"] --> V{"⑦ GATE<br/>G1–G4 自动<br/>G5 人工"}
+    V -->|通过| RL["⑧ RELEASE<br/>灰度 · test 集终验<br/>合并 main"] --> M{"⑨ MONITOR<br/>结果 + 方向指标"}
+    V -->|不通过| X["丢弃<br/>写入 Playbook"]
+    M -->|P0 劣化| RB["自动 revert<br/>标记 blocked"]
   end
-  ROW1 <==>|"↓ episodes + fitness<br/>↑ 新 Genome 版本（main / 灰度）"| ROW2
+  ROW1 <==>|"↓ episodes · fitness · 失败样本<br/>↑ 新 Genome 版本（main / 灰度）"| ROW2
 ```
+
+四条必须自动化的数据通路（缺一条，飞轮就停）：
+
+| 通路 | 内容 |
+|---|---|
+| 评测 → 记忆 | 带正信号的经验按晋升机制写入记忆；失败经验写成反例 |
+| 评测 → 进化 | 诊断结论驱动 Mutator 生成补丁 |
+| 进化 → 生效 | 补丁过门禁后灰度、合并，Resolver 下一个会话即生效 |
+| 生效 → 下一轮（回流） | 灰度/线上新失败自动进入 train 集和下一轮诊断；成功的新行为进入金样例 |
 
 ### 3.1 三种节奏
 
 | 回路 | 时机 | 做什么 | 门禁 |
 |---|---|---|---|
-| **快回路** | 会话内，每轮 | 记录用户偏好/事实、工具失败后写"教训"到会话工作区 | 去重 + 冲突检测 |
-| **中回路** | 会话结束 | 切分 episode、评估、更新 fitness、沉淀记忆、产出 reflection | 自动 |
-| **慢回路** | 空闲 / 每日 / 累计阈值 | 重写或新建 skill、调整 prompt 片段和参数、清理冗余 | Arena 验证 + 灰度（+ 人工） |
+| **快回路** | 会话内，每轮 | 把可能有价值的信息写入 `learnings`（临时层）；工具失败后记"教训" | 去重 + 敏感信息扫描 |
+| **中回路** | 会话结束 | 切 episode、分层评测、更新 fitness、单 episode 诊断与分流、learnings 晋升检查 | 自动 + 规则 |
+| **慢回路** | 空闲 / 每日 / 累计阈值 | Dreaming 跨会话巡检、Skill 修订与挖掘、prompt/参数调整、清理冗余、评测集轮换 | 五道门禁 + 灰度 |
 
 ---
 
-## 4. Genome：可进化的一切
+## 4. Genome：可进化的资产
 
-### 4.1 资产类型
+### 4.1 资产类型与记忆分层
 
-按"知识的种类"划分，而不是按实现划分：
-
-| Kind | 知识类型 | 例子 | 典型来源 |
+| Kind | 知识类型 | 层级 | 例子 |
 |---|---|---|---|
-| `knowledge` | 陈述性：事实、偏好 | "用户偏好 pnpm"、"项目 X 的部署在周五冻结" | 快回路 |
-| `skill` | 程序性：怎么做某类任务 | `github-pr/SKILL.md`（步骤、坑、检查清单） | 慢回路 |
-| `insight` | 元认知：跨任务的策略/教训 | "修改配置文件前先读完整文件"、"测试失败先看最早的报错" | 中/慢回路 |
-| `prompt` | 身份与行为片段 | 回复风格、规划习惯（只有标记为 evolvable 的片段） | 慢回路 |
-| `role` | 子 Agent 定义 | `reviewer.md`：职责、可用工具、提示词 | 慢回路 |
-| `tool` | 可执行组合工具 | 在沙箱中运行的脚本 + schema（如 `release-notes.py`） | 慢回路，必须人工审批 |
-| `policy` | 数值/规则参数 | 上下文压缩阈值、重试次数、并行度、检索 top-k | 慢回路 |
+| `learning` | 临时捕获 | 记忆 L1（临时） | "这个 API 凌晨 3 点会限流（待验证）" |
+| `knowledge` | 陈述性：事实、偏好 | 记忆 L2（语义） | "用户偏好 pnpm"、"项目 X 周五冻结部署" |
+| `insight` | 元认知：跨任务规则/反例 | 记忆 L2（规则级） | "修改配置前先读完整文件"、"反例：不要用默认 timeout 调 X 服务" |
+| `skill` | 程序性：怎么做某类任务 | 记忆 L3（程序） | `github-pr/SKILL.md`：触发条件、步骤、检查点、坑 |
+| `prompt` | 身份与行为片段 | — | 回复风格、规划习惯（仅 evolvable 片段） |
+| `role` | 子 Agent 定义 | — | `reviewer.md` |
+| `tool` | 可执行组合工具 | — | 沙箱脚本 + schema |
+| `policy` | 数值/规则参数 | — | 压缩阈值、检索 top-k、记忆预算、灰度参数 |
 
-每个资产都是一个目录或文件，带 frontmatter：
+情景记忆（L0：原始对话与轨迹）就是事件日志本身，不复制进 Genome，只按 `event_id` 引用。
+
+### 4.2 资产格式
 
 ```markdown
 ---
 id: skill/github-pr
 kind: skill
-scope: global            # global | project:<hash>
-origin: evolved          # builtin | user | evolved
+scope: global                 # global | project:<hash>
+origin: evolved               # builtin | user | evolved
 evolvable: true
+domain: coding/git            # 自主等级按 domain 管理（见 §8.2）
 triggers: ["create PR", "pull request", "提 PR"]
 requires_tools: [bash, git]
+checkpoints:                  # 关键步骤，用于轨迹追踪（是否真的按 skill 做了）
+  - id: confirm-base
+    expect: {tool: bash, match: "git (rev-parse|branch|remote)"}
+  - id: create
+    expect: {tool: bash, match: "gh pr create .*--base"}
+provenance:
+  created_by: proposal/0042
+  evidence: [ep_1a2b, ep_3c4d]
+token_budget: 600
 ---
 # 创建 Pull Request
 1. 先确认当前分支与 base 分支 ...
 ```
 
-### 4.2 存储：直接用 git
+记忆类资产（learning / knowledge / insight）额外要求：
+
+```yaml
+provenance: {session: s_..., episode: ep_..., trigger: user_correction, reason: "..."}
+strength: 0.42          # 强化/衰减分数
+polarity: positive      # positive | negative（反例）
+expires: 2027-02-01     # 可选 TTL；时效性信息必须带
+```
+
+### 4.3 记忆的治理：写入、晋升、遗忘
+
+```mermaid
+flowchart LR
+  EV["会话中的信息<br/>工具结果 · 用户纠正 · 失败"] -->|"低门槛捕获"| L1["L1 learnings<br/>临时 · 半结构化<br/>默认不常驻"]
+  L1 -->|"多次复现 / 跨会话有用<br/>+ 正信号"| L2["L2 knowledge · insight<br/>结构化 · 按需注入"]
+  L2 -->|"同类任务反复有效<br/>形成可复用流程"| L3["L3 skill<br/>完整生命周期 + 评测"]
+  L1 -->|"TTL 到期 · 未复现"| GC["遗忘"]
+  L2 -->|"强度衰减 · 负反馈 · 过期"| GC
+  L2 -.->|"规则级 insight<br/>写入前人工确认"| HU(["用户"])
+```
+
+规则：
+
+- **策展而非全存**：只有出现正信号（用户确认、评测通过、任务成功）时，learning 才能晋升为长期记忆；默认中间过程不存。
+- **失败也有价值，但存法不同**：失败经验以 `polarity: negative` 的反例形式保存（"这条路走不通，因为 …"）。
+- **不对称强化**：成功使用一次强度小幅上升，导致失败一次大幅下降；默认 `+0.05 / −0.12`（policy 可调），宁可慢一点积累好经验，也不让坏经验扩散。
+- **主动遗忘**：TTL 过期、使用频率衰减、负反馈即快速淘汰；遗忘是软删除（git 中可恢复）。
+- **冲突解决**：新旧矛盾时按"来源可信度 > 新近程度"选择，无法判定的进入人工审核；并发写入走乐观锁（基于 blob hash）。
+- **规则级记忆写入前必须人工确认**：`insight` 一旦生效，会被所有后续任务无条件遵循，影响全局，因此风险等级为 high（见 §8.3）。
+
+### 4.4 存储：直接用 git
 
 ```
 ~/.auton/genome/                 # 一个 git 仓库
+├── learnings/                   # L1，自动写入，带 TTL
 ├── knowledge/
-├── skills/<name>/SKILL.md
 ├── insights/
+├── skills/<name>/SKILL.md
 ├── prompts/
 ├── roles/
 ├── tools/<name>/{tool.yaml, main.py}
@@ -135,27 +213,19 @@ requires_tools: [bash, git]
 └── projects/<project-hash>/     # 项目级 overlay，同结构，优先级高于全局
 ```
 
-映射关系：
-
 | 进化概念 | git 实现 |
 |---|---|
-| 资产版本 | 文件在某个 commit 中的 blob hash |
+| 资产版本 | 文件在某 commit 中的 blob hash |
 | Genome 快照 | commit hash |
-| 提案 | 分支 `proposal/<id>`，commit message 写 rationale + 证据 episode |
-| 发布 | merge 到 `main` |
-| 回滚 | `git revert` |
-| 谱系 / 审计 | `git log` |
-| 用户手改 | 用户直接 commit，`origin=user` 的文件受保护 |
+| 提案 | 分支 `proposal/<id>`，每个候选一个 commit；message 含 rationale、证据、诊断 id |
+| 补丁 | 候选以 diff 形式生成、由框架应用（§7.4） |
+| 发布 / 回滚 / 谱系 | merge / `git revert` / `git log` |
+| 关联评测结果 | git note 指向 Eval Store 中的评测报告 |
+| 用户手改 | 用户直接 commit；`origin=user` 的文件受保护 |
 
-fitness 等运行统计**不进 git**（频繁变化），存在 SQLite，按 `(asset_id, blob_hash)` 索引。
+fitness 等高频统计存 SQLite，按 `(asset_id, blob_hash)` 索引。Genome 是普通文件系统，Agent 也可以直接用 `grep`/`read` 检索它。
 
-### 4.3 Resolve：为会话选版本
-
-`GenomeResolver` 在会话开始时生成 `Snapshot`：
-
-1. 以 `main` 为基础，叠加项目 overlay。
-2. 对处于灰度中的资产，用 **Thompson sampling** 在"当前版本 / 候选版本"间选择（按两者 fitness 的 Beta 分布采样）。好的候选自然获得更多流量，差的自然被淘汰，同时得到在线 A/B 数据。
-3. 产出 `Snapshot{id, base_commit, overrides: {asset_id: blob_hash}}`，写入事件日志。
+### 4.5 Resolve：为会话选版本
 
 ```mermaid
 flowchart LR
@@ -165,6 +235,7 @@ flowchart LR
   KEEP & TS --> SNAP["Snapshot<br/>base_commit + overrides"] --> EVT[("SessionStarted 事件")]
 ```
 
+个人 Agent 流量小，按固定比例灰度很难攒够样本；Thompson sampling 让好候选自然获得更多流量，同时产生在线对比数据。
 
 ---
 
@@ -174,20 +245,23 @@ flowchart LR
 
 | 组件 | 职责 |
 |---|---|
-| **Model Gateway** | 统一的 provider 接口（Anthropic / OpenAI 兼容 / 本地）；流式；重试；按角色路由模型（主模型、便宜模型、judge 模型） |
-| **Tool Host** | 内置工具（read/write/edit/bash/grep/glob/web）、MCP 客户端、Genome 中的 `tool` 资产；统一权限检查与沙箱 |
-| **Context Engine** | 每轮装配上下文：Constitution 核心 + prompt 片段 + 相关 skills / insights / knowledge（检索）+ 会话历史（含压缩） |
-| **Agent Loop** | 最小循环：装配上下文 → 调模型 → 执行工具 → 判断继续/压缩/结束。只发事件，不含任何学习逻辑 |
-| **Roles / Delegation** | 子 Agent = 用 `role` 资产配置的另一个 Agent Loop 实例；规划、审查、调试都是 role，不是硬编码类 |
+| **Model Gateway** | 统一 provider 接口；流式；重试；按角色路由：主模型、辅助模型（意图归纳、信号分类）、judge 模型（必须与主模型不同） |
+| **Tool Host** | 内置工具、MCP、`tool` 资产；统一权限检查与沙箱；记录工具层错误（区分 Agent 用错 vs 工具/服务本身故障） |
+| **Context Engine** | 分层装配、检索、token 预算、历史压缩 |
+| **Agent Loop** | 最小循环：装配 → 调模型 → 执行工具 → 继续/压缩/结束。只发事件，不含学习逻辑 |
+| **Roles / Delegation** | 子 Agent = 用 `role` 资产配置的另一个 Agent Loop 实例 |
 
-### 5.2 Context Engine 的检索
+### 5.2 读取：渐进披露 + 严格预算
 
-资产按需加载（渐进披露），不一次塞进 system prompt：
+| 步骤 | 内容 | 默认预算（policy 可调） |
+|---|---|---|
+| ① 常驻 | Constitution 核心、prompt 片段、用户画像、skill/role 一行目录 | 画像 ≤ 500，目录 ≤ 2000 |
+| ② 按需检索 | 与当前任务相关的 knowledge / insight（含反例）、匹配的完整 SKILL.md | 事实 ≤ 800，单条 ≤ 200，最多 6 条 |
+| ③ 钻取 | 需要证据时按 `event_id` 回溯原始对话/轨迹 | 仅在 Agent 主动请求时 |
 
-- **常驻**：Constitution 核心、`prompt` 片段、skill/role 的一行目录。
-- **按需**：根据当前任务检索 top-k 的 knowledge、insight，以及匹配的完整 SKILL.md。
-- 检索使用 SQLite FTS5（BM25）+ 可选 embedding（sqlite-vec），无需额外的向量数据库。
-- **每次注入都发 `AssetUsed` 事件**，这是归因的数据来源。
+- 检索三路并行：FTS5 关键词 + 可选 embedding + 精确匹配（trigger / 文件路径），融合排序后取 top-k。
+- 宁缺毋滥：相关度低于阈值不注入，错误的"相关记忆"比不注入更糟。
+- **每次注入都发 `AssetUsed` 事件**；执行中命中 skill checkpoint 时发 `SkillCheckpoint` 事件，用于轨迹追踪。
 
 ### 5.3 事件模型
 
@@ -195,15 +269,16 @@ flowchart LR
 
 | 事件 | 关键字段 |
 |---|---|
-| `SessionStarted` | snapshot_id, client, project |
+| `SessionStarted` | snapshot_id, client, project, workspace_ref（项目 git commit，用于回放） |
 | `UserMessage` / `AssistantMessage` | 内容引用 |
 | `ModelCall` | model, tokens_in/out, latency |
-| `ToolCall` / `ToolResult` | tool, args 摘要, ok, error, duration |
+| `ToolCall` / `ToolResult` | tool, args 摘要, ok, error_class（agent_misuse / tool_fault / env）, duration |
 | `AssetUsed` | asset_id, blob_hash, how（injected / retrieved / invoked） |
+| `SkillCheckpoint` | skill_id, checkpoint_id, hit / skipped |
 | `ContextCompacted` | before / after tokens |
-| `Feedback` | 显式反馈（👍👎、文字） |
+| `Feedback` | 显式反馈 |
 | `SessionEnded` | reason |
-| `Evolution.*` | Proposal 创建、验证结果、发布、回滚（进化流程自身也被记录） |
+| `Evolution.*` | 诊断、提案、门禁结果、发布、回滚、自主等级变化 |
 
 ### 5.4 一次会话的时序
 
@@ -221,12 +296,12 @@ sequenceDiagram
   U->>S: 新会话
   S->>GR: resolve(project)
   GR-->>S: Snapshot（含灰度版本）
-  S->>E: SessionStarted(snapshot_id)
+  S->>E: SessionStarted(snapshot_id, workspace_ref)
   U->>S: 用户消息
   S->>E: UserMessage
   loop 每轮，直到无工具调用或被中断
     L->>CE: assemble(history, query)
-    Note over CE: Constitution + prompt 片段 + 目录<br/>检索 skill / insight / knowledge<br/>超阈值则压缩历史
+    Note over CE: ① 常驻层 ② 三路检索 + 预算裁剪<br/>超阈值则压缩历史
     CE->>E: AssetUsed × n · ContextCompacted
     CE-->>L: context
     L->>M: call(context)
@@ -235,7 +310,7 @@ sequenceDiagram
     L-->>U: 流式输出
     opt 有工具调用
       L->>T: execute（权限检查 + 沙箱）
-      T->>E: ToolCall · ToolResult
+      T->>E: ToolCall · ToolResult · SkillCheckpoint
       T-->>L: result
     end
   end
@@ -246,11 +321,13 @@ sequenceDiagram
 
 ---
 
-## 6. Experience 与 Assess
+## 6. Assess：可信的评测
+
+评测在自进化中承担三重职责：**方向指引**（哪里有问题）、**质量门控**（改了是否更好）、**经验筛选**（这次经验值不值得记）。它的错误会直接写进记忆和 Skill，所以可信度优先。
 
 ### 6.1 Episode
 
-一个 episode = 一个用户意图从提出到结束。切分规则：新的用户消息若被小模型判断为"新任务"则开新 episode，否则（追问、纠正、继续）归入当前 episode。
+一个 episode = 一个用户意图从提出到结束；新消息被辅助模型判为"新任务"则开新 episode，追问/纠正/继续则归入当前。
 
 ```python
 @dataclass
@@ -258,181 +335,331 @@ class Episode:
     id: str
     session_id: str
     snapshot_id: str
-    intent: str                      # 小模型归纳的一句话任务描述
-    task_type: str                   # 聚类得到的类别，用于同类对比
+    workspace_ref: str               # 回放用的初始状态
+    intent: str
+    task_type: str                   # 聚类类别，用于同类基线和分层抽样
     event_range: tuple[int, int]
     assets_used: dict[str, AssetUse] # asset_id -> (blob_hash, how, count)
+    checkpoints: dict[str, list[CheckpointHit]]
     metrics: Metrics                 # turns, tool_calls, tool_errors, tokens, duration
     outcome: Outcome | None
 ```
 
-### 6.2 信号
+### 6.2 分层评测：便宜的方法能覆盖的，不用贵的
 
-| 来源 | 信号 | 成本 |
+```mermaid
+flowchart TB
+  L1["规则 / 自动校验（全量）<br/>测试通过 · 命令退出码 · 格式 · 工具错误 · 用户纠正"] --> L2["LLM Judge（抽样 + 规则无法覆盖的维度）<br/>独立模型 · temperature 0 · 结构化输出 · 分维度独立打分"]
+  L2 --> L3["人工抽样（定期）<br/>二次评审 · 校准 Judge"]
+```
+
+| 来源 | 信号 | 层级 |
 |---|---|---|
-| 工具 | 错误率、重试、非零退出、测试结果 | 零 |
-| 行为 | 用户纠正、重问、中断、放弃、"谢谢/好的" | 小模型分类 |
-| 显式 | 👍👎、`/feedback` | 零 |
-| 结果 | 产物检查：测试是否通过、文件是否按要求生成 | 视任务 |
-| Judge | 按 Constitution 中固定 rubric 打分（抽样） | 中 |
+| 工具 | 错误率、重试、退出码、测试结果 | 规则 |
+| 行为 | 用户纠正、重问、中断、放弃 | 规则 + 辅助模型分类 |
+| 显式 | 👍👎、`/feedback` | 规则 |
+| 过程 | skill checkpoint 遵循率、冗余工具调用、token 效率 | 规则 |
+| 质量 | 正确性、完整性、简洁性等（每维度独立打分） | Judge |
+| 校准 | Judge 与人的一致率 | 人工 |
 
-聚合为 `Outcome{score ∈ [-1,1], confidence, label}`。置信度取决于信号的种类和数量，低置信度的 episode 在进化中权重低。
+**评过程，不只评结果**：最终答案对了但过程有幻觉、冗余 5 倍、或没按 skill 走，下次大概率翻车。
 
-### 6.3 Credit Assignment（功劳分配）
+**粒度**：日常用 episode 级粗评快速筛选；对失败 episode 再做 step 级细评定位到具体哪一步、哪个资产。
 
-Outcome 按以下方式分配给 `assets_used`：
+聚合为 `Outcome{score ∈ [-1,1], confidence, label, dims}`。置信度取决于信号种类和数量；低置信度 episode 在进化中权重低，且不能触发记忆晋升。
 
-- `invoked`（如执行了某 skill 的流程）权重最高，`injected`（常驻）权重最低。
-- 用 **同类任务的基线** 计算增量：`credit = outcome − baseline(task_type)`，避免"简单任务里用到的资产都显得很好"。
-- 每个 `(asset, blob_hash)` 维护 Beta 分布形式的 fitness，供 Resolver 采样和 Monitor 比较。
+### 6.3 Judge 校准
+
+| 机制 | 做法 | 发现什么 |
+|---|---|---|
+| 人工抽样 | 定期随机抽样人工复评，计算一致率（Cohen's kappa） | Judge 系统性偏差 |
+| 多评估器交叉 | 2–3 个不同模型评同一批，分歧大的送人工 | 单一 Judge 盲区 |
+| 元评测集 | 几十个明确"绝对正确 / 绝对错误"的样本，定期重测 | Judge 退化；判错即告警并暂停自动发布 |
+| 盲诊断 | 诊断阶段只给 Judge 统计摘要，不给原始答案 | 避免 Judge 被答案风格诱导 |
+
+Judge 的已知偏差（偏好长文本、偏好特定格式、偏好"看起来正确"）在 rubric 中显式对冲，并由元评测集持续检验。
+
+### 6.4 Eval Store：评测集三分
+
+```python
+@dataclass
+class EvalCase:
+    id: str
+    task_type: str
+    difficulty: Literal["easy", "medium", "hard"]
+    split: Literal["train", "val", "test", "meta"]
+    source: Literal["episode", "human_seed", "benchmark", "regression"]
+    input: list[Turn]                # 首条消息 + 记录的后续用户回复（回放时由用户模拟器按需给出）
+    workspace_ref: str
+    checkers: list[Checker]          # 规则检查：测试命令、文件断言、输出正则
+    rubric_dims: list[str]           # 需要 Judge 的维度，含"意图对齐"维度（简洁 / 格式 / 语气）
+    expected_checkpoints: list[str]  # 期望的关键步骤（过程评测）
+```
+
+| 集合 | 用途 | 可见性 | 默认比例 | 更新 |
+|---|---|---|---|---|
+| **train** | 诊断：哪里失败、失败模式是什么 | 可给 Mutator 看 | 50–60% | 持续追加线上新失败 |
+| **val** | 筛选：候选是否比基线好 | **对 Mutator 不可见** | 20–30% | 每 2–4 周轮换 20–30% |
+| **test** | 终验：上线前最后一道关 | 对 Mutator 不可见，只在发布前使用 | 15–20% | 稳定，1–2 个月更新 |
+| **meta** | 校准 Judge | 只给校准流程 | 几十条 | 人工维护 |
+
+- 按 `task_type` 分层抽样，保证每个集合都覆盖各类任务。
+- 一个 episode 转成 case 后只能进入一个集合；同一 Diagnosis 的证据只进 train。
+- 难度要有梯度：太简单的 case（无任何 skill 也能做对）对比不出差异，定期剔除或降权。
+
+### 6.5 功劳分配
+
+- `invoked` 权重最高，`injected` 最低；skill 只有在 checkpoint 遵循率达标时才按 `invoked` 记功。
+- 用同类基线计算增量：`credit = outcome − baseline(task_type)`。
+- 每个 `(asset, blob_hash)` 维护 Beta 分布形式的 fitness。
 
 ```mermaid
 flowchart LR
-  subgraph SIG["信号"]
+  subgraph SIG["分层信号"]
     direction TB
-    s1["工具：错误 · 重试 · 测试"]
-    s2["行为：纠正 · 重问 · 中断"]
-    s3["显式：👍👎 · /feedback"]
-    s4["结果：产物检查"]
-    s5["Judge：rubric 抽样"]
+    s1["规则：测试 · 错误 · 纠正"]
+    s2["过程：checkpoint · 冗余 · 效率"]
+    s3["Judge：分维度（抽样）"]
   end
-  SIG --> O["Outcome<br/>score · confidence · label"]
-  O --> CR["credit = outcome − baseline<br/>× how 权重 × confidence"]
+  SIG --> O["Outcome<br/>score · confidence · dims"]
+  O --> CR["credit = outcome − baseline<br/>× how 权重 × 遵循率 × confidence"]
   BL["同类基线<br/>baseline(task_type)"] --> CR
   CR --> F[("fitness<br/>Beta(α, β) · per asset@blob")]
   F --> RS["Resolver 灰度采样"]
   F --> MO["Monitor 新旧对比"]
-  F --> RF["Reflect 定位可疑资产"]
+  F --> DG["诊断定位可疑资产"]
+  O -->|"低分 episode"| TR[("Eval Store · train")]
 ```
-
 
 ---
 
 ## 7. Evolution Engine
 
-### 7.1 Reflect
+### 7.1 诊断与分流
 
-定期（或累计 N 个新 episode 后）批量运行：
+诊断有两条互补的路径：
 
-- **失败聚类**：同类任务中 Outcome 低的 episode 聚类，LLM 总结共同原因并定位可疑资产 → `Diagnosis(kind=failure_mode)`。
-- **成功模式**：同一类任务多次成功、步骤相似但没有对应 skill → `Diagnosis(kind=gap)`。
-- **低效**：成功但成本显著高于同类 → `Diagnosis(kind=inefficiency)`。
-- **冗余/冲突**：从未被使用、或内容互相矛盾的资产 → `Diagnosis(kind=redundancy)`。
+| | 同步诊断（中回路） | Dreaming（慢回路） |
+|---|---|---|
+| 时机 | 每个 episode 结束 | 空闲时，每天 / 每周 |
+| 视角 | 单个任务 | 最近 N 天全部轨迹（含成功） |
+| 擅长 | 具体错误、回归 | 反复出现的失败模式、低效模式、知识缺口、成功但无 skill 的模式 |
+| 产出 | Diagnosis | 带优先级和影响面的 Diagnosis 列表 |
 
-### 7.2 Mutators
+诊断的终点不是分数，而是**归因**：按失败类型分组，定位到具体资产、具体步骤。归因越细，修复越精准——"这个 skill 不好"只能大面积重写，"参数提取步骤漏了 `YYYY-MM-DD` 格式"才能精准修补。
+
+```mermaid
+flowchart LR
+  D["Diagnosis"] --> Q{"类型"}
+  Q -->|"系统性问题<br/>多 case 同类错误"| A1["修订 skill / prompt / policy<br/>+ 写入 Playbook"]
+  Q -->|"偶发个例"| A2["写入 learnings<br/>作为反例 / 教训"]
+  Q -->|"能力缺口"| A3["补知识 / 新 skill / 新 tool<br/>可触发外部调研"]
+  Q -->|"低效"| A4["skill 精简 / policy 调参"]
+  Q -->|"回归"| A5["立即回滚<br/>标记 blocked · 交人工"]
+  Q -->|"工具层故障"| A6["不在 Genome 层修<br/>报告给用户"]
+  Q -->|"全部通过"| A7["新行为样本进金样例"]
+```
+
+**熔断**：同一 Diagnosis 连续 3 轮候选都无法改善（或某场景失败率持续高位不降），停止 Genome 层迭代，转为"请检查工具/环境层"报告给用户。配置层的进化解决不了工具层的 bug。
+
+### 7.2 三路信号汇聚
+
+Mutator 生成候选前，`EvolveContext` 汇聚：
+
+1. **本轮诊断**：这次出了什么问题（来自 train 集的失败 case 与归因）。
+2. **Playbook**：以前什么改法有效、踩过什么坑、哪些方向已被证伪。
+3. **外部知识（可选）**：`Researcher` 用 web 工具检索业界做法，防止只在已知方向内打转。
+
+### 7.3 Playbook
+
+```markdown
+---
+id: pb/0042
+diagnosis: dg/2026-11-03-create-pr-base
+target: skill/github-pr
+outcome: adopted            # adopted | rejected | reverted | blocked
+---
+方向：在 skill 第一步加入"确认 base 分支"
+结果：val 纠正率 0.40 → 0.05；test 通过；灰度 9 天无回归
+注意：初版把确认放在 push 之后无效（已证伪方向，见 pb/0039）
+```
+
+- 每个提案无论成败都写一条；被拒绝、被回滚的方向也要写清原因。
+- Mutator 读取相关 Playbook；G4 门禁检查候选是否重复已证伪的方向。
+
+### 7.4 Mutators：Diff 模式 + 多候选
 
 ```python
 class Mutator(Protocol):
     name: str
     kinds: set[AssetKind]
-    cadence: Cadence                        # fast | medium | slow
+    cadence: Cadence                         # fast | medium | slow
     def accepts(self, d: Diagnosis) -> bool: ...
-    async def propose(self, d: Diagnosis, ctx: EvolveContext) -> list[Proposal]: ...
+    async def propose(self, d: Diagnosis, ctx: EvolveContext, n: int) -> list[Candidate]: ...
+
+@dataclass
+class Candidate:
+    patches: list[Patch]       # 只描述需要改动的片段，由框架应用；禁止全文重写
+    rationale: str
+    expected_effect: str       # 预期改善哪些 case、哪些指标
 ```
+
+- **Diff 模式**：Mutator 只输出补丁（"把第 3 步改为 …"），框架负责合并。好处：不覆盖无关逻辑、可 review、可精确回滚。
+- **生成背景**：补丁生成时注入 skill 的历史决策原因（来自 git log 和 Playbook），避免"看起来合理实际有害"的修改。
+- **多候选**：每个 Diagnosis 生成 N 个候选（默认 3，按风险和预算调整），各自独立评测。
+- **多文件联动**：改了 A 的输出格式需同时检查依赖 A 的 skill/role/tool；做引用和签名一致性检查。
 
 | Mutator | 输入 | 输出 |
 |---|---|---|
-| `KnowledgeCurator` | 会话中的事实/偏好 | 新增/合并/废弃 knowledge |
-| `InsightDistiller` | failure_mode / inefficiency | 新增或修订 insight |
-| `SkillRefiner` | 某 skill 的失败 episode | skill 的修订版 |
-| `SkillMiner` | gap（多次相似成功轨迹） | 新 skill |
-| `RoleTuner` | 子 Agent 表现 | role 定义修订 |
-| `PolicyTuner` | 指标与参数的关系 | policy 数值调整 |
-| `ToolSmith` | 反复出现的多步机械操作 | 新 tool（必须人工审批） |
-| `Gardener` | redundancy | 合并、废弃、删除资产，控制 Genome 规模 |
+| `LearningCurator` | 快回路捕获、偶发个例 | learnings 写入、晋升为 knowledge/insight、遗忘 |
+| `InsightDistiller` | 系统性问题、低效 | insight 或反例 |
+| `SkillRefiner` | 某 skill 的失败归因 | skill 补丁 |
+| `SkillMiner` | Dreaming 发现的"成功但无 skill"模式、L2 → L3 晋升 | 新 skill |
+| `RoleTuner` | 子 Agent 表现 | role 补丁 |
+| `PolicyTuner` | 指标与参数关系 | policy 数值调整 |
+| `ToolSmith` | 反复出现的多步机械操作 | 新 tool（critical） |
+| `Gardener` | 冗余/冲突/零贡献资产 | 合并、废弃、删除 |
 
-```python
-@dataclass
-class Proposal:
-    id: str
-    diagnosis_id: str
-    branch: str                  # proposal/<id>
-    changes: list[AssetChange]   # create / modify / retire
-    rationale: str
-    evidence: list[str]          # episode ids
-    risk: Risk                   # low / medium / high（由 Guard 判定，不由 Mutator 自报）
-    eval_plan: EvalPlan
-```
-
-### 7.3 Verify：Arena
-
-Arena 是离线评测环境，比较"候选 Genome"与"当前 Genome"在同一批任务上的表现。
-
-- **任务集**
-  - 目标集：Diagnosis 的证据 episode（候选必须在这些上变好）。
-  - 回归集：同类高分 episode + 内置 benchmark（候选不能在这些上变差）。
-- **隔离执行**：每个任务在临时工作区（目录副本或 git worktree）中运行；只读工具真实执行；外部副作用（网络写、发消息）用记录的结果 stub。
-- **对比**：硬指标（测试通过、工具错误、tokens）+ judge 盲评两两对比（随机左右位置）。
-- **判定**：目标集显著改善且回归集不显著变差 → `verified`。
-- **成本控制**：按风险等级决定样本量；低风险资产只做规则检查。
+### 7.5 五道门禁
 
 ```mermaid
 flowchart LR
-  P["Proposal"] --> T1["目标集<br/>Diagnosis 证据 episode"] & T2["回归集<br/>同类高分 episode + benchmark"]
-  T1 & T2 --> W["隔离工作区<br/>目录副本 / worktree<br/>外部副作用 stub"]
-  W --> B["Baseline<br/>main Genome"] & C["Candidate<br/>proposal 分支"]
-  B & C --> CMP["对比<br/>硬指标 + judge 盲评<br/>随机左右位置"]
-  CMP --> D{"目标集显著改善<br/>且回归集不变差?"}
-  D -->|是| OK["verified"]
-  D -->|否| NO["rejected"]
+  C["候选<br/>proposal 分支"] --> G1["G1 结构<br/>schema · frontmatter<br/>引用 / 签名一致性<br/>敏感信息扫描"]
+  G1 --> G2["G2 快速回归<br/>核心 case 子集<br/>原来对的不能错"]
+  G2 --> G3["G3 统计显著<br/>val 集 · 同等预算<br/>vs 基线"]
+  G3 --> G4["G4 Playbook 一致<br/>不重复已证伪方向<br/>不与已知规则冲突"]
+  G4 --> G5{"G5 人工<br/>按风险 + 自主等级"}
+  G5 -->|"免审 / 通过"| CAN["灰度"]
+  G1 & G2 & G3 & G4 -->|失败| FB["诊断失败原因<br/>写入 Playbook"]
+  G5 -->|拒绝| FB
 ```
 
+- G1–G4 全自动，目标是在人看到之前过滤掉绝大部分低质量候选，让人"做选择题而不是填空题"。
+- **同等预算**：G3 中候选与基线在相同 token / 工具调用上限下比较；成本显著上升视为未通过，除非诊断类型本身就是"质量优先"且由人批准。
+- **分层评测控制成本**：每次变更只跑 G2 核心子集 + G3 相关 task_type 的 val；全量评测（含全部 val 与 test）每晚定时运行一次。
 
-### 7.4 Release 与 Monitor
+### 7.6 Arena：隔离执行
+
+- 每个候选在独立工作区（`workspace_ref` 的 git worktree / 目录副本）中运行，互不干扰。
+- 只读工具真实执行；外部副作用（网络写、发消息）用记录结果 stub。
+- 多轮任务由用户模拟器（辅助模型 + 记录的用户回复）驱动。
+- 对比：规则 checker + 过程指标 + Judge 盲评两两对比（随机左右位置）。
+
+**Skill 的额外验证（四层）**——证明 skill "真的有用"而不是碰巧存在：
+
+| 层 | 问题 | 做法 |
+|---|---|---|
+| 对照实验 | 没有它模型本来就会吗？ | 有 / 无该 skill 两组对照，增量为零则拒绝或退役 |
+| 难度校准 | 任务是否太简单？ | 只用"无 skill 时部分失败"难度的 case 计算增量 |
+| 轨迹追踪 | 运行时真的按 skill 做了吗？ | 检查 checkpoint 遵循率；结果对但没遵循，不记为 skill 的功劳 |
+| 路径验证 | 结果对了，路径对吗？ | 关键 checkpoint 被跳过即判为风险，即使结果正确 |
+
+已上线 skill 定期（每月）复评对照实验，环境变化导致失效的 skill 交给 `Gardener`。
+
+### 7.7 Release 与 Monitor
 
 | 风险 | 例子 | 流程 |
 |---|---|---|
-| low | knowledge、insight 小修 | 规则检查 → 直接合并 |
-| medium | skill 修订、policy 调整 | Arena → 灰度（Thompson sampling）→ 合并 |
-| high | 新 skill、prompt 片段、role、user 资产 | Arena → **人工审批** → 灰度 → 合并 |
-| critical | 新 tool | Arena + 代码审查 → **人工审批** → 合并 |
+| low | learning 写入、knowledge 小修、policy 小步调参 | G1–G2 → 直接合并 |
+| medium | skill 补丁、knowledge 晋升、role 补丁 | G1–G4 → 灰度 → test 终验 → 合并 |
+| high | 新 skill、**规则级 insight**、prompt 片段、user 资产修改 | G1–G4 → **人工** → 灰度 → test 终验 → 合并 |
+| critical | 新 tool、与安全/权限相关的任何改动 | G1–G4 + 代码审查 → **人工** → 灰度 → 合并 |
 
-提案生命周期：
+自主等级（§8.2）可以把某个 domain 的 medium/high 降为免审或改为事后抽检，但不能突破 Constitution 规定的上限。
 
 ```mermaid
 stateDiagram-v2
   direction LR
-  [*] --> Drafted: Mutator 提案
-  Drafted --> Rejected: Guard 拒绝（越界 / 超预算 / 敏感内容）
-  Drafted --> Checked: Guard 定级 + 规则检查
-  Checked --> Merged: low
-  Checked --> Arena: medium / high / critical
-  Arena --> Rejected: 未改善或回归变差
-  Arena --> Canary: medium
-  Arena --> Review: high / critical
-  Review --> Canary: approve（high）
-  Review --> Merged: approve（critical）
+  [*] --> Drafted: Mutator 候选
+  Drafted --> Rejected: G1–G4 未通过
+  Drafted --> Gated: G1–G4 通过
+  Gated --> Merged: low
+  Gated --> Review: 需人工
+  Gated --> Canary: 免审
+  Review --> Canary: approve
   Review --> Rejected: reject
-  Canary --> Merged: 灰度胜出
+  Canary --> FinalTest: 灰度胜出
   Canary --> Rejected: 灰度落败
+  FinalTest --> Merged: test 集通过
+  FinalTest --> Rejected: test 集未通过
   Merged --> Monitored
   Monitored --> Stable: 样本充足且不劣化
-  Monitored --> Reverted: 显著劣化，git revert
-  Rejected --> [*]: Diagnosis 标记已尝试
-  Reverted --> [*]
+  Monitored --> Reverted: P0 劣化，自动 revert
+  Rejected --> [*]: 写入 Playbook
+  Reverted --> [*]: blocked + 降级自主等级
   Stable --> [*]
 ```
 
-Monitor：合并后在线比较新旧版本的 fitness，若在足够样本下显著变差，则自动 `git revert` 并把该 Diagnosis 标记为"已尝试"，避免反复提出同样的修改。
+**灰度（适配个人 Agent 的低流量）**：Thompson sampling 分流；最少样本数与最长观察期（默认 ≥ 10 个相关 episode 或 14 天）由 policy 决定；样本不足时依赖离线 Arena 结果，不强行判定。
+
+**Monitor**：比较新旧版本在成功率、token、纠正率上的差异。任一项出现 P0 级退化（例如成功率下降超过阈值）立即自动 revert，无需等人；同时标记 blocked、降级所属 domain 的自主等级，并通知用户。
+
+**回流**：灰度期和上线后的新失败 episode 自动转为 train case，进入下一轮诊断——上线不是终点，而是下一轮的起点。
 
 ---
 
-## 8. Constitution 与 Guard（不可进化区）
+## 8. 控制：Constitution、分级自主与人机协作
 
-**Constitution**（随代码发布，Genome 之外，只读）：
+### 8.1 Constitution（不可进化区）
 
-- 安全规则：危险命令、路径边界、密钥处理、外部副作用需确认。
-- 评估 rubric 与信号权重。
-- 进化边界：哪些资产类型可进化、各类型风险等级、预算上限。
+随代码发布，位于 Genome 之外，只读：
+
+- 安全边界：危险命令、路径边界、密钥处理、外部副作用确认、权限模型。
+- 评测规则：rubric、信号权重、Judge 配置；Eval Store 的 val/test/meta 集合。
+- 进化边界：哪些资产可进化、风险等级定义、各 domain 自主等级上限、预算上限、方向指标阈值。
 - 核心身份与诚实性要求。
 
-**Guard**（代码实现，拦截所有 Proposal）：
+**Guard**（代码实现，拦截所有候选）：拒绝修改 Constitution、拒绝放宽权限、拒绝直接修改 `origin=user` 资产（只能以建议形式提出）；独立判定风险等级；执行预算（每日进化 token、每资产每日最多一次发布、并发灰度数）；执行规模上限（超出时触发 `Gardener`）；扫描密钥与个人敏感信息。
 
-- 拒绝修改 Constitution、拒绝放宽权限、拒绝修改 `origin=user` 的资产（只能以建议形式提出）。
-- 判定风险等级（不信任 Mutator 的自报）。
-- 预算：每日进化 token 上限、每资产每日最多一次发布、并发灰度数上限。
-- 规模：skill / knowledge / insight 数量上限，超出时优先触发 `Gardener`。
-- 内容扫描：防止把密钥、个人敏感信息写进 Genome。
+### 8.2 分级自主
+
+自主等级按 `domain`（如 `coding/git`、`writing`、`memory/knowledge`）分别管理，而不是全局一个开关：
+
+| 等级 | 名称 | 行为 |
+|---|---|---|
+| L0 | 建议 | Agent 只生成候选，人决定并执行 |
+| L1 | 审批 | Agent 执行全流程，人逐批审批（默认） |
+| L2 | 抽检 | 通过 G1–G4 即灰度，人事后抽检 |
+| L3 | 自主 | 全自动，人只看报告 |
+
+```mermaid
+stateDiagram-v2
+  direction LR
+  L0 --> L1: 人工开启
+  L1 --> L2: 连续 3 个月 · 通过率 > 95% · 无 P0 回归 · 抽检无问题
+  L2 --> L3: 同上，且用户确认
+  L2 --> L1: P0 回归，自动降级
+  L3 --> L1: P0 回归，自动降级
+```
+
+- 升级需要满足条件并由用户确认；降级自动发生。信任通过实践积累，违反即收回。
+- 永远不能到 L3 的范围：安全边界、权限、拒答逻辑、`tool` 资产。
+
+### 8.3 五个必须有人的节点
+
+无论自主等级多高，以下节点永远需要人：
+
+| 节点 | 原因 |
+|---|---|
+| ① 规则级记忆写入前 | 规则会被所有后续任务无条件遵循，一条错误规则的伤害是全局且长期的 |
+| ② 涉及安全/权限的 prompt、skill 改动 | Agent 不应有权修改自己的安全约束 |
+| ③ 回归发生后的决策 | 回滚到哪、优先级、是否阻断，需要上下文判断 |
+| ④ 新领域冷启动 | 首批评测 case、种子 skill、边界必须由人提供；跳过冷启动会在错误方向上快速迭代 |
+| ⑤ 安全边界与自主等级上限的设定 | 由 Agent 自己划边界会导致"隐蔽且累积的偏移" |
+
+### 8.4 防审核疲劳
+
+1. **自动化前置**：G1–G4 过滤掉绝大部分低质量候选。
+2. **批量异步审核**：不逐条打断，每日生成一份 `digest`。每个待审项附：val/test 结果与相对基线的提升、影响的 case 和面、2–3 个代表性输入输出对比、AI 的推荐理由和风险提示。用户做批量选择（"这 5 个里哪些可以上？"）。
+3. **审核制度自身也进化**：通过 §8.2 的升降级，让稳定 domain 的审核量自然下降。
+
+### 8.5 防方向漂移
+
+门控只检查"这一步有没有回归"（局部），不检查"整体方向是否偏了"（全局）。三层防护：
+
+1. **方向指标**（§0.2）：持续监控，超出阈值告警并暂停该 domain 的自动发布。
+2. **评测集包含意图对齐维度**：显式包含检查"简洁性、格式规范、语气适度"的 case，把抽象意图具象化为可评测维度。
+3. **定期方向审计**（建议每月）：`/evolve audit` 生成报告——skill 库在往什么方向发展、哪类 skill 被频繁修改、记忆在积累哪类经验、输出风格变化（更长？更保守？），由用户判断是否与初衷一致。
 
 ---
 
@@ -441,15 +668,18 @@ Monitor：合并后在线比较新旧版本的 fitness，若在足够样本下�
 | 命令 | 作用 |
 |---|---|
 | `/feedback [+/-] [说明]` | 显式反馈当前 episode |
-| `/evolve status` | 进行中的提案、灰度、最近发布与回滚 |
-| `/evolve show <proposal>` | diff + rationale + 证据 + Arena 结果 |
-| `/evolve approve / reject <proposal>` | 人工审批 |
+| `/evolve digest` | 今日待审批候选（批量选择） |
+| `/evolve status` | 进行中的提案、灰度、最近发布与回滚、熔断中的诊断 |
+| `/evolve show <proposal>` | diff + rationale + 证据 + 门禁/评测报告 + 相关 Playbook |
+| `/evolve approve / reject <id...>` | 批量审批 |
 | `/evolve rollback <asset>` | 立即回滚 |
+| `/evolve autonomy [domain] [level]` | 查看/调整分级自主 |
 | `/evolve pause / resume` | 暂停/恢复进化 |
-| `/evolve report` | 北极星指标趋势 |
+| `/evolve report` | 北极星指标与方向指标趋势 |
+| `/evolve audit` | 月度方向审计报告 |
+| `/eval add / ls / run` | 管理评测集（人工种子 case、手动跑评测） |
 | `/genome ls / show / edit` | 浏览和手动编辑资产 |
-
-配置 `evolution.autonomy`：`off`（只记录）/ `suggest`（只提案）/ `auto-low`（默认，低风险自动）/ `auto`（中风险也自动）。
+| `/learnings review` | 查看待晋升的临时记忆、确认规则级 insight |
 
 ---
 
@@ -458,27 +688,37 @@ Monitor：合并后在线比较新旧版本的 fitness，若在足够样本下�
 ### 10.1 技术栈
 
 - Python 3.12、asyncio、Pydantic v2
-- 存储：SQLite（WAL）存事件日志、投影、fitness、FTS 索引；git（pygit2 或 CLI）存 Genome
+- 存储：SQLite（WAL）存事件日志、投影、fitness、FTS 索引、Eval Store 元数据；git 存 Genome 与 Playbook
 - 服务：Starlette/FastAPI + WebSocket；CLI 用 Typer + Rich
-- 沙箱：首期用子进程 + 工作目录隔离 + 命令白名单；后期可选容器
+- 沙箱：首期子进程 + 工作目录隔离 + 命令白名单；后期可选容器
 - 质量：ruff、mypy --strict、pytest、import-linter
 
 ### 10.2 目录
 
 ```
 auton/
-├── kernel/          # 核心类型、事件定义、EventLog、配置、ID、时钟。不依赖任何其他包
-├── constitution/    # 只读规则、rubric、进化边界（数据 + 加载器）
+├── kernel/          # 核心类型、事件、EventLog、配置、ID、时钟。不依赖其他包
+├── constitution/    # 只读：安全边界、rubric、进化边界、自主上限、方向阈值
 ├── model/           # Model Gateway 与 providers
 ├── tools/           # Tool Host、内置工具、MCP、权限、沙箱
-├── genome/          # git 存储、资产类型、Resolver、fitness 存储
-├── context/         # Context Engine：装配、检索、压缩
+├── genome/          # git 存储、资产类型、记忆治理（晋升 / 遗忘 / 冲突）、Resolver、fitness
+├── context/         # Context Engine：分层装配、检索、预算、压缩
 ├── agent/           # Agent Loop、Session、Roles/Delegation
-├── experience/      # 投影：sessions、episodes、asset usage、metrics
-├── assess/          # 信号、judge、Outcome、credit assignment
-├── evolve/          # reflect、mutators/、proposal、arena、release、monitor、guard、scheduler
-├── server/          # autond：API、会话管理、后台任务调度
-└── clients/         # cli/、web/、im/（slack、feishu …）
+├── experience/      # 投影：sessions、episodes、asset usage、checkpoints、metrics
+├── assess/          # 信号、judges、calibration（元评测 / 一致率）、evalstore（三分 / 轮换）、credit
+├── evolve/
+│   ├── diagnose/    # 同步诊断、Dreaming、分流、熔断
+│   ├── research/    # 外部知识检索（可选）
+│   ├── playbook/
+│   ├── mutators/    # Diff 模式补丁生成
+│   ├── gates/       # G1–G5
+│   ├── arena/       # 隔离执行、用户模拟器、skill 四层验证
+│   ├── release/     # 灰度、test 终验、合并、回滚
+│   ├── monitor/     # 结果/方向指标、回流
+│   ├── control/     # Guard、自主等级、digest、audit
+│   └── scheduler.py # 三速回路
+├── server/          # autond：API、会话管理、后台任务
+└── clients/         # cli/、web/、im/
 ```
 
 ### 10.3 依赖规则（CI 强制）
@@ -491,47 +731,87 @@ flowchart LR
   constitution --> kernel
   context & assess & evolve -.->|只读| constitution
   evolve ==>|"仅 release 可写 main"| genome
+  evolve -.->|"只读 train"| assess
 ```
 
-- `agent` 及以下不得 import `experience / assess / evolve`。学习只能通过订阅事件发生。
-- `assess` 不得 import `evolve`（评估独立于进化）。
+- `agent` 及以下不得 import `experience / assess / evolve`；学习只能通过订阅事件发生。
+- `assess` 不得 import `evolve`（评测独立于进化）。
+- `evolve` 只能通过 `assess.evalstore` 的受限接口读取 train 集、提交评测任务；val/test/meta 的内容不对 `evolve.mutators` 暴露，只返回聚合结果。
 - 只有 `evolve.release` 能写 Genome 的 `main` 分支。
 
 ---
 
 ## 11. 端到端示例
 
-1. 用户多次让 Auton 创建 PR。没有专门 skill，Agent 每次都要摸索，且有两次漏指定 base 分支，被用户纠正。
-2. **Record/Assess**：这几个 episode 被归为 `task_type=create-pr`；有纠正信号的 Outcome 为 partial。
-3. **Reflect**：发现 `gap`（5 次相似的成功/部分成功轨迹，无对应 skill）和 `failure_mode`（漏 base 分支）。
-4. **Propose**：`SkillMiner` 从成功轨迹中提炼出 `skills/github-pr/SKILL.md`，把"确认 base 分支"作为第一步；提交到 `proposal/0042`。
-5. **Guard**：新 skill → 风险 high。
-6. **Verify**：Arena 回放这 5 个任务和 20 个回归任务；目标集纠正率 2/5 → 0/5、平均 turns 下降 30%，回归集无变差。
-7. **Release**：`/evolve status` 提示待审批；用户查看 diff 后 approve；进入灰度，Thompson sampling 很快把流量导向新 skill；合并到 main。
-8. **Monitor**：两周后，create-pr 任务成功率稳定提升；`/evolve report` 中可见。若变差，则自动 revert。
+1. 用户多次让 Auton 创建 PR。没有专门 skill，Agent 每次都要摸索，其中两次漏指定 base 分支，被用户纠正。
+2. **快回路**：纠正时 `LearningCurator` 写入 learning："创建 PR 前需确认 base 分支（来源 ep_…，触发 user_correction）"。
+3. **Assess**：这些 episode 归为 `task_type=create-pr`；被纠正的 Outcome 为 partial，自动成为 train case；部分成功样本按分层抽样进入 val/test。
+4. **Dreaming**：发现"成功但无 skill"的重复模式 + 失败模式"漏 base 分支"，同一 learning 已多次复现。
+5. **Propose**：三路信号汇聚（train 失败归因 + Playbook 中一条"把确认放在 push 后无效"的旧记录 + 无外部调研）。`SkillMiner` 生成 3 个候选 skill，checkpoint 包含 `confirm-base`。
+6. **Gates**：G1 通过；G2 核心回归无问题；G3 在 val 上同等预算对比——候选 B 纠正率最低且 token 不增加，并通过对照实验（无 skill 时 val 上部分失败，有 skill 时显著改善）；G4 发现候选 C 重复已证伪方向，淘汰。新 skill 属于 high。
+7. **Review**：当日 digest 中列出候选 A/B 的对比；用户选择 B。
+8. **Release**：灰度中 Thompson sampling 逐步把流量导向 B；观察期满后 test 集终验通过，合并到 main；Playbook 写入"adopted"。原 learning 标记为已晋升。
+9. **Monitor**：两周后 create-pr 成功率稳定提升，方向指标无异常。若出现 P0 劣化，自动 revert、`coding/git` 降回 L1、通知用户。
 
 ---
 
 ## 12. 实施路线
 
-| 里程碑 | 内容 | 完成标志 |
-|---|---|---|
-| **M1 能用的 Agent** | kernel、model、tools、context（无检索）、agent loop、CLI、EventLog | 能在 CLI 完成编程任务，全部事件入库 |
-| **M2 Genome** | git 存储、资产类型、Resolver、按需检索、`/genome` 命令、AssetUsed 事件 | 手写的 skill/knowledge 能被正确检索使用并记录归因 |
-| **M3 经验与评估** | episode 切分、信号、Outcome、credit、fitness、`/feedback` | 每个 episode 有分数，每个资产有 fitness |
-| **M4 闭环 v1（低风险）** | Reflect、KnowledgeCurator、InsightDistiller、Guard、Release、Monitor | knowledge/insight 能自动沉淀并在劣化时回滚 |
-| **M5 Arena** | 任务回放、隔离工作区、judge 对比、内置 benchmark | 能对任意 Proposal 给出可信的对比报告 |
-| **M6 闭环 v2（中/高风险）** | SkillRefiner、SkillMiner、PolicyTuner、灰度、人工审批、`/evolve` 全套 | 完成第 11 节的端到端示例 |
-| **M7 扩展** | autond 常驻 + Web/IM 客户端、Roles、ToolSmith、Gardener、`/evolve report` | 多客户端共享一个持续进化的 Genome |
+核心建议：**先手动跑通一圈闭环，再做自动化。** 一个能手推转一圈的粗糙飞轮，好过一个精美但静止的蓝图。
 
-M1 到 M3 先打好"可观测、可归因"的地基；M4 起闭环开始真正运转。
+| 里程碑 | 内容 | 完成标志 | 人工占比 |
+|---|---|---|---|
+| **M1 能用的 Agent** | kernel、model、tools、context（无检索）、agent loop、CLI、EventLog | 能在 CLI 完成编程任务，全部事件入库 | — |
+| **M2 手动闭环** | Genome（git + 资产格式 + 检索 + AssetUsed）、Eval Store 雏形、`/eval run` 回放、人工准备 30–100 个种子 case（含意图对齐 case）与少量种子 skill | 手动"跑评测 → 看失败 → 改 skill → 再跑评测"能看到可复现的提升 | ~80% |
+| **M3 可信信号** | episode 切分、分层评测、Judge 校准（元评测集）、过程指标与 checkpoint、train/val/test 三分、功劳分配 | 每个 episode 有可信分数；Judge 与人一致率达标 | — |
+| **M4 半自动** | 同步诊断与分流、Playbook、Diff 模式 Mutator（LearningCurator、SkillRefiner）、G1–G4、digest 审核、记忆三级晋升 | 系统能自动产出候选并稳定"改进且不退化" | ~40% |
+| **M5 飞轮运转** | 灰度 + test 终验、Monitor 与自动回滚、回流、Dreaming、SkillMiner、分级自主升降级、方向指标与月度审计 | 飞轮在少量人工下自主转动 | ~15% |
+| **M6 元进化** | 外部调研、PolicyTuner、ToolSmith、Gardener、skill 定期复评、autond 常驻与 Web/IM 客户端 | 飞轮越转越快 | ~5% |
+
+### 12.1 冷启动清单（必须由人提供）
+
+- 高质量初始评测集：覆盖主要任务类型，标准清楚、难度有梯度。值得花 1–2 周认真设计。
+- 首批种子 skill 和基础事实（项目约定、个人偏好）。
+- 安全边界、各 domain 的自主等级上限、方向指标阈值。
 
 ---
 
-## 13. 待决策问题
+## 13. 避坑清单
 
-1. **默认自治级别**：建议 `auto-low`。
-2. **Judge 与辅助模型**：建议主模型之外单独配置一个便宜模型，负责意图归纳、信号分类、judge；可选本地模型。
-3. **Genome 共享**：是否需要导出/导入，或在多台设备间同步（git remote 天然支持）？
-4. **内置 benchmark**：首期覆盖哪些任务类型（建议编程任务为主：改 bug、写测试、提 PR、重构）？
-5. **沙箱强度**：首期接受"子进程 + 目录隔离"，还是一开始就上容器？
+| 坑 | 后果 | 对策（本设计中的位置） |
+|---|---|---|
+| 单一评测方法 | 贵或不准 | 规则 + Judge + 人工分层（§6.2） |
+| 评测集不分离 | 在 val 上"刷高分"，新问题直接崩 | train/val/test 三分，val/test 对 Mutator 不可见（§6.4） |
+| 不校准 Judge | 错误正反馈，Agent 自信地学坏 | 元评测集 + 一致率 + 交叉评估（§6.3） |
+| 只评结果不评过程 | 碰巧对的路径下次翻车 | checkpoint + 过程指标（§6.2、§7.6） |
+| 忽视预算公平 | 把多花钱当进化 | 同等预算比较（§7.5） |
+| 记忆全存全塞 | 噪声高、检索差、上下文爆 | 三级晋升 + 预算 + 宁缺毋滥（§4.3、§5.2） |
+| 无遗忘机制 | 过期信息被高置信使用 | TTL + 不对称衰减 + 负反馈淘汰（§4.3） |
+| 记忆不记来源 | 出错无法追溯 | provenance 必填（§4.2） |
+| 全文重写 skill | 覆盖无关逻辑、无法 review | Diff 模式（§7.4） |
+| 无版本管理 | 出问题无法定位和回滚 | git + git note 关联评测（§4.4） |
+| 生成即上线 | 质量参差不齐 | 五道门禁 + 灰度 + test 终验（§7.5、§7.7） |
+| 配置层无限打转 | 根因在工具层却不停改 skill | error_class + 熔断（§5.3、§7.1） |
+| 无回流 | 进化是一次性活动 | 失败自动进 train（§7.7） |
+| 自进化全自动 | 方向偏移且被放大 | 分级自主 + 五个必须有人的节点（§8.2、§8.3） |
+| 审核疲劳 | 名义有人审，实际全放行 | 自动化前置 + 批量 digest（§8.4） |
+| 只看技术指标不看方向 | 每步变好，整体跑偏 | 方向指标 + 意图对齐 case + 月度审计（§8.5） |
+| 跳过冷启动 | 在错误方向上快速迭代 | 冷启动清单（§12.1） |
+| 先建全套基础设施 | 建完才发现闭环跑不通 | 先手动闭环（M2） |
+
+---
+
+## 14. 待决策问题
+
+1. **默认自主等级**：建议所有 domain 从 L1 起步，`memory/learnings` 可直接 L2。
+2. **Judge 与辅助模型**：Judge 必须与主模型不同；是否需要 2 个不同厂商的 Judge 做交叉？是否支持本地模型？
+3. **种子评测集**：首批覆盖哪些任务类型（建议：改 bug、写测试、提 PR、重构、解释代码、写文档各 5–15 个）？
+4. **外部调研**：是否允许进化流程主动联网检索（涉及隐私：只发送抽象化的问题描述）？
+5. **Genome 同步**：是否需要在多台设备间同步（git remote 天然支持）？
+6. **沙箱强度**：首期接受"子进程 + 目录隔离"，还是一开始就上容器？
+
+---
+
+## 参考
+
+- 腾讯技术工程，《一篇讲透 Agent 自进化飞轮怎么搭：评测→记忆→落地→控制》（2026-08）。本文 v0.3 的评测集三分、评估器校准、Skill 四层验证、记忆三级晋升、Diff 模式、五道门禁、分级自主、审核疲劳与方向漂移的应对思路来源于此；具体数值均改为可配置的 policy 默认值。
