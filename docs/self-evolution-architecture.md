@@ -1,6 +1,7 @@
 # Auton 架构设计：自进化 Agent（Greenfield 版）
 
-> 状态：设计稿 v0.3（2026-11-11），从零构建，不考虑现有代码兼容
+> 状态：设计稿 v0.4（2026-11-11），从零构建，不考虑现有代码兼容
+> v0.4 变更：吸收 EvoAgentX 中优化算法的做法：可优化字段与搜索策略分层、批量文本梯度归因、版本树搜索、示例自举、组合搜索（TPE）、候选多样化、重复评测与评测缓存、收敛停止、多样性存档、记忆写入决策。
 > v0.3 变更：吸收《一篇讲透 Agent 自进化飞轮怎么搭：评测→记忆→落地→控制》（腾讯技术工程）中的工程经验：评测集三分、评估器校准、同等预算比较、Skill 四层验证、记忆三级晋升与预算、诊断分流、Playbook、Diff 模式、五道门禁、分级自主、批量审核、方向漂移防护、先跑通手动闭环。
 
 ---
@@ -168,6 +169,18 @@ token_budget: 600
 1. 先确认当前分支与 base 分支 ...
 ```
 
+skill 是一个目录，正文之外可以带示例：
+
+```
+skills/github-pr/
+├── SKILL.md
+└── examples/            # 由金样例 episode 自动提炼的成功示例（见 §7.4 示例自举）
+    ├── ex_01.md         # 任务描述 + 关键步骤 + 结果，带 source episode
+    └── ex_02.md
+```
+
+运行时按与当前任务的相似度选 0–2 个示例注入（计入 skill 的 token 预算）。更换示例不改动 skill 正文，是比改写正文更便宜、更安全的进化手段。
+
 记忆类资产（learning / knowledge / insight）额外要求：
 
 ```yaml
@@ -191,6 +204,7 @@ flowchart LR
 
 规则：
 
+- **写入决策**：写入前先检索相似的已有记忆，由辅助模型对每条候选做出 `ADD / UPDATE / DELETE / NOOP` 决策（与已有记忆合并、替换过期的、或判定为重复而放弃），决策和理由写入 provenance。
 - **策展而非全存**：只有出现正信号（用户确认、评测通过、任务成功）时，learning 才能晋升为长期记忆；默认中间过程不存。
 - **失败也有价值，但存法不同**：失败经验以 `polarity: negative` 的反例形式保存（"这条路走不通，因为 …"）。
 - **不对称强化**：成功使用一次强度小幅上升，导致失败一次大幅下降；默认 `+0.05 / −0.12`（policy 可调），宁可慢一点积累好经验，也不让坏经验扩散。
@@ -205,7 +219,7 @@ flowchart LR
 ├── learnings/                   # L1，自动写入，带 TTL
 ├── knowledge/
 ├── insights/
-├── skills/<name>/SKILL.md
+├── skills/<name>/{SKILL.md, examples/}
 ├── prompts/
 ├── roles/
 ├── tools/<name>/{tool.yaml, main.py}
@@ -217,7 +231,8 @@ flowchart LR
 |---|---|
 | 资产版本 | 文件在某 commit 中的 blob hash |
 | Genome 快照 | commit hash |
-| 提案 | 分支 `proposal/<id>`，每个候选一个 commit；message 含 rationale、证据、诊断 id |
+| 提案 | 分支 `proposal/<id>`，每个候选一个 commit；message 含 rationale、证据、诊断 id、父版本 |
+| 版本树 | 候选的父版本可以是 `main`，也可以是历史上表现好的版本或未合并的候选（§7.3） |
 | 补丁 | 候选以 diff 形式生成、由框架应用（§7.4） |
 | 发布 / 回滚 / 谱系 | merge / `git revert` / `git log` |
 | 关联评测结果 | git note 指向 Eval Store 中的评测报告 |
@@ -448,6 +463,24 @@ flowchart LR
 
 诊断的终点不是分数，而是**归因**：按失败类型分组，定位到具体资产、具体步骤。归因越细，修复越精准——"这个 skill 不好"只能大面积重写，"参数提取步骤漏了 `YYYY-MM-DD` 格式"才能精准修补。
 
+**批量文本梯度**（归因到资产的具体机制）：
+
+1. 取同一 `task_type` 下的一批失败或低分 episode（默认 4–8 个，不用单个 case，避免被个例带偏）。
+2. 对每个 episode，按 `assets_used` 和 checkpoint 记录，让辅助模型为每个参与的资产写一段批评："这个资产的哪一部分、如何导致了这次失败"。
+3. 资产之间有依赖时（role 调用 skill、skill 依赖 knowledge），批评沿依赖链反向传递：下游的失败先归到直接使用的资产，再判断是否源于上游。
+4. 同一资产的批评跨 episode 汇总、去重，得到"文本梯度"，附在 Diagnosis 上交给 Mutator。
+
+没有标准答案时（个人 Agent 的大多数任务），用 Outcome 的维度分数、用户纠正内容和 rubric 作为"损失"来源。
+
+```mermaid
+flowchart LR
+  B["一批同类低分 episode<br/>4–8 个"] --> C["逐个 episode<br/>按 assets_used + checkpoint<br/>写资产级批评"]
+  C --> P["沿依赖链反向传递<br/>role → skill → knowledge"]
+  P --> AG["按资产汇总 · 去重<br/>= 文本梯度"]
+  AG --> D["Diagnosis<br/>可疑资产 + 文本梯度"]
+  L["损失来源<br/>维度分 · 用户纠正 · rubric"] -.-> C
+```
+
 ```mermaid
 flowchart LR
   D["Diagnosis"] --> Q{"类型"}
@@ -466,58 +499,134 @@ flowchart LR
 
 Mutator 生成候选前，`EvolveContext` 汇聚：
 
-1. **本轮诊断**：这次出了什么问题（来自 train 集的失败 case 与归因）。
-2. **Playbook**：以前什么改法有效、踩过什么坑、哪些方向已被证伪。
+1. **本轮诊断**：这次出了什么问题（train 集的失败 case、归因与文本梯度）。
+2. **Playbook**：在同一父版本上以前什么改法有效、踩过什么坑、哪些方向已被证伪。
 3. **外部知识（可选）**：`Researcher` 用 web 工具检索业界做法，防止只在已知方向内打转。
 
-### 7.3 Playbook
+### 7.3 版本树与 Playbook
+
+**版本树**：候选不一定从 `main` 派生。每个资产维护一棵版本树（节点 = 一个被评测过的版本，含已合并的、灰度中的、未合并但 val 分数好的候选）。生成新候选时先选父版本：
+
+- 从该资产 val 分数 top-k（默认 4，必含 `main` 当前版本）的版本中抽样。
+- 抽样概率 = λ · 均匀分布 + (1 − λ) · softmax(α · 分数)，默认 λ = 0.3、α = 0.2：大部分时候在好版本上改，也保留探索其他分支的机会，避免卡在局部最优。
+- 从非 `main` 父版本派生的候选，发布前要基于当前 `main` 重新应用补丁；若该资产在 `main` 上已有改动，重新跑 G2–G3。
+
+```mermaid
+flowchart LR
+  subgraph T["skill/github-pr 版本树"]
+    direction LR
+    V0["v0 · main 旧版<br/>0.62"] --> V1["v1 · 已合并<br/>0.71"]
+    V0 --> V2["v2 · 候选<br/>0.68 · 未合并"]
+    V1 --> V3["v3 · main 当前<br/>0.74"]
+    V1 --> V4["v4 · 候选<br/>0.55 · 被拒"]
+  end
+  T --> S["父版本抽样<br/>top-k · softmax + 均匀混合"]
+  S --> N["新候选<br/>继承父版本的 Playbook 经验"]
+```
+
+**Playbook**：每个提案无论成败都写一条，按"资产 + 父版本"组织：
 
 ```markdown
 ---
 id: pb/0042
 diagnosis: dg/2026-11-03-create-pr-base
 target: skill/github-pr
+parent: v1                  # 在哪个父版本上做的修改
 outcome: adopted            # adopted | rejected | reverted | blocked
+score: {before: 0.71, after: 0.74, runs: 3, std: 0.02}
 ---
 方向：在 skill 第一步加入"确认 base 分支"
 结果：val 纠正率 0.40 → 0.05；test 通过；灰度 9 天无回归
 注意：初版把确认放在 push 之后无效（已证伪方向，见 pb/0039）
 ```
 
-- 每个提案无论成败都写一条；被拒绝、被回滚的方向也要写清原因。
-- Mutator 读取相关 Playbook；G4 门禁检查候选是否重复已证伪的方向。
+- 生成候选时，注入父版本上已尝试过的修改（成功的写"已采纳，勿重复"，失败的写"已证伪，勿重复"）。
+- **语义查重**：新候选的修改描述与父版本上已尝试修改的 embedding 相似度超过阈值，即视为重复，直接丢弃重生成，不进入评测。
+- 被拒绝、被回滚的方向也要写清原因；G4 门禁再做一次全局检查（§7.5）。
 
-### 7.4 Mutators：Diff 模式 + 多候选
+### 7.4 Mutators：可优化字段 × 搜索策略
+
+Mutator 拆成两层：**字段层**回答"改哪里"，**策略层**回答"怎么搜"。新增一种资产只需声明字段；新增一种算法只需实现策略，两者自由组合。
+
+**字段层**：每类资产声明自己的可优化字段，统一提供读取、写入、快照、还原：
 
 ```python
-class Mutator(Protocol):
+class OptimizableField(Protocol):
+    id: str                    # e.g. "skill/github-pr#steps[2]"、"skill/github-pr#examples"、"policy/retrieval#top_k"
+    kind: Literal["text_section", "example_set", "numeric", "categorical", "asset"]
+    space: FieldSpace | None   # 数值范围 / 可选值 / 候选池
+    def get(self) -> Any: ...
+    def patch(self, value_or_diff: Any) -> Patch: ...   # 只产出补丁，由框架应用
+    def snapshot(self) -> str: ...                      # blob hash
+```
+
+| 资产 | 字段示例 | 字段类型 |
+|---|---|---|
+| skill | 某个步骤段落、触发条件、checkpoint、examples | text_section / example_set |
+| knowledge · insight | 条目内容、TTL、polarity | text_section / categorical |
+| prompt | evolvable 片段 | text_section |
+| role | 职责描述、可用工具列表 | text_section / categorical |
+| policy | 压缩阈值、检索 top-k、预算 | numeric / categorical |
+| 任意资产（新建） | 整个资产 | asset |
+
+**策略层**：按字段类型和诊断类型选用：
+
+| 策略 | 适用字段 | 做法 | 典型诊断 |
+|---|---|---|---|
+| **反思补丁** | text_section | 依据文本梯度 + Playbook，生成对指定段落的 diff | 系统性问题、低效 |
+| **示例自举** | example_set | 从金样例 episode 中提炼成功示例，按任务相似度和多样性挑选组合 | skill 遵循率低、成功但不稳定 |
+| **组合搜索** | numeric / categorical，及多字段组合 | TPE 贝叶斯优化：小批量评测筛选，定期对 top 组合做全量评测 | policy 调参、"指令候选 × 示例候选"选择 |
+| **进化变异** | text_section | 一个父版本生成多个子代，各自用不同的变异风格；按分数选择存活者 | 反思补丁多轮无效时用来跳出局部最优 |
+| **整体生成** | asset | 仅用于新建资产（新 skill、新 role、新 tool） | 能力缺口、成功但无 skill |
+
+```mermaid
+flowchart LR
+  D["Diagnosis<br/>+ 文本梯度"] --> FS["字段选择<br/>可疑资产 → 具体字段"]
+  FS --> ST{"策略选择<br/>字段类型 × 诊断类型"}
+  ST --> S1["反思补丁"]
+  ST --> S2["示例自举"]
+  ST --> S3["组合搜索 TPE"]
+  ST --> S4["进化变异"]
+  ST --> S5["整体生成<br/>仅新建"]
+  S1 & S2 & S3 & S4 & S5 --> C["N 个候选<br/>补丁 · proposal 分支"]
+```
+
+```python
+class Strategy(Protocol):
     name: str
-    kinds: set[AssetKind]
-    cadence: Cadence                         # fast | medium | slow
-    def accepts(self, d: Diagnosis) -> bool: ...
-    async def propose(self, d: Diagnosis, ctx: EvolveContext, n: int) -> list[Candidate]: ...
+    field_kinds: set[FieldKind]
+    def accepts(self, d: Diagnosis, f: OptimizableField) -> bool: ...
+    async def propose(self, d: Diagnosis, f: list[OptimizableField], ctx: EvolveContext, n: int) -> list[Candidate]: ...
 
 @dataclass
 class Candidate:
-    patches: list[Patch]       # 只描述需要改动的片段，由框架应用；禁止全文重写
+    parent: str                # 父版本 blob hash（版本树）
+    patches: list[Patch]       # 只描述需要改动的片段，由框架应用；禁止对已有资产全文重写
     rationale: str
     expected_effect: str       # 预期改善哪些 case、哪些指标
+    mutation_style: str | None # 进化变异时使用的风格
 ```
 
-- **Diff 模式**：Mutator 只输出补丁（"把第 3 步改为 …"），框架负责合并。好处：不覆盖无关逻辑、可 review、可精确回滚。
-- **生成背景**：补丁生成时注入 skill 的历史决策原因（来自 git log 和 Playbook），避免"看起来合理实际有害"的修改。
-- **多候选**：每个 Diagnosis 生成 N 个候选（默认 3，按风险和预算调整），各自独立评测。
-- **多文件联动**：改了 A 的输出格式需同时检查依赖 A 的 skill/role/tool；做引用和签名一致性检查。
+通用约束：
 
-| Mutator | 输入 | 输出 |
+- **Diff 模式**：已有资产只接受补丁（"把第 3 步改为 …"），框架负责合并，不覆盖无关逻辑、可 review、可精确回滚。整体生成仅用于新建资产。
+- **生成背景**：补丁生成时注入资产的历史决策原因（git log + Playbook），以及与该资产相关的数据摘要（典型输入、成功示例、失败模式），避免"看起来合理实际有害"的修改。
+- **候选多样化**：每个 Diagnosis 生成 N 个候选（默认 3），且必须彼此不同：每个候选分配不同的变异风格（如"精简""补充缺失步骤""调整顺序""增加检查点""换一种表述"），并做两两语义查重。
+- **多文件联动**：改了 A 的输出格式需同时检查依赖 A 的 skill/role/tool；做引用和签名一致性检查。
+- **表示形式影响修改质量**：资产的结构（Markdown 小节、YAML 字段）决定 LLM 修改是否精准。资产格式设计要服务于字段级修改，并通过实验验证。
+
+Mutator 实例 = 字段选择规则 + 默认策略：
+
+| Mutator | 字段 | 默认策略 |
 |---|---|---|
-| `LearningCurator` | 快回路捕获、偶发个例 | learnings 写入、晋升为 knowledge/insight、遗忘 |
-| `InsightDistiller` | 系统性问题、低效 | insight 或反例 |
-| `SkillRefiner` | 某 skill 的失败归因 | skill 补丁 |
-| `SkillMiner` | Dreaming 发现的"成功但无 skill"模式、L2 → L3 晋升 | 新 skill |
-| `RoleTuner` | 子 Agent 表现 | role 补丁 |
-| `PolicyTuner` | 指标与参数关系 | policy 数值调整 |
-| `ToolSmith` | 反复出现的多步机械操作 | 新 tool（critical） |
+| `LearningCurator` | learnings / knowledge / insight 条目 | 写入决策（§4.3）+ 反思补丁 |
+| `InsightDistiller` | insight 条目 | 反思补丁 |
+| `SkillRefiner` | skill 步骤段落、checkpoint | 反思补丁 → 进化变异（多轮无效时） |
+| `ExampleCurator` | skill examples | 示例自举 |
+| `SkillMiner` | 新 skill | 整体生成（以成功轨迹为输入） |
+| `RoleTuner` | role 字段 | 反思补丁 |
+| `PolicyTuner` | policy 数值 | 组合搜索 |
+| `ToolSmith` | 新 tool | 整体生成（critical） |
 | `Gardener` | 冗余/冲突/零贡献资产 | 合并、废弃、删除 |
 
 ### 7.5 五道门禁
@@ -527,7 +636,7 @@ flowchart LR
   C["候选<br/>proposal 分支"] --> G1["G1 结构<br/>schema · frontmatter<br/>引用 / 签名一致性<br/>敏感信息扫描"]
   G1 --> G2["G2 快速回归<br/>核心 case 子集<br/>原来对的不能错"]
   G2 --> G3["G3 统计显著<br/>val 集 · 同等预算<br/>vs 基线"]
-  G3 --> G4["G4 Playbook 一致<br/>不重复已证伪方向<br/>不与已知规则冲突"]
+  G3 --> G4["G4 Playbook 一致<br/>语义查重 · 不重复已证伪方向<br/>不与已知规则冲突"]
   G4 --> G5{"G5 人工<br/>按风险 + 自主等级"}
   G5 -->|"免审 / 通过"| CAN["灰度"]
   G1 & G2 & G3 & G4 -->|失败| FB["诊断失败原因<br/>写入 Playbook"]
@@ -536,7 +645,8 @@ flowchart LR
 
 - G1–G4 全自动，目标是在人看到之前过滤掉绝大部分低质量候选，让人"做选择题而不是填空题"。
 - **同等预算**：G3 中候选与基线在相同 token / 工具调用上限下比较；成本显著上升视为未通过，除非诊断类型本身就是"质量优先"且由人批准。
-- **分层评测控制成本**：每次变更只跑 G2 核心子集 + G3 相关 task_type 的 val；全量评测（含全部 val 与 test）每晚定时运行一次。
+- **重复评测与方差**：LLM 输出有随机性，单次评测分数噪声很大。G3 中每个 case 对候选和基线各跑 k 次（默认 3，policy 可调），用配对检验判断差异是否显著，报告均值和标准差；差异落在噪声范围内即视为"未改善"。
+- **分层评测控制成本**：每次变更只跑 G2 核心子集 + G3 相关 task_type 的 val；全量评测（含全部 val 与 test）每晚定时运行一次。组合搜索类策略在搜索过程中用小批量 val 快速筛选，只对 top 组合做全量 val 评测。
 
 ### 7.6 Arena：隔离执行
 
@@ -544,6 +654,8 @@ flowchart LR
 - 只读工具真实执行；外部副作用（网络写、发消息）用记录结果 stub。
 - 多轮任务由用户模拟器（辅助模型 + 记录的用户回复）驱动。
 - 对比：规则 checker + 过程指标 + Judge 盲评两两对比（随机左右位置）。
+- **评测缓存**：缓存键 = （该 case 相关资产的 blob hash 集合 + case id + 模型版本 + 运行序号）。基线版本在多个候选的对比中反复出现，直接命中缓存；任何相关资产或模型变化都会使缓存失效。
+- **补测**：组合搜索中某个候选因采样原因评测样本不足时，单独补测到最少样本数，避免它因"没机会"而被淘汰。
 
 **Skill 的额外验证（四层）**——证明 skill "真的有用"而不是碰巧存在：
 
@@ -595,6 +707,19 @@ stateDiagram-v2
 **Monitor**：比较新旧版本在成功率、token、纠正率上的差异。任一项出现 P0 级退化（例如成功率下降超过阈值）立即自动 revert，无需等人；同时标记 blocked、降级所属 domain 的自主等级，并通知用户。
 
 **回流**：灰度期和上线后的新失败 episode 自动转为 train case，进入下一轮诊断——上线不是终点，而是下一轮的起点。
+
+### 7.8 搜索的停止与多样性
+
+**停止条件**（慢回路、Dreaming 和每个 Diagnosis 的迭代都适用）：
+
+| 条件 | 规则 | 之后 |
+|---|---|---|
+| 收敛 | 该资产版本树 top-k 的平均 val 分数，连续若干轮（默认 5）提升不显著 | 停止该资产的搜索，等新的失败样本回流再启动 |
+| 早停 | 进化变异连续若干代（默认 3）没有超过当前最好分数 | 结束本轮进化变异 |
+| 熔断 | 同一 Diagnosis 连续 3 轮无法改善（§7.1） | 停止 Genome 层迭代，报告工具/环境层问题 |
+| 预算 | 达到每日进化 token 上限（§8.1） | 剩余任务排队到下一天 |
+
+**多样性存档**（M6，可选）：对重要的 skill 和 policy，不只保留一个"全局最优"版本，而是按特征维度分格保存各格的最优版本（MAP-Elites）。默认维度：平均 token 成本 × 任务难度。例如同一个 skill 同时保留"轻量快速版"和"彻底检查版"，Resolver 按任务难度和预算选用。这与"同等预算比较"配合：每个预算档位内部比较，不跨档比较。
 
 ---
 
@@ -710,9 +835,12 @@ auton/
 │   ├── diagnose/    # 同步诊断、Dreaming、分流、熔断
 │   ├── research/    # 外部知识检索（可选）
 │   ├── playbook/
-│   ├── mutators/    # Diff 模式补丁生成
+│   ├── fields/      # 各类资产的可优化字段声明（读取 / 补丁 / 快照）
+│   ├── strategies/  # 反思补丁、示例自举、组合搜索（TPE）、进化变异、整体生成
+│   ├── mutators/    # 字段选择规则 + 默认策略的组合
+│   ├── lineage/     # 版本树、父版本抽样
 │   ├── gates/       # G1–G5
-│   ├── arena/       # 隔离执行、用户模拟器、skill 四层验证
+│   ├── arena/       # 隔离执行、用户模拟器、skill 四层验证、重复评测、评测缓存
 │   ├── release/     # 灰度、test 终验、合并、回滚
 │   ├── monitor/     # 结果/方向指标、回流
 │   ├── control/     # Guard、自主等级、digest、audit
@@ -764,9 +892,9 @@ flowchart LR
 | **M1 能用的 Agent** | kernel、model、tools、context（无检索）、agent loop、CLI、EventLog | 能在 CLI 完成编程任务，全部事件入库 | — |
 | **M2 手动闭环** | Genome（git + 资产格式 + 检索 + AssetUsed）、Eval Store 雏形、`/eval run` 回放、人工准备 30–100 个种子 case（含意图对齐 case）与少量种子 skill | 手动"跑评测 → 看失败 → 改 skill → 再跑评测"能看到可复现的提升 | ~80% |
 | **M3 可信信号** | episode 切分、分层评测、Judge 校准（元评测集）、过程指标与 checkpoint、train/val/test 三分、功劳分配 | 每个 episode 有可信分数；Judge 与人一致率达标 | — |
-| **M4 半自动** | 同步诊断与分流、Playbook、Diff 模式 Mutator（LearningCurator、SkillRefiner）、G1–G4、digest 审核、记忆三级晋升 | 系统能自动产出候选并稳定"改进且不退化" | ~40% |
-| **M5 飞轮运转** | 灰度 + test 终验、Monitor 与自动回滚、回流、Dreaming、SkillMiner、分级自主升降级、方向指标与月度审计 | 飞轮在少量人工下自主转动 | ~15% |
-| **M6 元进化** | 外部调研、PolicyTuner、ToolSmith、Gardener、skill 定期复评、autond 常驻与 Web/IM 客户端 | 飞轮越转越快 | ~5% |
+| **M4 半自动** | 同步诊断与分流、批量文本梯度、Playbook、字段层 + 反思补丁 / 示例自举策略（LearningCurator、SkillRefiner、ExampleCurator）、G1–G4（含重复评测、评测缓存）、digest 审核、记忆三级晋升与写入决策 | 系统能自动产出候选并稳定"改进且不退化" | ~40% |
+| **M5 飞轮运转** | 灰度 + test 终验、Monitor 与自动回滚、回流、Dreaming、SkillMiner、版本树与父版本抽样、进化变异、收敛与早停、分级自主升降级、方向指标与月度审计 | 飞轮在少量人工下自主转动 | ~15% |
+| **M6 元进化** | 外部调研、PolicyTuner（组合搜索 TPE）、多样性存档、ToolSmith、Gardener、skill 定期复评、autond 常驻与 Web/IM 客户端 | 飞轮越转越快 | ~5% |
 
 ### 12.1 冷启动清单（必须由人提供）
 
@@ -798,6 +926,11 @@ flowchart LR
 | 只看技术指标不看方向 | 每步变好，整体跑偏 | 方向指标 + 意图对齐 case + 月度审计（§8.5） |
 | 跳过冷启动 | 在错误方向上快速迭代 | 冷启动清单（§12.1） |
 | 先建全套基础设施 | 建完才发现闭环跑不通 | 先手动闭环（M2） |
+| 单次评测定输赢 | 把随机波动当成改进 | 每 case 重复 k 次 + 配对检验（§7.5） |
+| 候选彼此雷同 | N 个候选等于 1 个，浪费评测预算 | 分配不同变异风格 + 两两语义查重（§7.4） |
+| 只在 main 上改 | 卡在局部最优 | 版本树 + 父版本抽样（§7.3） |
+| 归因只到"这次失败了" | Mutator 只能盲改 | 批量文本梯度，归因到资产和字段（§7.1） |
+| 无停止条件 | 收益递减后继续烧钱 | 收敛检测、早停、熔断、预算（§7.8） |
 
 ---
 
@@ -815,3 +948,4 @@ flowchart LR
 ## 参考
 
 - 腾讯技术工程，《一篇讲透 Agent 自进化飞轮怎么搭：评测→记忆→落地→控制》（2026-08）。本文 v0.3 的评测集三分、评估器校准、Skill 四层验证、记忆三级晋升、Diff 模式、五道门禁、分级自主、审核疲劳与方向漂移的应对思路来源于此；具体数值均改为可配置的 policy 默认值。
+- EvoAgentX（https://github.com/EvoAgentX/EvoAgentX，阅读的是 LB-Young/EvoAgentX 副本）。本文 v0.4 借鉴了其中：`ParamRegistry` / `OptimizableField` 的字段抽象（→ §7.4 字段层）、TextGrad 的文本梯度与无标准答案模式（→ §7.1）、AFlow 的父版本抽样、按父版本组织的经验与收敛检测（→ §7.3、§7.8）、MIPRO 的示例自举与 TPE 组合搜索（→ §4.2、§7.4）、EvoPrompt 的评测缓存、补测与早停（→ §7.6、§7.8）、SEW / PromptBreeder 的变异风格多样化（→ §7.4）、MAP-Elites 的多样性存档（→ §7.8）、MemoryManager 的写入决策（→ §4.3）。未采用：依赖带标签 benchmark 的离线范式、整体重写式修改、在同一评测集上回滚比较。
