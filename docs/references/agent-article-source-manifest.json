@@ -293,11 +293,12 @@
       "archive_status": "licensed_article_archived",
       "reference_id": "REF017",
       "full_text_saved": true,
-      "archive_path": "originals/drew-breunig-how-long-contexts-fail.html",
-      "license_evidence_note": "Source footer links CC BY-NC 4.0. Noncommercial research archive; attribution and extraction changes recorded in HTML.",
+      "archive_path": "drew-breunig-how-long-contexts-fail.md",
+      "license_evidence_note": "Source footer links CC BY-NC 4.0. Noncommercial research archive; attribution and extraction changes recorded in Markdown.",
       "license": "CC BY-NC 4.0",
       "license_url": "https://creativecommons.org/licenses/by-nc/4.0/",
-      "archive_sha256": "f1f0dc6df6daea444d359b41fb4a4455c3c4befdda41d0fc091069771fe079f9"
+      "archive_sha256": "d5149066a55acd9db667a439b77be5dbc49a813ddeefd9980f37d7103fe73769",
+      "archive_format": "markdown"
     },
     {
       "url": "https://www.langchain.com/blog/building-langgraph",

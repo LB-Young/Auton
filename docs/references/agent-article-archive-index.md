@@ -9,9 +9,9 @@ Inventory date: 2026-11-14. Scope: all 35 unique sources in these two documents:
 
 **1 licensed article body saved; 34 article bodies not saved because redistribution permission has not been verified. This is NOT a complete full-text archive.**
 
-Saved: [How Long Contexts Fail, by Drew Breunig](./originals/drew-breunig-how-long-contexts-fail.html). The source footer links [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/). This copy is for noncommercial research, with attribution and extraction changes stated in the HTML. Third-party material retains its own rights.
+Saved: [How Long Contexts Fail, by Drew Breunig](./drew-breunig-how-long-contexts-fail.md). The source footer links [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/). This copy is for noncommercial research, with attribution and extraction changes stated in the Markdown. Third-party material retains its own rights.
 
-The HTML contains the extracted English article, not a translation or summary. Scripts, forms and event handlers were removed. Images and other remote assets were not downloaded; this is not a complete offline website mirror.
+The Markdown contains the extracted English article, not a translation or summary. Scripts, forms and event handlers were removed. Images and other remote assets were not downloaded; this is not a complete offline website mirror.
 
 The other sources have titles, original URLs, HTTP status, inspection time, license candidates and citation provenance in the [machine-readable manifest](./agent-article-source-manifest.json). Metadata and summaries are not presented as original article copies.
 
@@ -41,7 +41,7 @@ REF identifiers belong to this inventory, independently of the handbook SRC and 
 | REF014 | [Infrastructure noise in agentic coding evals \ Anthropic](https://www.anthropic.com/research/infrastructure-noise) | handbook | Not saved: permission unverified |
 | REF015 | [How we built our multi-agent research system \ Anthropic](https://www.anthropic.com/research/multi-agent-research-system) | handbook | Not saved: permission unverified |
 | REF016 | [Writing effective tools for AI agents \ Anthropic](https://www.anthropic.com/research/writing-tools-for-agents) | handbook | Not saved: permission unverified |
-| REF017 | [How Long Contexts Fail](https://www.dbreunig.com/2025/06/22/how-contexts-fail-and-how-to-fix-them.html) | handbook | [Saved article HTML](./originals/drew-breunig-how-long-contexts-fail.html) / CC BY-NC 4.0 |
+| REF017 | [How Long Contexts Fail](https://www.dbreunig.com/2025/06/22/how-contexts-fail-and-how-to-fix-them.html) | handbook | [Saved article Markdown](./drew-breunig-how-long-contexts-fail.md) / CC BY-NC 4.0 |
 | REF018 | [Building LangGraph: Designing an Agent Runtime from first principles](https://www.langchain.com/blog/building-langgraph) | handbook | Not saved: permission unverified |
 | REF019 | [New context engineering challenges in late 2026](https://www.langchain.com/blog/context-engineering-challenges-late-2026) | handbook | Not saved: permission unverified |
 | REF020 | [Context Engineering](https://www.langchain.com/blog/context-engineering-for-agents) | handbook | Not saved: permission unverified |

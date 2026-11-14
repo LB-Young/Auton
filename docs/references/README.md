@@ -10,7 +10,7 @@ Auton 自进化架构设计（[`../self-evolution-architecture.md`](../self-evol
 
 ## 专题综合手册
 
-- [两篇 Agent 专题文档的原文归档状态](./agent-article-archive-index.md)：35 个来源逐项清单；已保存 1 篇开放许可正文，34 篇转载许可未确认、未保存全文。附机器可读 manifest，不能视为全部原文已备份。
+- [两篇 Agent 专题文档的原文归档状态](./agent-article-archive-index.md)：35 个来源逐项清单；已保存 1 篇开放许可 Markdown 正文，34 篇转载许可未确认、未保存全文。附机器可读 manifest，不能视为全部原文已备份。
 
 - [Agent 与多 Agent 执行问题及解决方案手册](../agent-execution-problems-and-solutions.md)：基于 23 篇原始工程博客，整理 94 项执行问题、64 个故障注入场景及 Auton 的建议契约、状态机与建设顺序。明确区分来源摘要与工程推论；作为设计输入，尚未实现或验证。
 - [Agent 构建者的失败尝试、事故与修复案例](../agent-builder-case-studies.md)：第二轮新增 12 篇第一方博客，整理 11 组构建/调试/事故案例与 12 个建议实验，涵盖 Manus、Vercel/Braintrust、Parcha/Grep、Anthropic、Uber、Cloudflare。保留原方案、改动、局限及与问题手册的映射。
