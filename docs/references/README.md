@@ -8,6 +8,10 @@ Auton 自进化架构设计（[`../self-evolution-architecture.md`](../self-evol
 
 首次收集：2026-11-11；补充查阅：2026-11-14。
 
+## 专题综合手册
+
+- [Agent 与多 Agent 执行问题及解决方案手册](../agent-execution-problems-and-solutions.md)：基于 23 篇原始工程博客，整理 94 项执行问题、64 个故障注入场景及 Auton 的建议契约、状态机与建设顺序。明确区分来源摘要与工程推论；作为设计输入，尚未实现或验证。
+
 ## 目录
 
 | 文件 | 来源 | 机构 | 日期 | 主题 |
