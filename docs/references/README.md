@@ -6,7 +6,7 @@ Auton 自进化架构设计（[`../self-evolution-architecture.md`](../self-evol
 - 第三方文章与论文保存为中文**阅读笔记**（元信息、核心观点、关键机制、数据、局限、对 Auton 的启示），附原文链接与少量原文短句，不转载全文。
 - 开源项目保存为代码分析。
 
-收集时间：2026-11-11。
+首次收集：2026-11-11；补充查阅：2026-11-14。
 
 ## 目录
 
@@ -26,6 +26,30 @@ Auton 自进化架构设计（[`../self-evolution-architecture.md`](../self-evol
 | [deepmind-alphaevolve.md](./deepmind-alphaevolve.md) | AlphaEvolve | Google DeepMind | 2025-05-14 | 进化编码 Agent、模型集成、自动评估 |
 | [letta-sleep-time-compute.md](./letta-sleep-time-compute.md) | Sleep-time Compute / Agent Memory | Letta | 2025-04-21 / 2025-07-07 | 空闲时整理记忆、主 Agent 与记忆 Agent 分工 |
 | [langchain-continual-learning.md](./langchain-continual-learning.md) | Continual learning for AI agents | LangChain | 2026-04-05 | 模型 / Harness / 上下文三层 |
+
+## 2026-11-14 补充资料
+
+以下 7 篇补充同等预算对照、长期经验干扰、记忆操作进化与 Skill 效用验证。笔记区分来源结论与设计推论，建议尚未合并到 v0.4 正文。
+
+| 笔记 | 发布 / 版本 | 重点 |
+|---|---|---|
+| [Rethinking the Evaluation of Harness Evolution for Agents](./harness-evolution-evaluation.md) | 2026-07-14；v4：2026-10-05 | 自动修改 Harness 的收益，需要排除额外搜索预算和评测数据泄漏的影响。 |
+| [PATH-Bench: Path-Dependent Evaluation of Lifelong Agents](./path-bench-lifelong-agents.md) | 2026-08-02；v1 | 长期 Agent 的能力取决于经验积累的路径；学到新经验可能干扰已有能力。 |
+| [MemSkill: Learning and Evolving Memory Skills for Self-Evolving Agents](./memskill-evolving-memory-skills.md) | 2026-02-02；v3：2026-11-06；页面标注 NeurIPS 2026 接收 | 不仅记忆内容可以更新，提取、整合和裁剪记忆的操作也可以作为技能学习和进化。 |
+| [SkillsBench: Benchmarking How Well Agent Skills Work Across Diverse Tasks](./skillsbench.md) | 2026-02-13；v4：2026-06-14 | Skill 是否有效，需要在同一任务条件下对比加载和不加载 Skill 的结果。 |
+| [Remember Me, Refine Me: A Dynamic Procedural Memory Framework for Experience-Driven Agent Evolution](./reme-procedural-memory.md) | Findings of ACL 2026；2026-07 | 程序性记忆需要提炼、按情境复用、依据效用修订，避免被动累积。 |
+| [Demystifying evals for AI agents](./anthropic-demystifying-agent-evals.md) | 2026-01-09 | Agent 评测需要清楚区分任务、重复试验、评分器、轨迹和环境中的最终结果。 |
+| [A Survey of Self-Evolving Agents: What, When, How, and Where to Evolve on the Path to Artificial Super Intelligence](./self-evolving-agents-survey.md) | 2025-07-28；v4：2026-01-16；TMLR 01/2026 | 用进化对象、时机、方法和应用场景组织自进化 Agent 的研究空间。 |
+
+建议阅读顺序：Harness evolution evaluation → PATH-Bench → MemSkill，其余按评测、Skill 和记忆设计需要阅读。
+
+### 优先验证的设计假设（待合并）
+
+| 假设 | 建议实验 / 设计检查 | 对应章节 |
+|---|---|---|
+| 进化收益超过简单增加重试 | 旧版本 / 旧版本增加重试 / 新版本对照，核算搜索成本并用未见任务验证 | §6、§7.5 |
+| 长期积累不会破坏已有能力 | 连续任务流、冲突项目历史、旧任务探测，记录迁移与遗忘 | §4.3、§6、§7.7 |
+| 记忆处理策略可安全进化 | 将提取策略与固定权限、来源追踪、删除规则分离，分别验证记忆与任务收益 | §4、§7.4、§8.1 |
 
 ## 跨来源共识
 
