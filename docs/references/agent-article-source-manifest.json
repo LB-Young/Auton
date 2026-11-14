@@ -1,0 +1,612 @@
+{
+  "scope": "All 35 unique HTTP(S) source URLs in the two agent research documents, excluding older references.",
+  "inventory_date": "2026-11-14",
+  "archived_articles": 1,
+  "permission_unverified_articles": 34,
+  "method": "HTTP accessibility and HTML license-link inspection; not a complete legal-terms audit. Response hashes do not imply saved pages.",
+  "sources": [
+    {
+      "url": "https://aws.amazon.com/blogs/machine-learning/5-production-challenges-in-multi-agent-systems-and-how-deep-insight-solved-them/",
+      "cited_by": [
+        "agent-execution-problems-and-solutions.md"
+      ],
+      "checked_at_utc": "2026-11-14T12:19:06.872510+00:00",
+      "http_status": 200,
+      "resolved_url": "https://aws.amazon.com/blogs/machine-learning/5-production-challenges-in-multi-agent-systems-and-how-deep-insight-solved-them/",
+      "page_title": "5 production challenges in multi-agent systems and how Deep Insight solved them | Artificial Intelligence",
+      "response_sha256": "3b8f01f6f01843f238998a224495869410f44b291c47962cb5d9f3cf44884b0c",
+      "license_candidate_urls": [],
+      "archive_status": "permission_not_verified",
+      "reference_id": "REF001",
+      "full_text_saved": false,
+      "archive_path": null,
+      "license_evidence_note": "No full-article redistribution permission verified; this is not a determination that reuse is prohibited."
+    },
+    {
+      "url": "https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/",
+      "cited_by": [
+        "agent-execution-problems-and-solutions.md"
+      ],
+      "checked_at_utc": "2026-11-14T12:19:06.873437+00:00",
+      "http_status": 200,
+      "resolved_url": "https://builder.aws.com/content/3EumjoZascWd1oZiEgL8ORlv3qE/timeouts-retries-and-backoff-with-jitter",
+      "page_title": "Timeouts, retries, and backoff with jitter | AWS Builder Center",
+      "response_sha256": "f6fac4cd64cddad5b87e0a6ae952c0e3a4b14aa91a2b39167d9c4d77e46b9a3c",
+      "license_candidate_urls": [],
+      "archive_status": "permission_not_verified",
+      "reference_id": "REF002",
+      "full_text_saved": false,
+      "archive_path": null,
+      "license_evidence_note": "No full-article redistribution permission verified; this is not a determination that reuse is prohibited."
+    },
+    {
+      "url": "https://cognition.com/blog/dont-build-multi-agents",
+      "cited_by": [
+        "agent-execution-problems-and-solutions.md"
+      ],
+      "checked_at_utc": "2026-11-14T12:19:06.877231+00:00",
+      "http_status": 200,
+      "resolved_url": "https://cognition.com/blog/dont-build-multi-agents",
+      "page_title": "Don’t Build Multi-Agents | Cognition",
+      "response_sha256": "6f77127b09bb931bd4702831235eee46a86d490c9c4a5f19ff03d392df2e3d68",
+      "license_candidate_urls": [],
+      "archive_status": "permission_not_verified",
+      "reference_id": "REF003",
+      "full_text_saved": false,
+      "archive_path": null,
+      "license_evidence_note": "No full-article redistribution permission verified; this is not a determination that reuse is prohibited."
+    },
+    {
+      "url": "https://cognition.com/blog/multi-agents-working",
+      "cited_by": [
+        "agent-execution-problems-and-solutions.md"
+      ],
+      "checked_at_utc": "2026-11-14T12:19:06.880077+00:00",
+      "http_status": 200,
+      "resolved_url": "https://cognition.com/blog/multi-agents-working",
+      "page_title": "Multi-Agents: What's Actually Working | Cognition",
+      "response_sha256": "e732c7cbb6864f55f49a6912636abbef51a4db9c64b0bfcf69d64cbf5e6b5f0c",
+      "license_candidate_urls": [],
+      "archive_status": "permission_not_verified",
+      "reference_id": "REF004",
+      "full_text_saved": false,
+      "archive_path": null,
+      "license_evidence_note": "No full-article redistribution permission verified; this is not a determination that reuse is prohibited."
+    },
+    {
+      "url": "https://cursor.com/blog/scaling-agents",
+      "cited_by": [
+        "agent-execution-problems-and-solutions.md"
+      ],
+      "checked_at_utc": "2026-11-14T12:19:06.885408+00:00",
+      "http_status": 200,
+      "resolved_url": "https://cursor.com/blog/scaling-agents",
+      "page_title": "Scaling long-running autonomous coding · Cursor",
+      "response_sha256": "c8a4e13d75e8814e683b31d9a70be33fa86f080506edf608269df2033ccb3914",
+      "license_candidate_urls": [],
+      "archive_status": "permission_not_verified",
+      "reference_id": "REF005",
+      "full_text_saved": false,
+      "archive_path": null,
+      "license_evidence_note": "No full-article redistribution permission verified; this is not a determination that reuse is prohibited."
+    },
+    {
+      "url": "https://cursor.com/blog/self-driving-codebases",
+      "cited_by": [
+        "agent-execution-problems-and-solutions.md"
+      ],
+      "checked_at_utc": "2026-11-14T12:19:06.888105+00:00",
+      "http_status": 200,
+      "resolved_url": "https://cursor.com/blog/self-driving-codebases",
+      "page_title": "Towards self-driving codebases · Cursor",
+      "response_sha256": "748030b0a84b9e4d05d07e01460f87c1347856617c3057795c6a3fb46749a80e",
+      "license_candidate_urls": [],
+      "archive_status": "permission_not_verified",
+      "reference_id": "REF006",
+      "full_text_saved": false,
+      "archive_path": null,
+      "license_evidence_note": "No full-article redistribution permission verified; this is not a determination that reuse is prohibited."
+    },
+    {
+      "url": "https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/",
+      "cited_by": [
+        "agent-execution-problems-and-solutions.md"
+      ],
+      "checked_at_utc": "2026-11-14T12:19:07.804152+00:00",
+      "http_status": 200,
+      "resolved_url": "https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/",
+      "page_title": "The lethal trifecta for AI agents: private data, untrusted content, and external communication",
+      "response_sha256": "bc62671cfa28a5a0212510b53a960efcbceeb4174e427880ca3c54f520533185",
+      "license_candidate_urls": [],
+      "archive_status": "permission_not_verified",
+      "reference_id": "REF007",
+      "full_text_saved": false,
+      "archive_path": null,
+      "license_evidence_note": "No full-article redistribution permission verified; this is not a determination that reuse is prohibited."
+    },
+    {
+      "url": "https://temporal.io/blog/idempotency-and-durable-execution",
+      "cited_by": [
+        "agent-execution-problems-and-solutions.md"
+      ],
+      "checked_at_utc": "2026-11-14T12:19:07.890483+00:00",
+      "http_status": 200,
+      "resolved_url": "https://temporal.io/blog/idempotency-and-durable-execution",
+      "page_title": "What is idempotency? And why it matters for durable systems | Temporal",
+      "response_sha256": "99d6867e60392fc7f858cf46cfe13221978fdd11da6a8659c0914c344b3f2977",
+      "license_candidate_urls": [],
+      "archive_status": "permission_not_verified",
+      "reference_id": "REF008",
+      "full_text_saved": false,
+      "archive_path": null,
+      "license_evidence_note": "No full-article redistribution permission verified; this is not a determination that reuse is prohibited."
+    },
+    {
+      "url": "https://www.anthropic.com/research/claude-code-sandboxing",
+      "cited_by": [
+        "agent-execution-problems-and-solutions.md"
+      ],
+      "checked_at_utc": "2026-11-14T12:19:07.896192+00:00",
+      "http_status": 200,
+      "resolved_url": "https://www.anthropic.com/research/claude-code-sandboxing",
+      "page_title": "Making Claude Code safer with sandboxing \\ Anthropic",
+      "response_sha256": "6343630fb8f2defa5b65df8b92c30c9d0d52e4a66fe7a8ebeb6d5abd373d2f43",
+      "license_candidate_urls": [],
+      "archive_status": "permission_not_verified",
+      "reference_id": "REF009",
+      "full_text_saved": false,
+      "archive_path": null,
+      "license_evidence_note": "No full-article redistribution permission verified; this is not a determination that reuse is prohibited."
+    },
+    {
+      "url": "https://www.anthropic.com/research/code-execution-with-mcp",
+      "cited_by": [
+        "agent-execution-problems-and-solutions.md"
+      ],
+      "checked_at_utc": "2026-11-14T12:19:07.919550+00:00",
+      "http_status": 200,
+      "resolved_url": "https://www.anthropic.com/research/code-execution-with-mcp",
+      "page_title": "Code execution with MCP for efficient agents \\ Anthropic",
+      "response_sha256": "5ab3667e8a03a9885625a5b2c332a70c2be2a93dda8b52b646e7ef0e413d8250",
+      "license_candidate_urls": [],
+      "archive_status": "permission_not_verified",
+      "reference_id": "REF010",
+      "full_text_saved": false,
+      "archive_path": null,
+      "license_evidence_note": "No full-article redistribution permission verified; this is not a determination that reuse is prohibited."
+    },
+    {
+      "url": "https://www.anthropic.com/research/demystifying-evals-for-ai-agents",
+      "cited_by": [
+        "agent-execution-problems-and-solutions.md"
+      ],
+      "checked_at_utc": "2026-11-14T12:19:08.480661+00:00",
+      "http_status": 200,
+      "resolved_url": "https://www.anthropic.com/research/demystifying-evals-for-ai-agents",
+      "page_title": "Demystifying evals for AI agents \\ Anthropic",
+      "response_sha256": "a2993cb5698bf85c0fa96aa778c347841ff8b41dbded252a63e1be0017e597fd",
+      "license_candidate_urls": [],
+      "archive_status": "permission_not_verified",
+      "reference_id": "REF011",
+      "full_text_saved": false,
+      "archive_path": null,
+      "license_evidence_note": "No full-article redistribution permission verified; this is not a determination that reuse is prohibited."
+    },
+    {
+      "url": "https://www.anthropic.com/research/effective-context-engineering-for-ai-agents",
+      "cited_by": [
+        "agent-execution-problems-and-solutions.md"
+      ],
+      "checked_at_utc": "2026-11-14T12:19:08.610920+00:00",
+      "http_status": 200,
+      "resolved_url": "https://www.anthropic.com/research/effective-context-engineering-for-ai-agents",
+      "page_title": "Effective context engineering for AI agents \\ Anthropic",
+      "response_sha256": "13ae66d525b1df0e6e7e2266b1e52e1c9efb81061414c28a24889312898d50dd",
+      "license_candidate_urls": [],
+      "archive_status": "permission_not_verified",
+      "reference_id": "REF012",
+      "full_text_saved": false,
+      "archive_path": null,
+      "license_evidence_note": "No full-article redistribution permission verified; this is not a determination that reuse is prohibited."
+    },
+    {
+      "url": "https://www.anthropic.com/research/effective-harnesses-for-long-running-agents",
+      "cited_by": [
+        "agent-execution-problems-and-solutions.md"
+      ],
+      "checked_at_utc": "2026-11-14T12:19:09.226353+00:00",
+      "http_status": 200,
+      "resolved_url": "https://www.anthropic.com/research/effective-harnesses-for-long-running-agents",
+      "page_title": "Effective harnesses for long-running agents \\ Anthropic",
+      "response_sha256": "2aa700055e8f7be635b0afd366bf76abb202a847f63daa1ee0b248a6a85cfd0f",
+      "license_candidate_urls": [],
+      "archive_status": "permission_not_verified",
+      "reference_id": "REF013",
+      "full_text_saved": false,
+      "archive_path": null,
+      "license_evidence_note": "No full-article redistribution permission verified; this is not a determination that reuse is prohibited."
+    },
+    {
+      "url": "https://www.anthropic.com/research/infrastructure-noise",
+      "cited_by": [
+        "agent-execution-problems-and-solutions.md"
+      ],
+      "checked_at_utc": "2026-11-14T12:19:09.891010+00:00",
+      "http_status": 200,
+      "resolved_url": "https://www.anthropic.com/research/infrastructure-noise",
+      "page_title": "Infrastructure noise in agentic coding evals \\ Anthropic",
+      "response_sha256": "c291699c10571ae4ae231f94e88a8284c859c583d682755a5cc1330f2bfdaa48",
+      "license_candidate_urls": [],
+      "archive_status": "permission_not_verified",
+      "reference_id": "REF014",
+      "full_text_saved": false,
+      "archive_path": null,
+      "license_evidence_note": "No full-article redistribution permission verified; this is not a determination that reuse is prohibited."
+    },
+    {
+      "url": "https://www.anthropic.com/research/multi-agent-research-system",
+      "cited_by": [
+        "agent-execution-problems-and-solutions.md"
+      ],
+      "checked_at_utc": "2026-11-14T12:19:09.906603+00:00",
+      "http_status": 200,
+      "resolved_url": "https://www.anthropic.com/research/multi-agent-research-system",
+      "page_title": "How we built our multi-agent research system \\ Anthropic",
+      "response_sha256": "4b09c9b31b77d0d8217bde69fcb3e0614573b45ea2d1d334f0daf003504f444b",
+      "license_candidate_urls": [],
+      "archive_status": "permission_not_verified",
+      "reference_id": "REF015",
+      "full_text_saved": false,
+      "archive_path": null,
+      "license_evidence_note": "No full-article redistribution permission verified; this is not a determination that reuse is prohibited."
+    },
+    {
+      "url": "https://www.anthropic.com/research/writing-tools-for-agents",
+      "cited_by": [
+        "agent-execution-problems-and-solutions.md"
+      ],
+      "checked_at_utc": "2026-11-14T12:19:10.328633+00:00",
+      "http_status": 200,
+      "resolved_url": "https://www.anthropic.com/research/writing-tools-for-agents",
+      "page_title": "Writing effective tools for AI agents \\ Anthropic",
+      "response_sha256": "161ce12f9a9d79eb089c35f2deabc84b78c7ffc6239fa9946411d0a7a78e3f36",
+      "license_candidate_urls": [],
+      "archive_status": "permission_not_verified",
+      "reference_id": "REF016",
+      "full_text_saved": false,
+      "archive_path": null,
+      "license_evidence_note": "No full-article redistribution permission verified; this is not a determination that reuse is prohibited."
+    },
+    {
+      "url": "https://www.dbreunig.com/2025/06/22/how-contexts-fail-and-how-to-fix-them.html",
+      "cited_by": [
+        "agent-execution-problems-and-solutions.md"
+      ],
+      "checked_at_utc": "2026-11-14T12:19:10.412237+00:00",
+      "http_status": 200,
+      "resolved_url": "https://www.dbreunig.com/2025/06/22/how-contexts-fail-and-how-to-fix-them.html",
+      "page_title": "How Long Contexts Fail",
+      "response_sha256": "bdb72fc956dfb4b48e886e9e1b75abf1e4eab8fcc48693806b193de434b49cc4",
+      "license_candidate_urls": [
+        "https://creativecommons.org/licenses/by-nc/4.0/"
+      ],
+      "archive_status": "licensed_article_archived",
+      "reference_id": "REF017",
+      "full_text_saved": true,
+      "archive_path": "originals/drew-breunig-how-long-contexts-fail.html",
+      "license_evidence_note": "Source footer links CC BY-NC 4.0. Noncommercial research archive; attribution and extraction changes recorded in HTML.",
+      "license": "CC BY-NC 4.0",
+      "license_url": "https://creativecommons.org/licenses/by-nc/4.0/",
+      "archive_sha256": "f1f0dc6df6daea444d359b41fb4a4455c3c4befdda41d0fc091069771fe079f9"
+    },
+    {
+      "url": "https://www.langchain.com/blog/building-langgraph",
+      "cited_by": [
+        "agent-execution-problems-and-solutions.md"
+      ],
+      "checked_at_utc": "2026-11-14T12:19:10.650972+00:00",
+      "http_status": 200,
+      "resolved_url": "https://www.langchain.com/blog/building-langgraph",
+      "page_title": "Building LangGraph: Designing an Agent Runtime from first principles",
+      "response_sha256": "1eeae57ada5c5dd7613b1f7805f4ded38a40571b97f35a6cdcb9b95c280d790a",
+      "license_candidate_urls": [],
+      "archive_status": "permission_not_verified",
+      "reference_id": "REF018",
+      "full_text_saved": false,
+      "archive_path": null,
+      "license_evidence_note": "No full-article redistribution permission verified; this is not a determination that reuse is prohibited."
+    },
+    {
+      "url": "https://www.langchain.com/blog/context-engineering-challenges-late-2026",
+      "cited_by": [
+        "agent-execution-problems-and-solutions.md"
+      ],
+      "checked_at_utc": "2026-11-14T12:19:11.069112+00:00",
+      "http_status": 200,
+      "resolved_url": "https://www.langchain.com/blog/context-engineering-challenges-late-2026",
+      "page_title": "New context engineering challenges in late 2026",
+      "response_sha256": "8da109ba7eabf17c62bd020e35e8e17c751e6b80b23556c5f888b8bc82edaed3",
+      "license_candidate_urls": [],
+      "archive_status": "permission_not_verified",
+      "reference_id": "REF019",
+      "full_text_saved": false,
+      "archive_path": null,
+      "license_evidence_note": "No full-article redistribution permission verified; this is not a determination that reuse is prohibited."
+    },
+    {
+      "url": "https://www.langchain.com/blog/context-engineering-for-agents",
+      "cited_by": [
+        "agent-execution-problems-and-solutions.md"
+      ],
+      "checked_at_utc": "2026-11-14T12:19:11.526128+00:00",
+      "http_status": 200,
+      "resolved_url": "https://www.langchain.com/blog/context-engineering-for-agents",
+      "page_title": "Context Engineering",
+      "response_sha256": "381c91bdcee577c0bf9e8a4378a6a4f04ca3c0d1b49b0b305c4980965644b8cb",
+      "license_candidate_urls": [],
+      "archive_status": "permission_not_verified",
+      "reference_id": "REF020",
+      "full_text_saved": false,
+      "archive_path": null,
+      "license_evidence_note": "No full-article redistribution permission verified; this is not a determination that reuse is prohibited."
+    },
+    {
+      "url": "https://www.langchain.com/blog/how-we-built-agent-builders-memory-system",
+      "cited_by": [
+        "agent-execution-problems-and-solutions.md"
+      ],
+      "checked_at_utc": "2026-11-14T12:19:11.726939+00:00",
+      "http_status": 200,
+      "resolved_url": "https://www.langchain.com/blog/how-we-built-agent-builders-memory-system",
+      "page_title": "How we built Agent Builder’s memory system",
+      "response_sha256": "be61ced3ab7c0e2204801e7cc49d329a8ba2df4b5463d2dfe1add42dcbcb7c1a",
+      "license_candidate_urls": [],
+      "archive_status": "permission_not_verified",
+      "reference_id": "REF021",
+      "full_text_saved": false,
+      "archive_path": null,
+      "license_evidence_note": "No full-article redistribution permission verified; this is not a determination that reuse is prohibited."
+    },
+    {
+      "url": "https://www.langchain.com/blog/organizing-context-in-a-multi-agent-harness",
+      "cited_by": [
+        "agent-execution-problems-and-solutions.md"
+      ],
+      "checked_at_utc": "2026-11-14T12:19:11.734235+00:00",
+      "http_status": 200,
+      "resolved_url": "https://www.langchain.com/blog/organizing-context-in-a-multi-agent-harness",
+      "page_title": "Organizing Context in a Multi-Agent Harness",
+      "response_sha256": "60f658d84d1e4ea93f50ed304303cb7f80213a7e54b66db6240e059fbf0a2e41",
+      "license_candidate_urls": [],
+      "archive_status": "permission_not_verified",
+      "reference_id": "REF022",
+      "full_text_saved": false,
+      "archive_path": null,
+      "license_evidence_note": "No full-article redistribution permission verified; this is not a determination that reuse is prohibited."
+    },
+    {
+      "url": "https://www.langchain.com/blog/running-subagents-in-the-background",
+      "cited_by": [
+        "agent-execution-problems-and-solutions.md"
+      ],
+      "checked_at_utc": "2026-11-14T12:19:11.781362+00:00",
+      "http_status": 200,
+      "resolved_url": "https://www.langchain.com/blog/running-subagents-in-the-background",
+      "page_title": "Running Subagents in the Background",
+      "response_sha256": "ebff35587edc4c9313fc9de07c3c0ea9794143ea2d111828abf1e2874b69c658",
+      "license_candidate_urls": [],
+      "archive_status": "permission_not_verified",
+      "reference_id": "REF023",
+      "full_text_saved": false,
+      "archive_path": null,
+      "license_evidence_note": "No full-article redistribution permission verified; this is not a determination that reuse is prohibited."
+    },
+    {
+      "url": "https://blog.cloudflare.com/code-mode/",
+      "cited_by": [
+        "agent-builder-case-studies.md"
+      ],
+      "checked_at_utc": "2026-11-14T12:19:11.941488+00:00",
+      "http_status": 200,
+      "resolved_url": "https://blog.cloudflare.com/code-mode/",
+      "page_title": "Code Mode: the better way to use MCP | Cloudflare Blog",
+      "response_sha256": "be51bb42a218d0e2ca7e84e2b8ed14aef267316911927aecbf44042c552bc194",
+      "license_candidate_urls": [],
+      "archive_status": "permission_not_verified",
+      "reference_id": "REF024",
+      "full_text_saved": false,
+      "archive_path": null,
+      "license_evidence_note": "No full-article redistribution permission verified; this is not a determination that reuse is prohibited."
+    },
+    {
+      "url": "https://operatorsguidetoai.substack.com/p/ten-lessons-learned-from-three-years",
+      "cited_by": [
+        "agent-builder-case-studies.md"
+      ],
+      "checked_at_utc": "2026-11-14T12:19:12.173700+00:00",
+      "http_status": 200,
+      "resolved_url": "https://operatorsguidetoai.substack.com/p/ten-lessons-learned-from-three-years",
+      "page_title": "Ten Lessons Learned From Three Years of Building Agents",
+      "response_sha256": "faec72a336afb008efa968d6f9e019548844d608b5912e7e5e3c5f8b83330a9b",
+      "license_candidate_urls": [],
+      "archive_status": "permission_not_verified",
+      "reference_id": "REF025",
+      "full_text_saved": false,
+      "archive_path": null,
+      "license_evidence_note": "No full-article redistribution permission verified; this is not a determination that reuse is prohibited."
+    },
+    {
+      "url": "https://vercel.com/blog/testing-if-bash-is-all-you-need",
+      "cited_by": [
+        "agent-builder-case-studies.md"
+      ],
+      "checked_at_utc": "2026-11-14T12:19:12.363006+00:00",
+      "http_status": 200,
+      "resolved_url": "https://vercel.com/blog/testing-if-bash-is-all-you-need",
+      "page_title": "Testing if \"bash is all you need\" - Vercel",
+      "response_sha256": "dc911948913b486e3e66405ee3cf5a816791ad25c3eb876787251c24c6453b2b",
+      "license_candidate_urls": [],
+      "archive_status": "permission_not_verified",
+      "reference_id": "REF026",
+      "full_text_saved": false,
+      "archive_path": null,
+      "license_evidence_note": "No full-article redistribution permission verified; this is not a determination that reuse is prohibited."
+    },
+    {
+      "url": "https://vercel.com/blog/we-removed-80-percent-of-our-agents-tools",
+      "cited_by": [
+        "agent-builder-case-studies.md"
+      ],
+      "checked_at_utc": "2026-11-14T12:19:12.527927+00:00",
+      "http_status": 200,
+      "resolved_url": "https://vercel.com/blog/we-removed-80-percent-of-our-agents-tools",
+      "page_title": "We removed 80% of our agent’s tools - Vercel",
+      "response_sha256": "c2f89bcc3cdec100d4e825ca93a349fa857a2cfdb49a3287a3b5ed78358bf0a1",
+      "license_candidate_urls": [],
+      "archive_status": "permission_not_verified",
+      "reference_id": "REF027",
+      "full_text_saved": false,
+      "archive_path": null,
+      "license_evidence_note": "No full-article redistribution permission verified; this is not a determination that reuse is prohibited."
+    },
+    {
+      "url": "https://www.anthropic.com/research/april-23-postmortem",
+      "cited_by": [
+        "agent-builder-case-studies.md"
+      ],
+      "checked_at_utc": "2026-11-14T12:19:12.606975+00:00",
+      "http_status": 200,
+      "resolved_url": "https://www.anthropic.com/research/april-23-postmortem",
+      "page_title": "An update on Claude Code quality reports \\ Anthropic",
+      "response_sha256": "ef4c8e96fa2a108829be80f3408817033e4e6edb59650c589cd3130368449531",
+      "license_candidate_urls": [],
+      "archive_status": "permission_not_verified",
+      "reference_id": "REF028",
+      "full_text_saved": false,
+      "archive_path": null,
+      "license_evidence_note": "No full-article redistribution permission verified; this is not a determination that reuse is prohibited."
+    },
+    {
+      "url": "https://www.anthropic.com/research/building-c-compiler",
+      "cited_by": [
+        "agent-builder-case-studies.md"
+      ],
+      "checked_at_utc": "2026-11-14T12:19:12.836318+00:00",
+      "http_status": 200,
+      "resolved_url": "https://www.anthropic.com/research/building-c-compiler",
+      "page_title": "Building a C compiler with parallel Claudes \\ Anthropic",
+      "response_sha256": "10cdcbf36490132d089ca77bfed1de270fa6abeab0330b683f7eca8338d4fc0f",
+      "license_candidate_urls": [],
+      "archive_status": "permission_not_verified",
+      "reference_id": "REF029",
+      "full_text_saved": false,
+      "archive_path": null,
+      "license_evidence_note": "No full-article redistribution permission verified; this is not a determination that reuse is prohibited."
+    },
+    {
+      "url": "https://www.anthropic.com/research/harness-design-long-running-apps",
+      "cited_by": [
+        "agent-builder-case-studies.md"
+      ],
+      "checked_at_utc": "2026-11-14T12:19:12.905601+00:00",
+      "http_status": 200,
+      "resolved_url": "https://www.anthropic.com/research/harness-design-long-running-apps",
+      "page_title": "Harness design for long-running apps \\ Anthropic",
+      "response_sha256": "7c333e8ad56286d51cba0bffc423e77c21efcc007bb3111dfb4eb427aa18b582",
+      "license_candidate_urls": [],
+      "archive_status": "permission_not_verified",
+      "reference_id": "REF030",
+      "full_text_saved": false,
+      "archive_path": null,
+      "license_evidence_note": "No full-article redistribution permission verified; this is not a determination that reuse is prohibited."
+    },
+    {
+      "url": "https://www.anthropic.com/research/managed-agents",
+      "cited_by": [
+        "agent-builder-case-studies.md"
+      ],
+      "checked_at_utc": "2026-11-14T12:19:13.381574+00:00",
+      "http_status": 200,
+      "resolved_url": "https://www.anthropic.com/research/managed-agents",
+      "page_title": "Scaling Managed Agents with stable interfaces \\ Anthropic",
+      "response_sha256": "feb8d46780ef2ca7efe7a0f18fd89b642b3a5eca80c86d4529e19fcd9435a9f4",
+      "license_candidate_urls": [],
+      "archive_status": "permission_not_verified",
+      "reference_id": "REF031",
+      "full_text_saved": false,
+      "archive_path": null,
+      "license_evidence_note": "No full-article redistribution permission verified; this is not a determination that reuse is prohibited."
+    },
+    {
+      "url": "https://www.anthropic.com/research/project-vend-1",
+      "cited_by": [
+        "agent-builder-case-studies.md"
+      ],
+      "checked_at_utc": "2026-11-14T12:19:13.577900+00:00",
+      "http_status": 200,
+      "resolved_url": "https://www.anthropic.com/research/project-vend-1",
+      "page_title": "Project Vend: Can Claude run a small shop? \\ Anthropic",
+      "response_sha256": "a5a11ac31192fda0c0dbc863c7580eb44887b13b12d1fbe520fbf05d9f53b67e",
+      "license_candidate_urls": [],
+      "archive_status": "permission_not_verified",
+      "reference_id": "REF032",
+      "full_text_saved": false,
+      "archive_path": null,
+      "license_evidence_note": "No full-article redistribution permission verified; this is not a determination that reuse is prohibited."
+    },
+    {
+      "url": "https://www.anthropic.com/research/project-vend-2",
+      "cited_by": [
+        "agent-builder-case-studies.md"
+      ],
+      "checked_at_utc": "2026-11-14T12:19:13.781089+00:00",
+      "http_status": 200,
+      "resolved_url": "https://www.anthropic.com/research/project-vend-2",
+      "page_title": "Project Vend: Phase two \\ Anthropic",
+      "response_sha256": "b9765d51fe6c2e9b7b32164cf836025daf52b2028f4dc916afc4569f6591e6a8",
+      "license_candidate_urls": [],
+      "archive_status": "permission_not_verified",
+      "reference_id": "REF033",
+      "full_text_saved": false,
+      "archive_path": null,
+      "license_evidence_note": "No full-article redistribution permission verified; this is not a determination that reuse is prohibited."
+    },
+    {
+      "url": "https://www.manus.im/blog/Context-Engineering-for-AI-Agents-Lessons-from-Building-Manus",
+      "cited_by": [
+        "agent-builder-case-studies.md"
+      ],
+      "checked_at_utc": "2026-11-14T12:19:14.449050+00:00",
+      "http_status": 200,
+      "resolved_url": "https://www.manus.im/blog/Context-Engineering-for-AI-Agents-Lessons-from-Building-Manus",
+      "page_title": "Context Engineering for AI Agents: Lessons from Building Manus",
+      "response_sha256": "fb4710b602c6c7731aca4a1b40503098263f51d49734d8075ca9d041f6aa4990",
+      "license_candidate_urls": [],
+      "archive_status": "permission_not_verified",
+      "reference_id": "REF034",
+      "full_text_saved": false,
+      "archive_path": null,
+      "license_evidence_note": "No full-article redistribution permission verified; this is not a determination that reuse is prohibited."
+    },
+    {
+      "url": "https://www.uber.com/us/en/blog/unlocking-financial-insights-with-finch/",
+      "cited_by": [
+        "agent-builder-case-studies.md"
+      ],
+      "checked_at_utc": "2026-11-14T12:19:14.738545+00:00",
+      "http_status": 200,
+      "resolved_url": "https://www.uber.com/us/en/blog/unlocking-financial-insights-with-finch/",
+      "page_title": "Unlocking Financial Insights with Finch: Uber’s Conversational AI Data Agent",
+      "response_sha256": "19867378335f0157c31abed83ef9da18078a96c4a6c90e71144323b5ec5376e8",
+      "license_candidate_urls": [
+        "https://creativecommons.org/licenses/by/2.0/?ref=openverse",
+        "https://creativecommons.org/licenses/by/2.0/?ref=openverse\\&quot;"
+      ],
+      "archive_status": "permission_not_verified",
+      "reference_id": "REF035",
+      "full_text_saved": false,
+      "archive_path": null,
+      "license_evidence_note": "CC BY 2.0 applies to the cover photograph, not verified as a license for article prose."
+    }
+  ]
+}
