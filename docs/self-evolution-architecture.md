@@ -1,6 +1,7 @@
 # Auton 架构设计：自进化 Agent（Greenfield 版）
 
-> 状态：设计稿 v0.4（2026-11-11），从零构建，不考虑现有代码兼容
+> 状态：设计稿 v0.5（2026-11-15），从零构建，不考虑现有代码兼容
+> v0.5 变更：新增 Jev 判断与分层模型路由；扩展本地小模型学习通道，将可用历史加工为路由/SFT 数据，经隔离评测后发布模型候选。详细契约、数据划分与实施路线见 [Jev 路由与本地学习设计](./model-routing-and-local-learning.md)。此版本为设计，尚未接入模型或启动训练。
 > v0.4 变更：吸收 EvoAgentX 中优化算法的做法：可优化字段与搜索策略分层、批量文本梯度归因、版本树搜索、示例自举、组合搜索（TPE）、候选多样化、重复评测与评测缓存、收敛停止、多样性存档、记忆写入决策。
 > v0.3 变更：吸收《一篇讲透 Agent 自进化飞轮怎么搭：评测→记忆→落地→控制》（腾讯技术工程）中的工程经验：评测集三分、评估器校准、同等预算比较、Skill 四层验证、记忆三级晋升与预算、诊断分流、Playbook、Diff 模式、五道门禁、分级自主、批量审核、方向漂移防护、先跑通手动闭环。
 
@@ -16,7 +17,9 @@
 |---|---|---|---|
 | Artifacts | 单次任务的产出物（self-refine、多次重试） | 任务结束即消失 | 运行时能力，不算进化 |
 | **Harness** | 记忆、Skill、Prompt 片段、子 Agent、工具组合、参数 | 跨会话持久，立即生效，可回滚 | **本设计的主战场** |
-| Model | 模型权重（RL / 微调） | 最持久，成本和风险最高 | 不做；Harness 积累的轨迹和评测集将来可作为训练数据导出 |
+| **Model** | 本地执行模型的 adapter / 权重与路由校准 | 跨会话持久，按版本发布、可回滚 | 新增离线学习通道：历史筛选 → 数据快照 → 本地小模型 SFT 候选 → 隔离评测 → 批准/灰度；首期不做在线 RL |
+
+两条进化通道分开发布：Genome 补丁改变资产，Model Learning 改变执行模型。共享事件与证据，但训练进程无权修改权限边界、checker 或读取受保护终验集。Jev 是可替换的判断 adapter，不假定其权重可本地训练；本地约 2B/7B 执行模型单独选择和优化。
 
 ### 0.2 北极星指标与方向指标
 
@@ -36,7 +39,7 @@
 
 ## 1. 设计原则
 
-1. **代码固定，能力是数据。** Agent = 模型 + Harness 代码（稳定）+ Genome（声明式资产，可进化）。进化只改 Genome，因此可审查、可 diff、可回滚。
+1. **固定控制边界，能力分通道发布。** Agent = 模型 bundle + Harness 代码（稳定）+ Genome（声明式资产）。Genome 进化只改资产，Model Learning 只发布经验证的模型/adapter 与相容路由配置；两者均不可修改自己的权限和评测裁判。
 2. **评测可信度 > 系统复杂度。** 错误的正反馈会让 Agent 自信地学到错误经验，比没有反馈更糟。先保证信号可信，再谈自动化。
 3. **闭环的价值在环节之间的衔接。** 评测结果必须自动流入记忆和 Skill 更新；更新必须被评测验证；验证结果和线上新失败必须自动回流到下一轮。任何一条数据通路断了，飞轮就停。
 4. **记忆是治理问题，不是存储问题。** 版本、来源、晋升门槛、主动遗忘、冲突解决、预算，比"存得多"重要。
@@ -57,7 +60,7 @@ flowchart TB
   subgraph RT["前台 Runtime"]
     direction LR
     CE["Context Engine<br/>分层装配 · 检索 · 预算 · 压缩"] --> LOOP["Agent Loop"]
-    LOOP <--> MG["Model Gateway<br/>主模型 · 辅助 · judge"]
+    LOOP <--> MG["Model Gateway + RoutePolicy<br/>Jev 判断 · 本地小模型 · 强模型 · judge"]
     LOOP <--> TH["Tool Host<br/>内置 · MCP · tool 资产<br/>权限 · 沙箱"]
   end
   RT -->|"events"| LOG[("Event Log<br/>SQLite append-only")]
@@ -69,6 +72,9 @@ flowchart TB
   end
   EV -->|"proposal 分支 · merge main · revert"| G[("Genome · git 仓库<br/>skills · knowledge · insights · prompts · roles · tools · policies")]
   G -->|"Resolver → Snapshot"| RT
+  PJ -->|"资格检查 · 清洗 · 同源 split"| ML["离线 Model Learning<br/>数据快照 → SFT 候选 → 隔离评测 → 批准发布"]
+  ML -->|"登记数据与模型谱系"| MS[("Dataset Store + Model Registry<br/>训练快照 · 模型 bundle · 路由校准")]
+  MS -->|"已批准 bundle + 相容路由"| MG
   EV <-->|"读 train · 写失败样本"| ES[("Eval Store<br/>train / val / test<br/>meta-eval")]
   EV <--> PB[("Playbook<br/>进化经验")]
   EV -->|"每日 digest"| HU(["用户：审核 · 方向审计"])
@@ -77,13 +83,15 @@ flowchart TB
   CON -.->|约束| EV
 ```
 
-三个新增的一等存储：
+核心持久化存储：
 
 | 存储 | 内容 | 谁能写 |
 |---|---|---|
 | **Genome** | Agent 用来做事的资产 | 只有 `evolve.release`（和用户手改） |
 | **Eval Store** | 评测用例及 train/val/test 划分、元评测集 | 自动只能追加 train；val/test/meta 只能由用户或定期轮换流程写入 |
 | **Playbook** | "怎么改进 Agent"的经验：试过什么方向、有效/无效、踩过的坑 | `evolve` 流程 |
+| **Dataset Store** | 合格历史派生的路由/SFT 样本、同源分组、固定 split、不可变 manifest | 受限数据加工流程；训练 worker 只读获准集合 |
+| **Model Registry** | base/adapter/模板/量化/runtime、能力档案、评测与发布状态、相容路由版本 | 训练流程登记候选；专门发布流程激活，初期需人工批准 |
 
 Genome 中的记忆服务于"Agent 怎么做任务"，Playbook 服务于"怎么改 Agent"，两者分开存储、分开注入。
 
@@ -260,11 +268,14 @@ flowchart LR
 
 | 组件 | 职责 |
 |---|---|
-| **Model Gateway** | 统一 provider 接口；流式；重试；按角色路由：主模型、辅助模型（意图归纳、信号分类）、judge 模型（必须与主模型不同） |
+| **Model Gateway / Registry** | 统一 provider 接口、流式与错误分类；记录实际模型 bundle、能力、量化/模板/runtime 与可用性，不按参数量直接假定能力 |
+| **Judgment / RoutePolicy** | 先按隐私、权限、能力与预算过滤候选，再使用规则或 Jev 判断选择本地约 2B/7B 或强模型；未知可 abstain；失败升级前对账，不重放已有副作用 |
 | **Tool Host** | 内置工具、MCP、`tool` 资产；统一权限检查与沙箱；记录工具层错误（区分 Agent 用错 vs 工具/服务本身故障） |
 | **Context Engine** | 分层装配、检索、token 预算、历史压缩 |
 | **Agent Loop** | 最小循环：装配 → 调模型 → 执行工具 → 继续/压缩/结束。只发事件，不含学习逻辑 |
 | **Roles / Delegation** | 子 Agent = 用 `role` 资产配置的另一个 Agent Loop 实例 |
+
+**离线 Model Learning** 不进入 Agent Loop：从合格历史构建独立 RouterDataset 与 ExecutorDataset，按同源分组隔离 train/validation/test；训练候选经 Assess 验证后由专门发布通道激活。首期按任务或稳定阶段路由，私密任务不经过托管 Jev 外发。详见 [专项设计](./model-routing-and-local-learning.md)。Judge 仍独立于被评估的执行模型；Jev 的判断不能代替业务验收。
 
 ### 5.2 读取：渐进披露 + 严格预算
 
@@ -286,7 +297,10 @@ flowchart LR
 |---|---|
 | `SessionStarted` | snapshot_id, client, project, workspace_ref（项目 git commit，用于回放） |
 | `UserMessage` / `AssistantMessage` | 内容引用 |
-| `ModelCall` | model, tokens_in/out, latency |
+| `ModelCall` | model_bundle_revision, route_decision_id, tokens_in/out, latency |
+| `RouteEvaluated` / `RouteSelected` / `RouteAbstained` | input_state_ref, input_event_cutoff, candidate revisions, judgment_ref, policy_revision, selected_model, reason_codes |
+| `ModelEscalated` | checkpoint_ref, from/to bundle, failure_class, operation_reconciliation_ref, remaining_budget |
+| `DatasetBuilt` / `TrainingCompleted` / `ModelCandidateActivated` / `ModelCandidateRolledBack` | dataset_manifest_ref, training_job_ref, model_bundle_ref, eval_report_ref, routing_calibration_ref |
 | `ToolCall` / `ToolResult` | tool, args 摘要, ok, error_class（agent_misuse / tool_fault / env）, duration |
 | `AssetUsed` | asset_id, blob_hash, how（injected / retrieved / invoked） |
 | `SkillCheckpoint` | skill_id, checkpoint_id, hit / skipped |
@@ -824,7 +838,8 @@ stateDiagram-v2
 auton/
 ├── kernel/          # 核心类型、事件、EventLog、配置、ID、时钟。不依赖其他包
 ├── constitution/    # 只读：安全边界、rubric、进化边界、自主上限、方向阈值
-├── model/           # Model Gateway 与 providers
+├── model/           # Gateway、Registry、Jev judgment adapter、RoutePolicy、providers
+├── learning/        # 历史资格/清洗、同源分组、数据快照、离线训练、模型 bundle 发布
 ├── tools/           # Tool Host、内置工具、MCP、权限、沙箱
 ├── genome/          # git 存储、资产类型、记忆治理（晋升 / 遗忘 / 冲突）、Resolver、fitness
 ├── context/         # Context Engine：分层装配、检索、预算、压缩
@@ -864,6 +879,7 @@ flowchart LR
 
 - `agent` 及以下不得 import `experience / assess / evolve`；学习只能通过订阅事件发生。
 - `assess` 不得 import `evolve`（评测独立于进化）。
+- `learning` 可通过受限接口消费 `experience`、调用 `assess` 和登记 `model` 候选；`agent / model` 不反向依赖训练实现。训练进程不能读取受保护终验内容或修改 checker；模型发布后重新校准路由。
 - `evolve` 只能通过 `assess.evalstore` 的受限接口读取 train 集、提交评测任务；val/test/meta 的内容不对 `evolve.mutators` 暴露，只返回聚合结果。
 - 只有 `evolve.release` 能写 Genome 的 `main` 分支。
 
@@ -903,6 +919,16 @@ flowchart LR
 - 安全边界、各 domain 的自主等级上限、方向指标阈值。
 
 ---
+
+### 12.2 模型路由与本地学习的并行路线
+
+1. **能力基线**：固定本地小/中模型和强模型真实部署版本，按任务类型评测；确认工具、上下文与硬件边界。
+2. **路由闭环**：规则 preflight + Jev adapter + 可解释 RouteDecision；在安全 checkpoint 升级，费用包含判断、校验与失败重试。
+3. **数据闭环**：自动处理允许用于训练的历史，输出 JSONL、谱系和质量报告；同源任务先锁定 split，后做教师修复或增强，测试内容不流入训练。
+4. **首批模型候选**：先用一个高频可验证任务域做 SFT adapter，检查 mask、遗忘及实际量化部署；使用隔离同任务对照生成路由标签，不把线上选路当真值。
+5. **持续优化**：数据分批加工、资源窗口训练、独立终验和人工批准灰度；模型与相容路由 bundle 一起可回滚。
+
+这条路线是 M1–M6 的扩展，不要求先完成全部自动进化。具体设备、模型、后端、数据格式与节奏见 [专项设计 §12–§13](./model-routing-and-local-learning.md)。
 
 ## 13. 避坑清单
 

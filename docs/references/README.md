@@ -10,6 +10,20 @@ Auton 自进化架构设计（[`../self-evolution-architecture.md`](../self-evol
 
 ## 专题综合手册
 
+- [Jev 判断层、模型路由与本地小模型持续学习](../model-routing-and-local-learning.md)：难度/能力感知路由，历史轨迹加工为路由与执行训练数据，以及本地候选训练、隔离评测与发布闭环。
+
+## 模型路由与本地学习参考（2026-11-15）
+
+| 阅读笔记 | 原始来源 | 重点 |
+|---|---|---|
+| [Jev 结构化判断](./typesafe-jev-judgment-routing.md) | TypeSafe Introduction | 类型化判断、confidence 与独立 adapter |
+| [判断与代码决策](./typesafe-jev-code-decisions.md) | TypeSafe 官方博客 | 判断不覆盖权限与确定性控制 |
+| [RouteLLM](./routellm-routing-calibration.md) | 官方仓库 | 本地候选、阈值校准与公平基线 |
+| [TRL SFT 数据](./huggingface-trl-agent-sft-data.md) | 官方文档 | 对话/工具格式、loss mask 与数据谱系 |
+| [PEFT 本地训练](./huggingface-peft-local-training.md) | 官方文档 | adapter、量化与真实硬件边界 |
+
+## 执行与构建专题
+
 - [Agent 执行与构建博客：35 篇中文阅读笔记](./agent-article-reading-index.md)：每篇独立 Markdown，包含观点、机制、个人理解、Auton 启示、局限与建议验证；附原文链接，非原文转载。
 
 - [Agent 与多 Agent 执行问题及解决方案手册](../agent-execution-problems-and-solutions.md)：基于 23 篇原始工程博客，整理 94 项执行问题、64 个故障注入场景及 Auton 的建议契约、状态机与建设顺序。明确区分来源摘要与工程推论；作为设计输入，尚未实现或验证。
