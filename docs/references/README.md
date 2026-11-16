@@ -6,11 +6,25 @@ Auton 自进化架构设计（[`../self-evolution-architecture.md`](../self-evol
 - 第三方文章与论文保存为中文**阅读笔记**（元信息、核心观点、关键机制、数据、局限、对 Auton 的启示），附原文链接与少量原文短句，不转载全文。
 - 开源项目保存为代码分析。
 
-首次收集：2026-11-11；补充查阅：2026-11-14；逐篇阅读笔记整理：2026-11-15。
+首次收集：2026-11-11；补充查阅：2026-11-14；逐篇阅读笔记整理：2026-11-15；Jev 决策学习补充：2026-11-16。
 
 ## 专题综合手册
 
 - [Jev 判断层、模型路由与本地小模型持续学习](../model-routing-and-local-learning.md)：难度/能力感知路由，历史轨迹加工为路由与执行训练数据，以及本地候选训练、隔离评测与发布闭环。
+
+## Jev 全链路判断与本地决策模型参考（2026-11-16）
+
+专项设计：[Jev 全链路判断与本地决策模型离线学习](../jev-decision-learning.md)。线上只走 Jev；本地 student 用经过独立轨迹复核的正样本持续离线学习，不参与路由或 fallback。以下每个来源独立一份 Markdown 理解笔记。
+
+| 阅读笔记 | 原始来源 | 重点 |
+|---|---|---|
+| [Jev 用途地图](./typesafe-jev-agent-use-cases.md) | TypeSafe 官方文档 | 工具、检索、技能、失败与记忆判断 |
+| [Laya 模型与训练](./laya-local-decision-model.md) | 官方仓库 | 类型化决策与微调入口 |
+| [Laya 权重限制](./laya-model-card-limits.md) | 发布者模型卡 | 语言、上下文、选项与校准 |
+| [AnyJev / Tacit](./anyjev-local-decisions.md) | 官方仓库 | 开放基座读出与决策 checkpoint |
+| [AnyJev 接口变更](./anyjev-changelog-training.md) | 官方 CHANGELOG | 旧训练接口移除与版本固定 |
+| [poorjev 判断层](./poorjev-local-decision-layer.md) | 官方仓库 | NLI 选项打分与校准基线 |
+| [mlx-decision](./mlx-decision-training-runtime.md) | 官方仓库 | Apple Silicon 运行与训练工具 |
 
 ## 模型路由与本地学习参考（2026-11-15）
 

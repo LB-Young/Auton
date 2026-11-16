@@ -1,6 +1,7 @@
 # Auton 架构设计：自进化 Agent（Greenfield 版）
 
-> 状态：设计稿 v0.5（2026-11-15），从零构建，不考虑现有代码兼容
+> 状态：设计稿 v0.6（2026-11-16），从零构建，不考虑现有代码兼容
+> v0.6 变更：扩展 Jev 至意图、工具、技能、检索、失败分流等判断点；线上判断只走 Jev。本地 DecisionStudent 用逐次 Jev 判断和 trajectory 经独立归因筛选的正样本持续离线学习，不做路由、fallback 或自动上线。开源候选与契约见 [Jev 全链路判断与离线学习](./jev-decision-learning.md)。
 > v0.5 变更：新增 Jev 判断与分层模型路由；扩展本地小模型学习通道，将可用历史加工为路由/SFT 数据，经隔离评测后发布模型候选。详细契约、数据划分与实施路线见 [Jev 路由与本地学习设计](./model-routing-and-local-learning.md)。此版本为设计，尚未接入模型或启动训练。
 > v0.4 变更：吸收 EvoAgentX 中优化算法的做法：可优化字段与搜索策略分层、批量文本梯度归因、版本树搜索、示例自举、组合搜索（TPE）、候选多样化、重复评测与评测缓存、收敛停止、多样性存档、记忆写入决策。
 > v0.3 变更：吸收《一篇讲透 Agent 自进化飞轮怎么搭：评测→记忆→落地→控制》（腾讯技术工程）中的工程经验：评测集三分、评估器校准、同等预算比较、Skill 四层验证、记忆三级晋升与预算、诊断分流、Playbook、Diff 模式、五道门禁、分级自主、批量审核、方向漂移防护、先跑通手动闭环。
@@ -17,9 +18,9 @@
 |---|---|---|---|
 | Artifacts | 单次任务的产出物（self-refine、多次重试） | 任务结束即消失 | 运行时能力，不算进化 |
 | **Harness** | 记忆、Skill、Prompt 片段、子 Agent、工具组合、参数 | 跨会话持久，立即生效，可回滚 | **本设计的主战场** |
-| **Model** | 本地执行模型的 adapter / 权重与路由校准 | 跨会话持久，按版本发布、可回滚 | 新增离线学习通道：历史筛选 → 数据快照 → 本地小模型 SFT 候选 → 隔离评测 → 批准/灰度；首期不做在线 RL |
+| **Model** | 本地执行模型的 adapter / 权重、路由校准；离线决策 student | 跨会话持久，按版本发布、可回滚 | 新增离线学习通道：历史筛选 → 数据快照 → 本地小模型 SFT 候选 → 隔离评测 → 批准/灰度；首期不做在线 RL |
 
-两条进化通道分开发布：Genome 补丁改变资产，Model Learning 改变执行模型。共享事件与证据，但训练进程无权修改权限边界、checker 或读取受保护终验集。Jev 是可替换的判断 adapter，不假定其权重可本地训练；本地约 2B/7B 执行模型单独选择和优化。
+两条进化通道分开发布：Genome 补丁改变资产，Model Learning 改变执行模型。共享事件与证据，但训练进程无权修改权限边界、checker 或读取受保护终验集。线上语义判断只走 Jev adapter，不假定其权重可本地训练；本地约 2B/7B 执行模型单独选择和优化。此外独立训练本地 DecisionStudent，只做离线回放与影子评测，不自动上线。它的学习目标是经轨迹复核有效的 Jev 判断，而不是执行模型答复。
 
 ### 0.2 北极星指标与方向指标
 
@@ -72,7 +73,7 @@ flowchart TB
   end
   EV -->|"proposal 分支 · merge main · revert"| G[("Genome · git 仓库<br/>skills · knowledge · insights · prompts · roles · tools · policies")]
   G -->|"Resolver → Snapshot"| RT
-  PJ -->|"资格检查 · 清洗 · 同源 split"| ML["离线 Model Learning<br/>数据快照 → SFT 候选 → 隔离评测 → 批准发布"]
+  PJ -->|"资格检查 · 清洗 · 同源 split"| ML["离线 Model Learning<br/>执行候选：隔离评测后批准发布<br/>决策 student：只离线训练与评测"]
   ML -->|"登记数据与模型谱系"| MS[("Dataset Store + Model Registry<br/>训练快照 · 模型 bundle · 路由校准")]
   MS -->|"已批准 bundle + 相容路由"| MG
   EV <-->|"读 train · 写失败样本"| ES[("Eval Store<br/>train / val / test<br/>meta-eval")]
@@ -90,7 +91,7 @@ flowchart TB
 | **Genome** | Agent 用来做事的资产 | 只有 `evolve.release`（和用户手改） |
 | **Eval Store** | 评测用例及 train/val/test 划分、元评测集 | 自动只能追加 train；val/test/meta 只能由用户或定期轮换流程写入 |
 | **Playbook** | "怎么改进 Agent"的经验：试过什么方向、有效/无效、踩过的坑 | `evolve` 流程 |
-| **Dataset Store** | 合格历史派生的路由/SFT 样本、同源分组、固定 split、不可变 manifest | 受限数据加工流程；训练 worker 只读获准集合 |
+| **Dataset Store** | 合格历史派生的 Router/Executor/DecisionDataset 样本、同源分组、固定 split、不可变 manifest | 受限数据加工流程；训练 worker 只读获准集合 |
 | **Model Registry** | base/adapter/模板/量化/runtime、能力档案、评测与发布状态、相容路由版本 | 训练流程登记候选；专门发布流程激活，初期需人工批准 |
 
 Genome 中的记忆服务于"Agent 怎么做任务"，Playbook 服务于"怎么改 Agent"，两者分开存储、分开注入。
@@ -269,13 +270,13 @@ flowchart LR
 | 组件 | 职责 |
 |---|---|
 | **Model Gateway / Registry** | 统一 provider 接口、流式与错误分类；记录实际模型 bundle、能力、量化/模板/runtime 与可用性，不按参数量直接假定能力 |
-| **Judgment / RoutePolicy** | 先按隐私、权限、能力与预算过滤候选，再使用规则或 Jev 判断选择本地约 2B/7B 或强模型；未知可 abstain；失败升级前对账，不重放已有副作用 |
+| **Judgment / RoutePolicy** | 先按隐私、权限、能力与预算过滤候选，再使用 Jev 语义判断与确定性策略选择本地约 2B/7B 或强模型；未知可 abstain；失败升级前对账，不重放已有副作用 |
 | **Tool Host** | 内置工具、MCP、`tool` 资产；统一权限检查与沙箱；记录工具层错误（区分 Agent 用错 vs 工具/服务本身故障） |
 | **Context Engine** | 分层装配、检索、token 预算、历史压缩 |
 | **Agent Loop** | 最小循环：装配 → 调模型 → 执行工具 → 继续/压缩/结束。只发事件，不含学习逻辑 |
 | **Roles / Delegation** | 子 Agent = 用 `role` 资产配置的另一个 Agent Loop 实例 |
 
-**离线 Model Learning** 不进入 Agent Loop：从合格历史构建独立 RouterDataset 与 ExecutorDataset，按同源分组隔离 train/validation/test；训练候选经 Assess 验证后由专门发布通道激活。首期按任务或稳定阶段路由，私密任务不经过托管 Jev 外发。详见 [专项设计](./model-routing-and-local-learning.md)。Judge 仍独立于被评估的执行模型；Jev 的判断不能代替业务验收。
+**离线 Model Learning** 不进入 Agent Loop：从合格历史构建独立 RouterDataset、ExecutorDataset 与 DecisionDataset，按同源分组隔离 train/validation/test；执行模型候选经 Assess 验证后由专门发布通道激活。DecisionStudent 则只离线训练与评测，不接管 Jev；DecisionReviewer 根据逐次判断的合理性、轨迹贡献及证据做 KEEP/DROP/HOLD，只有 KEEP 进入判断正样本。首期按任务或稳定阶段路由，私密任务不经过托管 Jev 外发。详见 [专项设计](./model-routing-and-local-learning.md)。Judge 仍独立于被评估的执行模型；Jev 的判断不能代替业务验收。
 
 ### 5.2 读取：渐进披露 + 严格预算
 
@@ -298,6 +299,8 @@ flowchart LR
 | `SessionStarted` | snapshot_id, client, project, workspace_ref（项目 git commit，用于回放） |
 | `UserMessage` / `AssistantMessage` | 内容引用 |
 | `ModelCall` | model_bundle_revision, route_decision_id, tokens_in/out, latency |
+| `JudgmentRecorded` / `DecisionReviewed` / `DecisionDatasetBuilt` | decision_id、前置状态、逐问题原始判断、受影响轨迹、KEEP/DROP/HOLD、证据、reviewer 与数据版本 |
+| `DecisionStudentTrained` / `DecisionStudentEvaluated` | 离线候选、数据谱系、影子/回放评测报告；不产生线上激活事件 |
 | `RouteEvaluated` / `RouteSelected` / `RouteAbstained` | input_state_ref, input_event_cutoff, candidate revisions, judgment_ref, policy_revision, selected_model, reason_codes |
 | `ModelEscalated` | checkpoint_ref, from/to bundle, failure_class, operation_reconciliation_ref, remaining_budget |
 | `DatasetBuilt` / `TrainingCompleted` / `ModelCandidateActivated` / `ModelCandidateRolledBack` | dataset_manifest_ref, training_job_ref, model_bundle_ref, eval_report_ref, routing_calibration_ref |
@@ -921,6 +924,8 @@ flowchart LR
 ---
 
 ### 12.2 模型路由与本地学习的并行路线
+
+新增独立 J1–J6 路线见 [判断学习设计](./jev-decision-learning.md)：逐次保存 Jev、校准 reviewer、归因筛选、开源模型 PoC、自动批训练与离线评测。执行模型的发布路线不授权 DecisionStudent 上线。
 
 1. **能力基线**：固定本地小/中模型和强模型真实部署版本，按任务类型评测；确认工具、上下文与硬件边界。
 2. **路由闭环**：规则 preflight + Jev adapter + 可解释 RouteDecision；在安全 checkpoint 升级，费用包含判断、校验与失败重试。
