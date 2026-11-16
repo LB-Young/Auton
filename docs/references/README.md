@@ -8,6 +8,17 @@ Auton 自进化架构设计（[`../self-evolution-architecture.md`](../self-evol
 
 首次收集：2026-11-11；补充查阅：2026-11-14；逐篇阅读笔记整理：2026-11-15；Jev 决策学习补充：2026-11-16。
 
+## 项目框架与前端参考（2026-11-16）
+
+开发计划见 [M01–M21](../milestones/README.md)，前端按模块同步交付。
+
+| 阅读笔记 | 原始来源 | 重点 |
+|---|---|---|
+| [ChatGPT 项目工作区](./chatgpt-project-workspace-ui.md) | OpenAI 官方帮助 | 项目、会话、文件与说明组织 |
+| [Claude 产物工作区](./claude-artifact-workspace-ui.md) | Anthropic 官方产品页 | 对话围绕产物迭代 |
+| [React 组件化](./react-component-ui.md) | React 官方文档 | 组件与 feature 模块边界 |
+| [Vite 工具链](./vite-web-tooling.md) | Vite 官方文档 | 开发、构建与版本锁定 |
+
 ## 专题综合手册
 
 - [Jev 判断层、模型路由与本地小模型持续学习](../model-routing-and-local-learning.md)：难度/能力感知路由，历史轨迹加工为路由与执行训练数据，以及本地候选训练、隔离评测与发布闭环。
