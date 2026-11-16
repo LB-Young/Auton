@@ -1,0 +1,68 @@
+[build-system]
+requires = ["hatchling>=1.26,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "auton"
+version = "0.1.0"
+description = "A modular personal agent workbench — M01 foundation"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "anyio>=4.8,<5",
+  "fastapi>=0.115,<1",
+  "pydantic>=2.10,<3",
+  "uvicorn[standard]>=0.34,<1",
+]
+
+[dependency-groups]
+dev = [
+  "httpx>=0.28,<1",
+  "import-linter>=2.3,<3",
+  "mypy>=1.15,<2",
+  "pytest>=8.3,<10",
+  "playwright>=1.50,<2",
+  "pytest-asyncio>=0.25,<2",
+  "ruff>=0.11,<1",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/auton"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "ASYNC"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+files = ["src", "tests", "scripts/export_contracts.py", "scripts/dev.py", "scripts/check_boundaries.py", "scripts/setup.py"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["browser: requires Chromium and running development servers"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+
+[tool.importlinter]
+root_package = "auton"
+
+[[tool.importlinter.contracts]]
+name = "Kernel is independent"
+type = "forbidden"
+source_modules = ["auton.kernel"]
+forbidden_modules = ["auton.bootstrap", "auton.demo", "auton.server"]
+
+[[tool.importlinter.contracts]]
+name = "Demo never imports transport or composition"
+type = "forbidden"
+source_modules = ["auton.demo"]
+forbidden_modules = ["auton.server", "auton.bootstrap"]
+
+[[tool.importlinter.contracts]]
+name = "Transport only uses demo public contracts"
+type = "forbidden"
+source_modules = ["auton.server"]
+forbidden_modules = ["auton.bootstrap", "auton.demo.service", "auton.demo.factory"]

@@ -1,0 +1,43 @@
+name: M01 foundation
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: clients/web/package-lock.json
+      - name: Pin npm
+        run: npm install --global npm@11.8.0
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.11.7'
+          enable-cache: true
+      - name: Install locked dependencies
+        run: python scripts/setup.py
+      - name: Contracts, boundaries, tests and production build
+        run: .venv/bin/python scripts/dev.py check
+      - name: Install Chromium
+        run: .venv/bin/python -m playwright install --with-deps chromium
+      - name: Browser acceptance through Python
+        run: .venv/bin/python scripts/dev.py e2e
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: browser-evidence
+          path: test-results/
+          if-no-files-found: ignore

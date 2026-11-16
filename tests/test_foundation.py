@@ -1,0 +1,132 @@
+from datetime import UTC, datetime
+
+import pytest
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
+from pydantic import ValidationError
+
+from auton.bootstrap.app import ApplicationFactory, ApplicationRuntime
+from auton.bootstrap.config import ApplicationConfig
+from auton.demo.config import DemoConfig
+from auton.demo.factory import DemoConversationFactory
+from auton.demo.ports import ConversationPort
+from auton.kernel.modules import ModuleDescriptor, resolve_modules
+from auton.kernel.ports import ModuleFactory, RuntimeDependencies
+
+
+@pytest.mark.parametrize("implementation", ["echo", "scripted"])
+def test_factory_swap_has_identical_http_and_event_contract(
+    implementation: str, deps: RuntimeDependencies
+) -> None:
+    app = ApplicationFactory().create(
+        ApplicationConfig(
+            profile="test",
+            implementation=implementation,
+            chunk_delay_seconds=0,
+            allowed_origins=("http://testserver",),
+        ),
+        deps,
+    )
+    with TestClient(
+        app, headers={"X-Auton-Client": "web", "Origin": "http://testserver"}
+    ) as client:
+        assert client.get("/api/v1/health").json()["status"] == "ready"
+        assert client.get("/api/v1/bootstrap").json()["implementation"] == implementation
+        session = client.post("/api/v1/sessions", json={"request_id": "create"}).json()
+        with client.websocket_connect(
+            f"/api/v1/sessions/{session['id']}/events", headers={"Origin": "http://testserver"}
+        ) as ws:
+            assert ws.receive_json()["payload"]["status"] == "idle"
+            reply = client.post(
+                f"/api/v1/sessions/{session['id']}/messages",
+                json={"request_id": "send", "content": "模块化开发"},
+            )
+            assert reply.status_code == 202
+            for _ in range(200):
+                event = ws.receive_json()
+                assert event["schema_version"] == "1"
+                assert event["payload"]["source"] == "demo"
+                if event["payload"]["status"] == "completed":
+                    break
+            else:
+                pytest.fail("No terminal event")
+            assert "模块化开发" in event["payload"]["messages"][-1]["content"]
+            assert event["payload"]["artifacts"][0]["source"] == "demo"
+
+
+def test_factory_does_not_start_resources_and_rejects_unknown(deps: RuntimeDependencies) -> None:
+    factory: ModuleFactory[DemoConfig, RuntimeDependencies, ConversationPort]
+    factory = DemoConversationFactory()
+    service = factory.create(DemoConfig(), deps)
+    with pytest.raises(Exception, match="尚未启动"):
+        service.list_sessions("owner")
+    with pytest.raises(ValueError, match="Unknown"):
+        factory.create(DemoConfig(implementation="arbitrary.module"), deps)
+
+
+@pytest.mark.parametrize(
+    "config",
+    [
+        {"profile": "production", "implementation": "echo"},
+        {"implementation": "unknown"},
+        {"allowed_origins": ["*"]},
+        {"allowed_origins": ["https://evil.example"]},
+        {"unexpected": "ignored?"},
+    ],
+)
+def test_invalid_configuration_is_rejected(config: dict[str, object]) -> None:
+    with pytest.raises(ValidationError):
+        ApplicationConfig.model_validate(config)
+
+
+def test_real_profile_never_uses_demo(deps: RuntimeDependencies) -> None:
+    app = ApplicationFactory().create(
+        ApplicationConfig(profile="production", implementation="disabled"), deps
+    )
+    with TestClient(app) as client:
+        assert client.get("/api/v1/bootstrap").json()["demo"] is False
+        result = client.post("/api/v1/sessions", json={"request_id": "not-demo"})
+        assert result.status_code == 501
+        assert result.json()["code"] == "not_implemented"
+
+
+def test_module_graph_rejects_missing_cycle_and_duplicates() -> None:
+    a = ModuleDescriptor(id="a", title="A", milestone="M01", status="ready", provides=("a",))
+    b = ModuleDescriptor(
+        id="b", title="B", milestone="M01", status="ready", provides=("b",), requires=("a",)
+    )
+    assert resolve_modules([b, a]) == ["a", "b"]
+    with pytest.raises(ValueError, match="missing"):
+        resolve_modules([b])
+    with pytest.raises(ValueError, match="cycle"):
+        resolve_modules([a.model_copy(update={"requires": ("b",)}), b])
+    with pytest.raises(ValueError, match="Duplicate"):
+        resolve_modules([a, a])
+
+
+async def test_startup_failure_closes_partial_resources_and_never_reports_ready() -> None:
+    closed: list[str] = []
+
+    class Resource:
+        def __init__(self, name: str, fail: bool = False) -> None:
+            self.name, self.fail = name, fail
+
+        async def start(self) -> None:
+            if self.fail:
+                raise RuntimeError("startup failure")
+
+        async def close(self) -> None:
+            closed.append(self.name)
+
+    runtime = ApplicationRuntime([Resource("first"), Resource("partial", True)])
+    with pytest.raises(RuntimeError, match="startup failure"):
+        async with runtime.lifespan(FastAPI()):
+            pytest.fail("Failed startup must not yield")
+    assert not runtime.ready
+    assert closed == ["partial", "first"]
+
+
+def test_clock_and_identifier_dependencies_are_explicit() -> None:
+    fixed = datetime(2026, 1, 1, tzinfo=UTC)
+    deps = RuntimeDependencies(now=lambda: fixed, new_id=lambda: "deterministic-id")
+    assert deps.now() == fixed

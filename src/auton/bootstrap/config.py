@@ -1,0 +1,50 @@
+import os
+import tomllib
+from pathlib import Path
+from typing import Literal
+from urllib.parse import urlsplit
+
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+
+
+class ApplicationConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    profile: Literal["demo", "test", "dev", "production"] = "demo"
+    implementation: str = "scripted"
+    chunk_delay_seconds: float = Field(default=0.035, ge=0, le=2)
+    allowed_origins: tuple[str, ...] = (
+        "http://127.0.0.1:5173",
+        "http://localhost:5173",
+        "http://127.0.0.1:8000",
+        "http://localhost:8000",
+    )
+
+    @model_validator(mode="after")
+    def validate_profile(self) -> "ApplicationConfig":
+        if self.profile in {"dev", "production"} and self.implementation != "disabled":
+            raise ValueError("Non-demo profiles must use implementation=disabled in M01")
+        if self.profile in {"demo", "test"} and self.implementation not in {"echo", "scripted"}:
+            raise ValueError("Demo implementation must be echo or scripted")
+        if not self.allowed_origins:
+            raise ValueError("At least one explicit origin is required")
+        for origin in self.allowed_origins:
+            parsed = urlsplit(origin)
+            if (
+                parsed.scheme not in {"http", "https"}
+                or parsed.hostname not in {"localhost", "127.0.0.1", "testserver"}
+                or parsed.path
+                or parsed.query
+                or parsed.fragment
+                or parsed.username
+            ):
+                raise ValueError("M01 accepts explicit local origins only")
+        return self
+
+
+def load_config() -> ApplicationConfig:
+    configured = os.environ.get("AUTON_CONFIG")
+    path = (
+        Path(configured) if configured else Path(__file__).resolve().parents[3] / "config/demo.toml"
+    )
+    with path.open("rb") as handle:
+        return ApplicationConfig.model_validate(tomllib.load(handle))

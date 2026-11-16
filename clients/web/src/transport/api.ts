@@ -1,0 +1,54 @@
+import type {
+  Bootstrap,
+  Session,
+  ErrorBody,
+  CreateSession,
+  SendMessage,
+  StopRun,
+} from '../shared/contracts';
+import type { ApiClient } from './ports';
+
+export class ApiError extends Error {
+  constructor(
+    public readonly code: string,
+    message: string,
+  ) {
+    super(message);
+  }
+}
+
+export class ApiClientFactory {
+  create(base = '/api/v1'): ApiClient {
+    async function request<T>(path: string, body?: object): Promise<T> {
+      const response = await fetch(base + path, {
+        method: body === undefined ? 'GET' : 'POST',
+        credentials: 'same-origin',
+        cache: 'no-store',
+        headers: body ? { 'Content-Type': 'application/json', 'X-Auton-Client': 'web' } : {},
+        body: body === undefined ? undefined : JSON.stringify(body),
+      }).catch(() => {
+        throw new ApiError('network_error', '连接中断，请检查后端并重试');
+      });
+      if (!response.ok) {
+        const error = (await response.json().catch(() => ({}))) as Partial<ErrorBody>;
+        throw new ApiError(error.code ?? 'request_failed', error.message ?? '请求失败，请稍后重试');
+      }
+      return (await response.json()) as T;
+    }
+    return {
+      bootstrap: () => request<Bootstrap>('/bootstrap'),
+      sessions: () => request<Session[]>('/sessions'),
+      create: (request_id) => request<Session>('/sessions', { request_id } satisfies CreateSession),
+      send: (id, content, request_id) =>
+        request<Session>(`/sessions/${encodeURIComponent(id)}/messages`, {
+          content,
+          request_id,
+        } satisfies SendMessage),
+      stop: (id, run_id, request_id) =>
+        request<Session>(`/sessions/${encodeURIComponent(id)}/stop`, {
+          run_id,
+          request_id,
+        } satisfies StopRun),
+    };
+  }
+}

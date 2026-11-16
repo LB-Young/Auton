@@ -1,6 +1,6 @@
 # M01：项目框架、模块工厂与前端骨架
 
-> 状态：计划中。**必须首先完成**，不允许先接模型、先写 Agent Loop 或先做训练后补框架。本文定义未来代码交付，当前只建立计划。
+> 状态：已完成（2026-11-16，本地验收通过）。M01 首先完成了框架、工厂与前端骨架；真实模型/工具仍未接入。详见 [验收证据](./evidence/M01.md)。
 
 ## 目标与依赖
 
@@ -29,28 +29,28 @@ Python 使用既有 3.12 设计基线，后端延续 FastAPI/asyncio/Pydantic；
 
 ## 2. 工厂与模块注册先落地
 
-- [ ] 实现 ModuleFactory、显式 Dependencies、LifecycleHandle、ModuleDescriptor 和 capability registry 的最小契约，遵守 [模块工厂规范](./module-factory-contract.md)。
-- [ ] composition root 负责依赖验证、实例创建、启动/停止与异常清理；业务代码不得通过全局 service locator 找依赖。
-- [ ] 将 README 模块表登记为开发清单；仅给当前可演示模块提供实现，其他标 planned/disabled，按里程碑逐个落地。
-- [ ] 用 DemoConversationFactory 的两个实现验证替换能力：内存回声实现与固定事件流实现；测试中替换不修改 handler 或 UI。
-- [ ] 后端 ServerFactory 与前端 createChatFeature/ApiClientFactory/EventStreamFactory 都通过组装入口创建，不从组件直接 new 网络实现。
-- [ ] 明确 app/session/run 作用域，配置不合法、工厂未注册、依赖环与启动失败都可诊断；不能失败后默默切 Mock。
+- [x] 实现 ModuleFactory、显式 Dependencies、LifecycleHandle、ModuleDescriptor 和 capability registry 的最小契约，遵守 [模块工厂规范](./module-factory-contract.md)。
+- [x] composition root 负责依赖验证、实例创建、启动/停止与异常清理；业务代码不得通过全局 service locator 找依赖。
+- [x] 将 README 模块表登记为开发清单；仅给当前可演示模块提供实现，其他标 planned/disabled，按里程碑逐个落地。
+- [x] 用 DemoConversationFactory 的两个实现验证替换能力：内存回声实现与固定事件流实现；测试中替换不修改 handler 或 UI。
+- [x] 后端 ServerFactory 与前端 createChatFeature/ApiClientFactory/EventStreamFactory 都通过组装入口创建，不从组件直接 new 网络实现。
+- [x] 明确 app/session/run 作用域，配置不合法、工厂未注册、依赖环与启动失败都可诊断；不能失败后默默切 Mock。
 
 ## 3. 前后端可操作骨架
 
-- [ ] 后端提供健康、能力查询和版本化 Demo 会话 API；默认仅监听本机，开发跨域白名单显式配置，变更命令具备基本来源/会话校验。
-- [ ] 定义消息、命令响应和事件信封的首版 schema，生成 TypeScript 类型；暂不把 Demo 内存事件当持久 EventLog。
-- [ ] 实现侧栏、项目/会话导航、中央对话、输入区、右侧产物面板、明暗主题与窄屏布局，详见 [前端设计](./frontend-design.md)。
-- [ ] Demo 模式可新建会话、发送、接收模拟流、发停止命令并展示确认、打开合成产物；后台持续标 Demo，Demo 来源不可进入真实数据管线。
-- [ ] 加载、空状态、失败、断线和未开发功能有明确文案；无后端能力的按钮不可伪装可用。
-- [ ] 正式配置下模块未实现就明确不可用，不生成模拟回答；provider key 不进入前端包。
+- [x] 后端提供健康、能力查询和版本化 Demo 会话 API；默认仅监听本机，开发跨域白名单显式配置，变更命令具备基本来源/会话校验。
+- [x] 定义消息、命令响应和事件信封的首版 schema，生成 TypeScript 类型；暂不把 Demo 内存事件当持久 EventLog。
+- [x] 实现侧栏、项目/会话导航、中央对话、输入区、右侧产物面板、明暗主题与窄屏布局，详见 [前端设计](./frontend-design.md)。
+- [x] Demo 模式可新建会话、发送、接收模拟流、发停止命令并展示确认、打开合成产物；后台持续标 Demo，Demo 来源不可进入真实数据管线。
+- [x] 加载、空状态、失败、断线和未开发功能有明确文案；无后端能力的按钮不可伪装可用。
+- [x] 正式配置下模块未实现就明确不可用，不生成模拟回答；provider key 不进入前端包。
 
 ## 4. 工程质量与交付文档
 
-- [ ] 新增根 README：环境、安装、配置、启动前后端、运行检查、Demo 限制与模块开发入口。
-- [ ] 固定格式、lint、严格类型检查、相关测试、前端 typecheck/build、API 类型生成一致性与依赖边界检查到 CI。
-- [ ] 演示一条跨 HTTP/WebSocket 的端到端链路，记录启动和停止行为；基础日志脱敏，不把完整 payload 默认写日志。
-- [ ] 每个后续里程碑建立可追踪任务列表与验收证据位置；状态从计划中变为进行中/待验收/已完成时附证据。
+- [x] 新增根 README：环境、安装、配置、启动前后端、运行检查、Demo 限制与模块开发入口。
+- [x] 固定格式、lint、严格类型检查、相关测试、前端 typecheck/build、API 类型生成一致性与依赖边界检查到 CI。
+- [x] 演示一条跨 HTTP/WebSocket 的端到端链路，记录启动和停止行为；基础日志脱敏，不把完整 payload 默认写日志。
+- [x] 每个后续里程碑建立可追踪任务列表与验收证据位置；状态从计划中变为进行中/待验收/已完成时附证据。
 
 ## 验收
 

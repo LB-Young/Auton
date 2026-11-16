@@ -1,4 +1,3 @@
-# coding: utf-8
 """Clean reproducible outputs and empty directories below this repository only.
 
 Never follow symlinks, remove tracked files, or enter Git/dependency environments.
@@ -8,14 +7,20 @@ Empty source files are not temporary outputs and are deliberately kept.
 import argparse
 import errno
 import os
-from pathlib import Path
 import subprocess
-
+from pathlib import Path
 
 PROTECTED = {".git", ".venv", "venv", "env", "node_modules", ".agents", ".codex", ".aws"}
 CACHES = {
-    "__pycache__", ".pytest_cache", ".mypy_cache", ".ruff_cache",
-    ".hypothesis", ".tox", ".nox", ".vite", ".cache",
+    "__pycache__",
+    ".pytest_cache",
+    ".mypy_cache",
+    ".ruff_cache",
+    ".hypothesis",
+    ".tox",
+    ".nox",
+    ".vite",
+    ".cache",
 }
 # Only these locations are assumed to be build output; a source folder named
 # "build" elsewhere is not automatically disposable.
@@ -41,7 +46,8 @@ def tracked_files(root):
         return set()
     result = subprocess.run(
         ["git", "-C", str(root), "ls-files", "-z"],
-        check=True, stdout=subprocess.PIPE,
+        check=True,
+        stdout=subprocess.PIPE,
     )
     return {os.fsdecode(name) for name in result.stdout.split(b"\0") if name}
 
@@ -52,8 +58,7 @@ def plan(root, scope):
     for current, dirnames, filenames in os.walk(root, followlinks=False):
         current = Path(current)
         dirnames[:] = sorted(
-            name for name in dirnames
-            if name not in PROTECTED and not (current / name).is_symlink()
+            name for name in dirnames if name not in PROTECTED and not (current / name).is_symlink()
         )
         directories.append(current)
         for name in sorted(filenames):

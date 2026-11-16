@@ -1,0 +1,170 @@
+import asyncio
+from secrets import token_urlsafe
+
+from anyio import CancelScope
+from fastapi import FastAPI, Request, Response, WebSocket, WebSocketDisconnect
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from starlette.middleware.trustedhost import TrustedHostMiddleware
+
+from auton.demo.ports import (
+    ConversationPort,
+    CreateSession,
+    ErrorBody,
+    SendMessage,
+    Session,
+    SessionEvent,
+    StopRun,
+)
+from auton.kernel.ports import ApplicationError
+from auton.server.config import ServerConfig
+from auton.server.ports import BootstrapResponse, HealthResponse, ServerDependencies
+
+
+class ServerFactory:
+    def create(self, config: ServerConfig, deps: ServerDependencies) -> FastAPI:
+        app = FastAPI(
+            title="Auton",
+            version="0.1.0",
+            lifespan=deps.lifespan,
+            responses={
+                status: {"model": ErrorBody} for status in (401, 403, 404, 409, 429, 501, 503)
+            },
+        )
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=list(config.allowed_origins),
+            allow_credentials=True,
+            allow_methods=["GET", "POST"],
+            allow_headers=["Content-Type", "X-Auton-Client"],
+        )
+        app.add_middleware(
+            TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost", "testserver"]
+        )
+        owners: set[str] = set()
+
+        @app.exception_handler(ApplicationError)
+        async def application_error(_request: Request, error: ApplicationError) -> JSONResponse:
+            return JSONResponse(
+                status_code=error.status,
+                content=ErrorBody(code=error.code, message=str(error)).model_dump(),
+            )
+
+        def service() -> ConversationPort:
+            if deps.conversation is None:
+                raise ApplicationError(501, "not_implemented", "真实 Agent 尚未实现，未启用 Demo")
+            return deps.conversation
+
+        def owner(request: Request) -> str:
+            value = request.cookies.get("auton_owner", "")
+            if value not in owners:
+                raise ApplicationError(401, "session_required", "请重新连接工作台")
+            if request.method != "GET":
+                origin = request.headers.get("origin")
+                if origin is not None and origin not in config.allowed_origins:
+                    raise ApplicationError(403, "origin_denied", "请求来源不允许")
+                if request.headers.get("x-auton-client") != "web":
+                    raise ApplicationError(403, "client_required", "缺少工作台命令标识")
+            return value
+
+        @app.get("/api/v1/health")
+        async def health(response: Response) -> HealthResponse:
+            ready = deps.is_ready()
+            response.status_code = 200 if ready else 503
+            return HealthResponse(status="ready" if ready else "starting", profile=config.profile)
+
+        @app.get("/api/v1/bootstrap")
+        async def bootstrap(request: Request, response: Response) -> BootstrapResponse:
+            value = request.cookies.get("auton_owner", "")
+            if value not in owners:
+                if len(owners) >= 500:
+                    raise ApplicationError(429, "demo_limit", "演示浏览器会话已达上限")
+                value = token_urlsafe(32)
+                owners.add(value)
+            response.set_cookie("auton_owner", value, httponly=True, samesite="strict")
+            response.headers["Cache-Control"] = "no-store"
+            return BootstrapResponse(
+                profile=config.profile,
+                demo=deps.conversation is not None,
+                implementation=deps.implementation,
+                modules=deps.modules,
+            )
+
+        @app.get("/api/v1/capabilities")
+        async def capabilities() -> list[dict[str, object]]:
+            return [module.model_dump(mode="json") for module in deps.modules]
+
+        @app.get("/api/v1/sessions")
+        async def sessions(request: Request) -> list[Session]:
+            return service().list_sessions(owner(request))
+
+        @app.post("/api/v1/sessions", status_code=201)
+        async def create_session(request: Request, command: CreateSession) -> Session:
+            return service().create_session(owner(request), command)
+
+        @app.get("/api/v1/sessions/{session_id}")
+        async def get_session(request: Request, session_id: str) -> Session:
+            return service().get_session(owner(request), session_id)
+
+        @app.post("/api/v1/sessions/{session_id}/messages", status_code=202)
+        async def send(request: Request, session_id: str, command: SendMessage) -> Session:
+            return await service().send(owner(request), session_id, command)
+
+        @app.post("/api/v1/sessions/{session_id}/stop")
+        async def stop(request: Request, session_id: str, command: StopRun) -> Session:
+            return await service().stop(owner(request), session_id, command)
+
+        # Declare the WebSocket schema alongside the HTTP OpenAPI components.
+        # /contracts is a schema, not a pretend event endpoint.
+        @app.get("/api/v1/contracts/session-event")
+        async def event_contract() -> dict[str, object]:
+            return SessionEvent.model_json_schema()
+
+        @app.websocket("/api/v1/sessions/{session_id}/events")
+        async def events(websocket: WebSocket, session_id: str) -> None:
+            value = websocket.cookies.get("auton_owner", "")
+            if websocket.headers.get("origin") not in config.allowed_origins or value not in owners:
+                await websocket.close(code=1008)
+                return
+            queue: asyncio.Queue[SessionEvent] | None = None
+            conversation = deps.conversation
+            if conversation is None:
+                await websocket.close(code=1013)
+                return
+            try:
+                queue = conversation.subscribe(value, session_id)
+            except ApplicationError:
+                await websocket.close(code=1008)
+                return
+            await websocket.accept()
+
+            async def receive_until_disconnect() -> None:
+                while True:
+                    message = await websocket.receive()
+                    if message["type"] == "websocket.disconnect":
+                        return
+
+            receiver = asyncio.create_task(receive_until_disconnect())
+            pending_event: asyncio.Task[SessionEvent] | None = None
+            try:
+                while not receiver.done():
+                    pending_event = asyncio.create_task(queue.get())
+                    done, _ = await asyncio.wait(
+                        [receiver, pending_event], return_when=asyncio.FIRST_COMPLETED
+                    )
+                    if receiver in done:
+                        break
+                    await websocket.send_json(pending_event.result().model_dump(mode="json"))
+            except (asyncio.CancelledError, WebSocketDisconnect, OSError, RuntimeError):
+                pass
+            finally:
+                receiver.cancel()
+                # Gather independently: Task is invariant, with distinct result types.
+                with CancelScope(shield=True):
+                    await asyncio.gather(receiver, return_exceptions=True)
+                    if pending_event is not None:
+                        pending_event.cancel()
+                        await asyncio.gather(pending_event, return_exceptions=True)
+                    conversation.unsubscribe(session_id, queue)
+
+        return app
