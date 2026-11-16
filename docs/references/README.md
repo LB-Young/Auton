@@ -12,6 +12,16 @@ Auton 自进化架构设计（[`../self-evolution-architecture.md`](../self-evol
 
 - [Jev 判断层、模型路由与本地小模型持续学习](../model-routing-and-local-learning.md)：难度/能力感知路由，历史轨迹加工为路由与执行训练数据，以及本地候选训练、隔离评测与发布闭环。
 
+## 本地决策模型评估与发布参考（2026-11-16）
+
+专项设计：[持续训练评估、上线与回滚](../decision-model-evaluation-and-release.md)。区分判断正确、旧能力保持、完整任务收益与部署资源，未来采用按任务灰度，不启用按难度的 Jev/本地动态路由。
+
+| 阅读笔记 | 原始来源 | 重点 |
+|---|---|---|
+| [神经网络概率校准](./guo-neural-network-calibration.md) | Guo 等，ICML 2017 | 高置信不等于高正确率、校准与局限 |
+| [分类评估](./google-classification-evaluation.md) | Google Cloud 官方文档 | 分类别、阈值、precision/recall |
+| [影子与灰度](./seldon-shadow-canary.md) | Seldon 官方文档 | 影子不采用输出，灰度实际采用候选 |
+
 ## Jev 全链路判断与本地决策模型参考（2026-11-16）
 
 专项设计：[Jev 全链路判断与本地决策模型离线学习](../jev-decision-learning.md)。线上只走 Jev；本地 student 用经过独立轨迹复核的正样本持续离线学习，不参与路由或 fallback。以下每个来源独立一份 Markdown 理解笔记。
