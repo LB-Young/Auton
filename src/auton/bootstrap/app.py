@@ -10,6 +10,8 @@ from auton.constitution.secrets import LoggerFactory, Redactor, SecretStoreFacto
 from auton.demo.config import DemoConfig
 from auton.demo.factory import DemoConversationFactory
 from auton.demo.ports import ConversationPort
+from auton.judgment.factory import JudgmentFactory
+from auton.judgment.service import JudgmentDependencies
 from auton.kernel.factory import ClockFactory, IdentifierFactory, KernelFactory
 from auton.kernel.modules import resolve_modules
 from auton.kernel.ports import LifecycleHandle, ModuleFactory, RuntimeDependencies
@@ -52,6 +54,9 @@ class ApplicationFactory:
             config.models,
             GatewayDependencies(control, kernel.events, deps, SecretStoreFactory().create()),
         )
+        judgment = JudgmentFactory().create(
+            config.judgment, JudgmentDependencies(control, control, kernel.events, deps, models)
+        )
         conversation: ConversationPort | None = None
         factory: ModuleFactory[DemoConfig, RuntimeDependencies, ConversationPort]
         factory = DemoConversationFactory()
@@ -64,9 +69,9 @@ class ApplicationFactory:
                 deps,
             )
         runtime = ApplicationRuntime(
-            [kernel, control, models, conversation]
+            [kernel, control, models, judgment, conversation]
             if conversation is not None
-            else [kernel, control, models]
+            else [kernel, control, models, judgment]
         )
         redactor = Redactor()
         return ServerFactory().create(
@@ -80,6 +85,7 @@ class ApplicationFactory:
                 storage=kernel.info,
                 control=control,
                 models=models,
+                judgment=judgment,
                 redact=redactor.text,
                 logger=LoggerFactory().create(redactor),
             ),

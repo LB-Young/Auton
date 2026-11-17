@@ -10,6 +10,7 @@ from pydantic import BaseModel
 from auton.constitution.config import PublicPolicy
 from auton.constitution.ports import PolicyControlPort
 from auton.demo.ports import ConversationPort
+from auton.judgment.ports import JudgmentPort
 from auton.kernel.events import StorageInfo
 from auton.kernel.modules import ModuleDescriptor
 from auton.model.ports import ModelGatewayPort
@@ -38,6 +39,7 @@ class ServerDependencies:
     lifespan: Callable[[FastAPI], AbstractAsyncContextManager[None]]
     is_ready: Callable[[], bool]
     storage: Callable[[], StorageInfo]
+    judgment: JudgmentPort
     models: ModelGatewayPort
     control: PolicyControlPort
     redact: Callable[[str], str]

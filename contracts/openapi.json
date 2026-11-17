@@ -84,6 +84,98 @@
         "title": "ActionRequest",
         "type": "object"
       },
+      "Answer": {
+        "additionalProperties": false,
+        "properties": {
+          "confidence": {
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence"
+          },
+          "expected_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Score"
+          },
+          "probabilities": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Probabilities",
+            "type": "object"
+          },
+          "question_id": {
+            "title": "Question Id",
+            "type": "string"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "selected_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Selected Id"
+          },
+          "status": {
+            "enum": [
+              "answered",
+              "abstained",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "choice",
+              "boolean",
+              "score"
+            ],
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "question_id",
+          "type",
+          "status",
+          "selected_id",
+          "probabilities",
+          "confidence",
+          "expected_score",
+          "reason"
+        ],
+        "title": "Answer",
+        "type": "object"
+      },
       "Artifact": {
         "additionalProperties": false,
         "properties": {
@@ -278,6 +370,63 @@
         "title": "CreateSession",
         "type": "object"
       },
+      "DecisionSource": {
+        "additionalProperties": false,
+        "properties": {
+          "device": {
+            "title": "Device",
+            "type": "string"
+          },
+          "max_tokens": {
+            "title": "Max Tokens",
+            "type": "integer"
+          },
+          "provider": {
+            "enum": [
+              "laya",
+              "mock"
+            ],
+            "title": "Provider",
+            "type": "string"
+          },
+          "repository": {
+            "title": "Repository",
+            "type": "string"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "string"
+          },
+          "runtime_version": {
+            "title": "Runtime Version",
+            "type": "string"
+          },
+          "source": {
+            "enum": [
+              "local",
+              "test"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "subfolder": {
+            "title": "Subfolder",
+            "type": "string"
+          }
+        },
+        "required": [
+          "provider",
+          "repository",
+          "revision",
+          "subfolder",
+          "runtime_version",
+          "device",
+          "max_tokens",
+          "source"
+        ],
+        "title": "DecisionSource",
+        "type": "object"
+      },
       "ErrorBody": {
         "additionalProperties": false,
         "properties": {
@@ -321,6 +470,158 @@
         "type": "object"
       },
       "JsonValue": {},
+      "JudgmentInfo": {
+        "additionalProperties": false,
+        "properties": {
+          "application_enabled": {
+            "default": false,
+            "title": "Application Enabled",
+            "type": "boolean"
+          },
+          "backend": {
+            "title": "Backend",
+            "type": "string"
+          },
+          "checkpoint": {
+            "title": "Checkpoint",
+            "type": "string"
+          },
+          "decision_points": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Decision Points",
+            "type": "array"
+          },
+          "health": {
+            "enum": [
+              "not_loaded",
+              "available",
+              "weights_missing",
+              "unavailable",
+              "test_fixture"
+            ],
+            "title": "Health",
+            "type": "string"
+          },
+          "primary_only": {
+            "const": true,
+            "default": true,
+            "title": "Primary Only",
+            "type": "boolean"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "string"
+          }
+        },
+        "required": [
+          "backend",
+          "checkpoint",
+          "revision",
+          "health",
+          "decision_points",
+          "application_enabled",
+          "primary_only"
+        ],
+        "title": "JudgmentInfo",
+        "type": "object"
+      },
+      "JudgmentPreview": {
+        "additionalProperties": false,
+        "properties": {
+          "public": {
+            "default": false,
+            "title": "Public",
+            "type": "boolean"
+          },
+          "request_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "pattern": "^[a-zA-Z0-9_-]+$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "state": {
+            "maxLength": 12000,
+            "minLength": 1,
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "state"
+        ],
+        "title": "JudgmentPreview",
+        "type": "object"
+      },
+      "JudgmentResult": {
+        "additionalProperties": false,
+        "properties": {
+          "adopted": {
+            "default": false,
+            "title": "Adopted",
+            "type": "boolean"
+          },
+          "answers": {
+            "items": {
+              "$ref": "#/components/schemas/Answer"
+            },
+            "title": "Answers",
+            "type": "array"
+          },
+          "goal_id": {
+            "title": "Goal Id",
+            "type": "string"
+          },
+          "goal_revision": {
+            "title": "Goal Revision",
+            "type": "integer"
+          },
+          "latency_ms": {
+            "title": "Latency Ms",
+            "type": "integer"
+          },
+          "raw_event_id": {
+            "title": "Raw Event Id",
+            "type": "string"
+          },
+          "request_digest": {
+            "title": "Request Digest",
+            "type": "string"
+          },
+          "request_id": {
+            "title": "Request Id",
+            "type": "string"
+          },
+          "route": {
+            "$ref": "#/components/schemas/RouteDecision"
+          },
+          "source": {
+            "$ref": "#/components/schemas/DecisionSource"
+          },
+          "state_cutoff": {
+            "title": "State Cutoff",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "request_id",
+          "request_digest",
+          "goal_id",
+          "goal_revision",
+          "state_cutoff",
+          "source",
+          "answers",
+          "raw_event_id",
+          "route",
+          "adopted",
+          "latency_ms"
+        ],
+        "title": "JudgmentResult",
+        "type": "object"
+      },
       "Message": {
         "additionalProperties": false,
         "properties": {
@@ -399,6 +700,17 @@
           },
           "declared_revision": {
             "title": "Declared Revision",
+            "type": "string"
+          },
+          "executor_tier": {
+            "default": "strong",
+            "enum": [
+              "small_2b",
+              "small_7b",
+              "strong",
+              "test_fixture"
+            ],
+            "title": "Executor Tier",
             "type": "string"
           },
           "health": {
@@ -481,6 +793,7 @@
           "provider",
           "location",
           "declared_revision",
+          "executor_tier",
           "base_revision",
           "adapter_revision",
           "template_revision",
@@ -852,6 +1165,72 @@
           "max_concurrent"
         ],
         "title": "PublicPolicy",
+        "type": "object"
+      },
+      "RouteDecision": {
+        "additionalProperties": false,
+        "properties": {
+          "excluded": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Excluded",
+            "type": "object"
+          },
+          "model_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Id"
+          },
+          "policy_version": {
+            "title": "Policy Version",
+            "type": "string"
+          },
+          "reason_codes": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Reason Codes",
+            "type": "array"
+          },
+          "requested_tier": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Requested Tier"
+          },
+          "status": {
+            "enum": [
+              "proposed",
+              "blocked",
+              "not_requested",
+              "stale"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "model_id",
+          "requested_tier",
+          "reason_codes",
+          "excluded",
+          "policy_version"
+        ],
+        "title": "RouteDecision",
         "type": "object"
       },
       "SendMessage": {
@@ -1583,6 +1962,212 @@
           }
         },
         "summary": "Health"
+      }
+    },
+    "/api/v1/judgment": {
+      "get": {
+        "operationId": "judgment_info_api_v1_judgment_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JudgmentInfo"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Judgment Info"
+      }
+    },
+    "/api/v1/judgment/preview": {
+      "post": {
+        "operationId": "judgment_preview_api_v1_judgment_preview_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JudgmentPreview"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JudgmentResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Judgment Preview"
       }
     },
     "/api/v1/models": {

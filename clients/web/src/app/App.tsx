@@ -34,6 +34,7 @@ import {
 } from 'lucide-react';
 import type { Application } from './composition';
 import type { Artifact, PolicyDecision } from '../shared/contracts';
+import { Judgment } from '../features/judgment/Judgment';
 import { Models } from '../features/models/Models';
 import { Markdown } from '../shared/Markdown';
 
@@ -648,7 +649,12 @@ export function App({ application }: { application: Application }) {
                 </div>
               </>
             ) : view === 'model' ? (
-              <Models feature={application.models} />
+              <div className="model-workspace">
+                <Models feature={application.models} />
+                <div className="judgment-workspace">
+                  <Judgment feature={application.judgment} />
+                </div>
+              </div>
             ) : view === 'settings' ? (
               <section className="module-page">
                 <p className="eyebrow">你的工作空间</p>
@@ -682,7 +688,7 @@ export function App({ application }: { application: Application }) {
                     </div>
                     <div>
                       <dt>判断与模型</dt>
-                      <dd>执行模型已接入；连接检测见模型页。Laya 判断待 M05</dd>
+                      <dd>执行模型与本地 Laya 判断已接入；模型页可分别检测</dd>
                     </div>
                   </dl>
                 </div>

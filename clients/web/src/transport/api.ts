@@ -1,6 +1,8 @@
 import type {
   ActionRequest,
   PolicyDecision,
+  JudgmentInfo,
+  JudgmentResult,
   ModelInfo,
   ModelResult,
   Bootstrap,
@@ -40,6 +42,9 @@ export class ApiClientFactory {
       return (await response.json()) as T;
     }
     return {
+      judgment: () => request<JudgmentInfo>('/judgment'),
+      previewJudgment: (state, isPublic, request_id) =>
+        request<JudgmentResult>('/judgment/preview', { state, public: isPublic, request_id }),
       models: () => request<ModelInfo[]>('/models'),
       probeModel: (id, request_id) =>
         request<ModelResult>(`/models/${encodeURIComponent(id)}/probe`, { request_id }),

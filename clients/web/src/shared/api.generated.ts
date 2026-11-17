@@ -72,6 +72,40 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/judgment': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Judgment Info */
+    get: operations['judgment_info_api_v1_judgment_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/judgment/preview': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Judgment Preview */
+    post: operations['judgment_preview_api_v1_judgment_preview_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/models': {
     parameters: {
       query?: never;
@@ -269,6 +303,33 @@ export interface components {
       /** Provider */
       provider?: string | null;
     };
+    /** Answer */
+    Answer: {
+      /** Confidence */
+      confidence: number | null;
+      /** Expected Score */
+      expected_score: number | null;
+      /** Probabilities */
+      probabilities: {
+        [key: string]: number;
+      };
+      /** Question Id */
+      question_id: string;
+      /** Reason */
+      reason: string | null;
+      /** Selected Id */
+      selected_id: string | null;
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: 'answered' | 'abstained' | 'failed';
+      /**
+       * Type
+       * @enum {string}
+       */
+      type: 'choice' | 'boolean' | 'score';
+    };
     /** Artifact */
     Artifact: {
       /** Content */
@@ -380,6 +441,31 @@ export interface components {
       /** Request Id */
       request_id: string;
     };
+    /** DecisionSource */
+    DecisionSource: {
+      /** Device */
+      device: string;
+      /** Max Tokens */
+      max_tokens: number;
+      /**
+       * Provider
+       * @enum {string}
+       */
+      provider: 'laya' | 'mock';
+      /** Repository */
+      repository: string;
+      /** Revision */
+      revision: string;
+      /** Runtime Version */
+      runtime_version: string;
+      /**
+       * Source
+       * @enum {string}
+       */
+      source: 'local' | 'test';
+      /** Subfolder */
+      subfolder: string;
+    };
     /** ErrorBody */
     ErrorBody: {
       /** Code */
@@ -398,6 +484,71 @@ export interface components {
       status: 'ready' | 'starting' | 'stopped';
     };
     JsonValue: unknown;
+    /** JudgmentInfo */
+    JudgmentInfo: {
+      /**
+       * Application Enabled
+       * @default false
+       */
+      application_enabled: boolean;
+      /** Backend */
+      backend: string;
+      /** Checkpoint */
+      checkpoint: string;
+      /** Decision Points */
+      decision_points: string[];
+      /**
+       * Health
+       * @enum {string}
+       */
+      health: 'not_loaded' | 'available' | 'weights_missing' | 'unavailable' | 'test_fixture';
+      /**
+       * Primary Only
+       * @default true
+       * @constant
+       */
+      primary_only: true;
+      /** Revision */
+      revision: string;
+    };
+    /** JudgmentPreview */
+    JudgmentPreview: {
+      /**
+       * Public
+       * @default false
+       */
+      public: boolean;
+      /** Request Id */
+      request_id: string;
+      /** State */
+      state: string;
+    };
+    /** JudgmentResult */
+    JudgmentResult: {
+      /**
+       * Adopted
+       * @default false
+       */
+      adopted: boolean;
+      /** Answers */
+      answers: components['schemas']['Answer'][];
+      /** Goal Id */
+      goal_id: string;
+      /** Goal Revision */
+      goal_revision: number;
+      /** Latency Ms */
+      latency_ms: number;
+      /** Raw Event Id */
+      raw_event_id: string;
+      /** Request Digest */
+      request_digest: string;
+      /** Request Id */
+      request_id: string;
+      route: components['schemas']['RouteDecision'];
+      source: components['schemas']['DecisionSource'];
+      /** State Cutoff */
+      state_cutoff: number;
+    };
     /** Message */
     Message: {
       /** Content */
@@ -429,6 +580,12 @@ export interface components {
       declared_context_tokens: number;
       /** Declared Revision */
       declared_revision: string;
+      /**
+       * Executor Tier
+       * @default strong
+       * @enum {string}
+       */
+      executor_tier: 'small_2b' | 'small_7b' | 'strong' | 'test_fixture';
       /**
        * Health
        * @enum {string}
@@ -607,6 +764,29 @@ export interface components {
       remote_providers: string[];
       /** Version */
       version: string;
+    };
+    /** RouteDecision */
+    RouteDecision: {
+      /** Excluded */
+      excluded: {
+        [key: string]: string;
+      };
+      /** Model Id */
+      model_id: string | null;
+      /** Policy Version */
+      policy_version: string;
+      /**
+       * Reason Codes
+       * @default []
+       */
+      reason_codes: string[];
+      /** Requested Tier */
+      requested_tier: string | null;
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: 'proposed' | 'blocked' | 'not_requested' | 'stale';
     };
     /** SendMessage */
     SendMessage: {
@@ -1054,6 +1234,194 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['HealthResponse'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  judgment_info_api_v1_judgment_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['JudgmentInfo'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  judgment_preview_api_v1_judgment_preview_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['JudgmentPreview'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['JudgmentResult'];
         };
       };
       /** @description Unauthorized */

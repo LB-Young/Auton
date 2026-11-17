@@ -26,6 +26,8 @@ from auton.demo.ports import (
     SessionEvent,
     StopRun,
 )
+from auton.judgment.contracts import JudgmentInfo, JudgmentRequest, JudgmentResult
+from auton.judgment.questions import JudgmentQuestionsFactory
 from auton.kernel.ports import ApplicationError
 from auton.model.contracts import ModelInfo, ModelMessage, ModelRequest, ModelResult
 from auton.server.config import ServerConfig
@@ -41,6 +43,13 @@ class PolicyRevision(BaseModel):
 class ModelProbe(BaseModel):
     model_config = ConfigDict(extra="forbid")
     request_id: str = Field(min_length=1, max_length=100, pattern=r"^[a-zA-Z0-9_-]+$")
+
+
+class JudgmentPreview(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    request_id: str = Field(min_length=1, max_length=100, pattern=r"^[a-zA-Z0-9_-]+$")
+    state: str = Field(min_length=1, max_length=12000)
+    public: bool = False
 
 
 class ServerFactory:
@@ -127,6 +136,25 @@ class ServerFactory:
                 modules=deps.modules,
                 event_storage=deps.storage(),
                 policy=deps.control.public(),
+            )
+
+        @app.get("/api/v1/judgment")
+        async def judgment_info(request: Request) -> JudgmentInfo:
+            owner(request)
+            return deps.judgment.info()
+
+        @app.post("/api/v1/judgment/preview")
+        async def judgment_preview(request: Request, command: JudgmentPreview) -> JudgmentResult:
+            value = owner(request)
+            return await deps.judgment.decide(
+                JudgmentRequest(
+                    request_id=command.request_id,
+                    principal=Principal(owner=value, role="runtime"),
+                    goal_id="judgment-preview-" + hashlib.sha256(value.encode()).hexdigest(),
+                    state=command.state,
+                    questions=JudgmentQuestionsFactory().create(),
+                    data_domain="public" if command.public else "local-only",
+                )
             )
 
         @app.get("/api/v1/models")

@@ -161,3 +161,20 @@ def test_model_catalog_probe_and_mobile_layout(page: Page) -> None:
     page.set_viewport_size({"width": 390, "height": 844})
     assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth")
     screenshot(page, "M04-models-mobile.png")
+
+
+def test_local_judgment_preview_records_source_without_adopting(page: Page) -> None:
+    page.get_by_role("button", name=re.compile("^模型")).click()
+    expect(page.get_by_role("heading", name="本地判断 · Laya")).to_be_visible()
+    page.get_by_label("待判断任务").fill("把一份软件需求拆成开发步骤")
+    page.get_by_role("button", name="预览本地判断").click()
+    result = page.locator(".judgment-result")
+    expect(result).to_contain_text("测试判断")
+    expect(result).to_contain_text("未采用")
+    expect(result).to_contain_text("输入截止点 0 · 目标修订 1")
+    expect(result).to_contain_text("信息充分性")
+    page.get_by_role("heading", name="本地判断 · Laya").scroll_into_view_if_needed()
+    screenshot(page, "M05-judgment.png")
+    page.set_viewport_size({"width": 390, "height": 844})
+    assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth")
+    screenshot(page, "M05-judgment-mobile.png")

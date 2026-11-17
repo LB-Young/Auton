@@ -4,7 +4,7 @@ PROJECT_ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 PYTHON ?= python3
 DEV_PYTHON ?= $(PROJECT_ROOT).venv/bin/python
 
-.PHONY: help setup dev api web check contracts browser-install e2e clean clean-preview clean-cache clean-build clean-empty
+.PHONY: help setup dev api web check contracts judgment-setup judgment-smoke browser-install e2e clean clean-preview clean-cache clean-build clean-empty
 
 help:
 	@printf '%s\n' \
@@ -59,3 +59,10 @@ clean-build:
 
 clean-empty:
 	@$(PYTHON) "$(PROJECT_ROOT)scripts/clean.py" --scope empty
+
+judgment-setup:
+	@uv sync --extra judgment
+	@"$(DEV_PYTHON)" "$(PROJECT_ROOT)scripts/download_laya.py"
+
+judgment-smoke:
+	@"$(DEV_PYTHON)" "$(PROJECT_ROOT)scripts/judgment_smoke.py"

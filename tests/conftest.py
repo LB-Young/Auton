@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient
 
 from auton.bootstrap.app import ApplicationFactory
 from auton.bootstrap.config import ApplicationConfig
+from auton.judgment.config import JudgmentConfig
 from auton.kernel.config import KernelConfig
 from auton.kernel.ports import RuntimeDependencies
 from auton.model.config import ModelConfig
@@ -24,6 +25,7 @@ def client(deps: RuntimeDependencies) -> Iterator[TestClient]:
             kernel=KernelConfig(backend="memory"),
             profile="test",
             models=ModelConfig(backend="mock"),
+            judgment=JudgmentConfig(backend="mock"),
             implementation="scripted",
             chunk_delay_seconds=0.001,
             allowed_origins=("http://testserver",),

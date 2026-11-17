@@ -1,0 +1,635 @@
+{
+  "timestamp": "2026-11-17T04:35:02.207892+00:00",
+  "records": [
+    {
+      "case": "arithmetic",
+      "expected_tier": "small_2b",
+      "tier_correct": true,
+      "expected_sufficient": "yes",
+      "result": {
+        "request_id": "8e909010-8662-4bab-82fa-20b5b394274d",
+        "request_digest": "0583be2456da2c518827288070fa5e94edd57a57a34484ffd084021292ad5919",
+        "goal_id": "baseline-df382fac-b5b8-44f5-b397-8e9f88f8b2ff",
+        "goal_revision": 1,
+        "state_cutoff": 0,
+        "source": {
+          "provider": "laya",
+          "repository": "convaiinnovations/laya",
+          "revision": "e333cb7c823cd1787276228260f56d02fbf5180b",
+          "subfolder": "multilingual",
+          "runtime_version": "laya-0.3.20",
+          "device": "cpu",
+          "max_tokens": 1024,
+          "source": "local"
+        },
+        "answers": [
+          {
+            "question_id": "sufficient",
+            "type": "boolean",
+            "status": "answered",
+            "selected_id": "no",
+            "probabilities": {
+              "no": 0.9444,
+              "yes": 0.0556
+            },
+            "confidence": 0.9444,
+            "expected_score": null,
+            "reason": null
+          },
+          {
+            "question_id": "executor",
+            "type": "choice",
+            "status": "answered",
+            "selected_id": "small_2b",
+            "probabilities": {
+              "small_2b": 0.6327,
+              "small_7b": 0.3012,
+              "strong": 0.0661
+            },
+            "confidence": 0.6327,
+            "expected_score": null,
+            "reason": null
+          },
+          {
+            "question_id": "tool",
+            "type": "choice",
+            "status": "answered",
+            "selected_id": "none",
+            "probabilities": {
+              "none": 0.9522,
+              "read": 0.0239,
+              "write": 0.0239
+            },
+            "confidence": 0.9522,
+            "expected_score": null,
+            "reason": null
+          },
+          {
+            "question_id": "skill",
+            "type": "choice",
+            "status": "answered",
+            "selected_id": "general",
+            "probabilities": {
+              "general": 0.4809,
+              "research": 0.1495,
+              "engineering": 0.3697
+            },
+            "confidence": 0.4809,
+            "expected_score": null,
+            "reason": null
+          }
+        ],
+        "raw_event_id": "judgment:983d6c5206a0f898c84772181e4a7da66ae03593bd85ad38f93fb079dfe5001a:raw",
+        "route": {
+          "status": "blocked",
+          "model_id": null,
+          "requested_tier": null,
+          "reason_codes": [
+            "insufficient_information"
+          ],
+          "excluded": {
+            "deepseek-flash": "model_unavailable",
+            "deepseek-v4-pro": "model_unavailable"
+          },
+          "policy_version": "bc5e4181c25d341359aaccc3"
+        },
+        "adopted": false,
+        "latency_ms": 2634
+      }
+    },
+    {
+      "case": "extract",
+      "expected_tier": "small_2b",
+      "tier_correct": true,
+      "expected_sufficient": "yes",
+      "result": {
+        "request_id": "c103ae94-4a09-4e0a-9d59-078b4253ce6b",
+        "request_digest": "912eac4a69e83e90a70d2c9f2da89d7b7f989ca0736984dcb208cb12b9ccbeba",
+        "goal_id": "baseline-0c95bf6b-d5fb-425d-b58e-14da7e966d54",
+        "goal_revision": 1,
+        "state_cutoff": 0,
+        "source": {
+          "provider": "laya",
+          "repository": "convaiinnovations/laya",
+          "revision": "e333cb7c823cd1787276228260f56d02fbf5180b",
+          "subfolder": "multilingual",
+          "runtime_version": "laya-0.3.20",
+          "device": "cpu",
+          "max_tokens": 1024,
+          "source": "local"
+        },
+        "answers": [
+          {
+            "question_id": "sufficient",
+            "type": "boolean",
+            "status": "answered",
+            "selected_id": "no",
+            "probabilities": {
+              "no": 0.864,
+              "yes": 0.136
+            },
+            "confidence": 0.864,
+            "expected_score": null,
+            "reason": null
+          },
+          {
+            "question_id": "executor",
+            "type": "choice",
+            "status": "answered",
+            "selected_id": "small_2b",
+            "probabilities": {
+              "small_2b": 0.8139,
+              "small_7b": 0.179,
+              "strong": 0.0071
+            },
+            "confidence": 0.8139,
+            "expected_score": null,
+            "reason": null
+          },
+          {
+            "question_id": "tool",
+            "type": "choice",
+            "status": "answered",
+            "selected_id": "none",
+            "probabilities": {
+              "none": 0.6359,
+              "read": 0.3226,
+              "write": 0.0415
+            },
+            "confidence": 0.6359,
+            "expected_score": null,
+            "reason": null
+          },
+          {
+            "question_id": "skill",
+            "type": "choice",
+            "status": "answered",
+            "selected_id": "general",
+            "probabilities": {
+              "general": 0.4788,
+              "research": 0.3029,
+              "engineering": 0.2183
+            },
+            "confidence": 0.4788,
+            "expected_score": null,
+            "reason": null
+          }
+        ],
+        "raw_event_id": "judgment:dcac91dc4c86b79e8a6a5f37f81fe19630b8babf4c7195288b0111962ed1e1d4:raw",
+        "route": {
+          "status": "blocked",
+          "model_id": null,
+          "requested_tier": null,
+          "reason_codes": [
+            "insufficient_information"
+          ],
+          "excluded": {
+            "deepseek-flash": "model_unavailable",
+            "deepseek-v4-pro": "model_unavailable"
+          },
+          "policy_version": "bc5e4181c25d341359aaccc3"
+        },
+        "adopted": false,
+        "latency_ms": 84
+      }
+    },
+    {
+      "case": "architecture",
+      "expected_tier": "strong",
+      "tier_correct": false,
+      "expected_sufficient": "yes",
+      "result": {
+        "request_id": "6b6dbfc2-f4af-4b0b-9807-9d8caa1b711c",
+        "request_digest": "91a8d105a91ed56fe9ade07f9362faa7aedf0bb83c36b48af27c7a1216c8d51e",
+        "goal_id": "baseline-632225c1-8347-495a-89d9-020cbf145e22",
+        "goal_revision": 1,
+        "state_cutoff": 0,
+        "source": {
+          "provider": "laya",
+          "repository": "convaiinnovations/laya",
+          "revision": "e333cb7c823cd1787276228260f56d02fbf5180b",
+          "subfolder": "multilingual",
+          "runtime_version": "laya-0.3.20",
+          "device": "cpu",
+          "max_tokens": 1024,
+          "source": "local"
+        },
+        "answers": [
+          {
+            "question_id": "sufficient",
+            "type": "boolean",
+            "status": "answered",
+            "selected_id": "yes",
+            "probabilities": {
+              "no": 0.16949999999999998,
+              "yes": 0.8305
+            },
+            "confidence": 0.8305,
+            "expected_score": null,
+            "reason": null
+          },
+          {
+            "question_id": "executor",
+            "type": "choice",
+            "status": "answered",
+            "selected_id": "small_7b",
+            "probabilities": {
+              "small_2b": 0.1908,
+              "small_7b": 0.5997,
+              "strong": 0.2095
+            },
+            "confidence": 0.5997,
+            "expected_score": null,
+            "reason": null
+          },
+          {
+            "question_id": "tool",
+            "type": "choice",
+            "status": "answered",
+            "selected_id": "write",
+            "probabilities": {
+              "none": 0.2383,
+              "read": 0.0216,
+              "write": 0.7401
+            },
+            "confidence": 0.7401,
+            "expected_score": null,
+            "reason": null
+          },
+          {
+            "question_id": "skill",
+            "type": "choice",
+            "status": "answered",
+            "selected_id": "engineering",
+            "probabilities": {
+              "general": 0.0039,
+              "research": 0.0034,
+              "engineering": 0.9927
+            },
+            "confidence": 0.9927,
+            "expected_score": null,
+            "reason": null
+          }
+        ],
+        "raw_event_id": "judgment:2a642b60efb982cb9a9bccab972e2aca038f1fdd8dd7e7f4f184a58016af2904:raw",
+        "route": {
+          "status": "blocked",
+          "model_id": null,
+          "requested_tier": "small_7b",
+          "reason_codes": [
+            "no_eligible_executor"
+          ],
+          "excluded": {
+            "deepseek-flash": "model_unavailable",
+            "deepseek-v4-pro": "model_unavailable"
+          },
+          "policy_version": "bc5e4181c25d341359aaccc3"
+        },
+        "adopted": false,
+        "latency_ms": 90
+      }
+    },
+    {
+      "case": "debug",
+      "expected_tier": "strong",
+      "tier_correct": false,
+      "expected_sufficient": "yes",
+      "result": {
+        "request_id": "b41b02ea-9bbc-43a9-a216-e67b64054cb4",
+        "request_digest": "e5117f1f126e55ec138d4993e0ebe761dfbbe38f57a0864c0b1dbb65f99a112e",
+        "goal_id": "baseline-7a597c75-1289-4cfc-9c0d-bae78bb89112",
+        "goal_revision": 1,
+        "state_cutoff": 0,
+        "source": {
+          "provider": "laya",
+          "repository": "convaiinnovations/laya",
+          "revision": "e333cb7c823cd1787276228260f56d02fbf5180b",
+          "subfolder": "multilingual",
+          "runtime_version": "laya-0.3.20",
+          "device": "cpu",
+          "max_tokens": 1024,
+          "source": "local"
+        },
+        "answers": [
+          {
+            "question_id": "sufficient",
+            "type": "boolean",
+            "status": "answered",
+            "selected_id": "no",
+            "probabilities": {
+              "no": 0.995,
+              "yes": 0.005
+            },
+            "confidence": 0.995,
+            "expected_score": null,
+            "reason": null
+          },
+          {
+            "question_id": "executor",
+            "type": "choice",
+            "status": "answered",
+            "selected_id": "small_7b",
+            "probabilities": {
+              "small_2b": 0.3335,
+              "small_7b": 0.5912,
+              "strong": 0.0753
+            },
+            "confidence": 0.5912,
+            "expected_score": null,
+            "reason": null
+          },
+          {
+            "question_id": "tool",
+            "type": "choice",
+            "status": "answered",
+            "selected_id": "none",
+            "probabilities": {
+              "none": 0.8196,
+              "read": 0.1684,
+              "write": 0.0121
+            },
+            "confidence": 0.8196,
+            "expected_score": null,
+            "reason": null
+          },
+          {
+            "question_id": "skill",
+            "type": "choice",
+            "status": "answered",
+            "selected_id": "research",
+            "probabilities": {
+              "general": 0.0142,
+              "research": 0.894,
+              "engineering": 0.0919
+            },
+            "confidence": 0.894,
+            "expected_score": null,
+            "reason": null
+          }
+        ],
+        "raw_event_id": "judgment:dfd6acd80cf4cd948e2177011dcb03b0f20c56f55d7031bc6d6145fe4e23e129:raw",
+        "route": {
+          "status": "blocked",
+          "model_id": null,
+          "requested_tier": null,
+          "reason_codes": [
+            "insufficient_information"
+          ],
+          "excluded": {
+            "deepseek-flash": "model_unavailable",
+            "deepseek-v4-pro": "model_unavailable"
+          },
+          "policy_version": "bc5e4181c25d341359aaccc3"
+        },
+        "adopted": false,
+        "latency_ms": 99
+      }
+    },
+    {
+      "case": "english_simple",
+      "expected_tier": "small_2b",
+      "tier_correct": true,
+      "expected_sufficient": "yes",
+      "result": {
+        "request_id": "92c98de3-0555-42c1-bc62-8b75f6cd24a8",
+        "request_digest": "50f13feefe42e81611c1c2cd3b41cd74238adaefbc5c73f1a891e695d9319256",
+        "goal_id": "baseline-8c206d32-e128-4e1c-887d-4f26240450ac",
+        "goal_revision": 1,
+        "state_cutoff": 0,
+        "source": {
+          "provider": "laya",
+          "repository": "convaiinnovations/laya",
+          "revision": "e333cb7c823cd1787276228260f56d02fbf5180b",
+          "subfolder": "multilingual",
+          "runtime_version": "laya-0.3.20",
+          "device": "cpu",
+          "max_tokens": 1024,
+          "source": "local"
+        },
+        "answers": [
+          {
+            "question_id": "sufficient",
+            "type": "boolean",
+            "status": "answered",
+            "selected_id": "yes",
+            "probabilities": {
+              "no": 0.43889999999999996,
+              "yes": 0.5611
+            },
+            "confidence": 0.5611,
+            "expected_score": null,
+            "reason": null
+          },
+          {
+            "question_id": "executor",
+            "type": "choice",
+            "status": "answered",
+            "selected_id": "small_2b",
+            "probabilities": {
+              "small_2b": 0.9912,
+              "small_7b": 0.0078,
+              "strong": 0.001
+            },
+            "confidence": 0.9912,
+            "expected_score": null,
+            "reason": null
+          },
+          {
+            "question_id": "tool",
+            "type": "choice",
+            "status": "answered",
+            "selected_id": "none",
+            "probabilities": {
+              "none": 0.9114,
+              "read": 0.053,
+              "write": 0.0356
+            },
+            "confidence": 0.9114,
+            "expected_score": null,
+            "reason": null
+          },
+          {
+            "question_id": "skill",
+            "type": "choice",
+            "status": "answered",
+            "selected_id": "general",
+            "probabilities": {
+              "general": 0.7584,
+              "research": 0.1121,
+              "engineering": 0.1294
+            },
+            "confidence": 0.7584,
+            "expected_score": null,
+            "reason": null
+          }
+        ],
+        "raw_event_id": "judgment:48c763f29eb93c995033804c146ea0ca248a495d795295c07a8dc36cb4897124:raw",
+        "route": {
+          "status": "blocked",
+          "model_id": null,
+          "requested_tier": "small_2b",
+          "reason_codes": [
+            "no_eligible_executor"
+          ],
+          "excluded": {
+            "deepseek-flash": "model_unavailable",
+            "deepseek-v4-pro": "model_unavailable"
+          },
+          "policy_version": "bc5e4181c25d341359aaccc3"
+        },
+        "adopted": false,
+        "latency_ms": 84
+      }
+    },
+    {
+      "case": "english_complex",
+      "expected_tier": "strong",
+      "tier_correct": false,
+      "expected_sufficient": "yes",
+      "result": {
+        "request_id": "c7259001-d5a7-4ae7-9fda-7bffc274eeb4",
+        "request_digest": "af739252c651f8749f0dc4500a0af9cfe7c510a262ea402fba93f9ce6aa7592f",
+        "goal_id": "baseline-7a1a8338-0f01-4959-acdc-4e2beb7e23fa",
+        "goal_revision": 1,
+        "state_cutoff": 0,
+        "source": {
+          "provider": "laya",
+          "repository": "convaiinnovations/laya",
+          "revision": "e333cb7c823cd1787276228260f56d02fbf5180b",
+          "subfolder": "multilingual",
+          "runtime_version": "laya-0.3.20",
+          "device": "cpu",
+          "max_tokens": 1024,
+          "source": "local"
+        },
+        "answers": [
+          {
+            "question_id": "sufficient",
+            "type": "boolean",
+            "status": "answered",
+            "selected_id": "yes",
+            "probabilities": {
+              "no": 0.4044,
+              "yes": 0.5956
+            },
+            "confidence": 0.5956,
+            "expected_score": null,
+            "reason": null
+          },
+          {
+            "question_id": "executor",
+            "type": "choice",
+            "status": "answered",
+            "selected_id": "small_7b",
+            "probabilities": {
+              "small_2b": 0.0938,
+              "small_7b": 0.7655,
+              "strong": 0.1408
+            },
+            "confidence": 0.7655,
+            "expected_score": null,
+            "reason": null
+          },
+          {
+            "question_id": "tool",
+            "type": "choice",
+            "status": "answered",
+            "selected_id": "write",
+            "probabilities": {
+              "none": 0.1541,
+              "read": 0.0129,
+              "write": 0.833
+            },
+            "confidence": 0.833,
+            "expected_score": null,
+            "reason": null
+          },
+          {
+            "question_id": "skill",
+            "type": "choice",
+            "status": "answered",
+            "selected_id": "engineering",
+            "probabilities": {
+              "general": 0.0122,
+              "research": 0.0022,
+              "engineering": 0.9856
+            },
+            "confidence": 0.9856,
+            "expected_score": null,
+            "reason": null
+          }
+        ],
+        "raw_event_id": "judgment:1418872be538b1033cb5beeb1b20b560f85c500521452d6dc183132e9594a73b:raw",
+        "route": {
+          "status": "blocked",
+          "model_id": null,
+          "requested_tier": "small_7b",
+          "reason_codes": [
+            "no_eligible_executor"
+          ],
+          "excluded": {
+            "deepseek-flash": "model_unavailable",
+            "deepseek-v4-pro": "model_unavailable"
+          },
+          "policy_version": "bc5e4181c25d341359aaccc3"
+        },
+        "adopted": false,
+        "latency_ms": 79
+      }
+    },
+    {
+      "case": "option_reorder",
+      "result": {
+        "request_id": "d6a68292-dae0-44c0-baa1-4a52ae04239e",
+        "request_digest": "82b92476cc178d58aed60ea83aa07357e51ec212190275e7aa0c43e921fcd857",
+        "goal_id": "reorder-e81e4ed4-0721-4c06-b917-97b8a8562f66",
+        "goal_revision": 1,
+        "state_cutoff": 0,
+        "source": {
+          "provider": "laya",
+          "repository": "convaiinnovations/laya",
+          "revision": "e333cb7c823cd1787276228260f56d02fbf5180b",
+          "subfolder": "multilingual",
+          "runtime_version": "laya-0.3.20",
+          "device": "cpu",
+          "max_tokens": 1024,
+          "source": "local"
+        },
+        "answers": [
+          {
+            "question_id": "executor",
+            "type": "choice",
+            "status": "answered",
+            "selected_id": "small_2b",
+            "probabilities": {
+              "strong": 0.086,
+              "small_7b": 0.3499,
+              "small_2b": 0.5641
+            },
+            "confidence": 0.5641,
+            "expected_score": null,
+            "reason": null
+          }
+        ],
+        "raw_event_id": "judgment:5c6db5e42e1cc2ad4032abccc64a4f7cad455f71e32e1814b37e25bc317ea51f:raw",
+        "route": {
+          "status": "blocked",
+          "model_id": null,
+          "requested_tier": "small_2b",
+          "reason_codes": [
+            "no_eligible_executor"
+          ],
+          "excluded": {
+            "deepseek-flash": "model_unavailable",
+            "deepseek-v4-pro": "model_unavailable"
+          },
+          "policy_version": "bc5e4181c25d341359aaccc3"
+        },
+        "adopted": false,
+        "latency_ms": 36
+      }
+    }
+  ],
+  "automatic_application_enabled": false,
+  "limitation": "Small hand-labelled smoke set, not a held-out task-quality benchmark."
+}

@@ -1,6 +1,6 @@
 # Auton 开发里程碑
 
-> v0.1，2026-11-16。M01 项目框架已实现并通过本地验收，见 [验收记录](./evidence/M01.md)。M02 已完成，见 [验收](./evidence/M02.md)。M03 已完成，见 [验收](./evidence/M03.md)。M04 已接入真实 DeepSeek，见 [验收](./evidence/M04.md)。M05–M21 保持计划中。
+> v0.1，2026-11-16。M01 项目框架已实现并通过本地验收，见 [验收记录](./evidence/M01.md)。M02 已完成，见 [验收](./evidence/M02.md)。M03 已完成，见 [验收](./evidence/M03.md)。M04 已接入真实 DeepSeek，见 [验收](./evidence/M04.md)。M05 已完成本地工程接入，当前质量未达自动采用门槛，见 [验收](./evidence/M05.md)。M06–M21 计划中。
 > 开发顺序以本目录为准，替代总架构原先 M1–M6 的粗粒度安排；旧 M/J/R/D/T 编号只是研究阶段参考，不直接等同本目录编号。
 
 ## 1. 必须先做什么
@@ -23,7 +23,7 @@
 | [M02 核心内核与事件持久化](./M02-kernel.md) | M01 | KernelFactory、EventLogFactory、ClockFactory | 追加后进程重启能按序读取；同 event_id 重试不产生重复事实。 | 已完成（本地验收） |
 | [M03 固定策略、权限与配置](./M03-constitution.md) | M02 | ConstitutionFactory、PolicyEvaluatorFactory | 禁止外发的数据在模型调用前被拦截，禁止动作在工具执行前被拦截。 | 已完成（本地验收） |
 | [M04 执行模型网关与能力注册](./M04-model.md) | M02、M03 | ModelGatewayFactory、ProviderFactory、ModelRegistryFactory | 相同 Port 可替换两个实现；真实请求可流式返回并记录模型版本、成本和结束原因。 | 已完成（本地与真实协议验收） |
-| [M05 Jev 判断层与执行模型路由](./M05-judgment.md) | M03、M04 | JudgmentFactory、JevAdapterFactory、RoutePolicyFactory | 每次 Jev 调用可关联输入、问题、响应、policy action 和任务版本。 | 计划中 |
+| [M05 本地 Laya 判断层与执行模型路由](./M05-judgment.md) | M03、M04 | JudgmentFactory、LayaAdapterFactory、RoutePolicyFactory | 每次本地判断关联输入、问题、原始响应、策略建议与任务版本。 | 工程验收通过；自动采用关闭 |
 | [M06 工具宿主、执行隔离与操作账本](./M06-tools.md) | M02、M03 | ToolHostFactory、ToolAdapterFactory、SandboxFactory、OperationLedgerFactory | 可只读的任务不能写入；越界路径、过期审批和取消后新动作被拒绝。 | 计划中 |
 | [M07 资产、项目资料与记忆治理](./M07-genome.md) | M02、M03 | GenomeFactory、AssetRepositoryFactory、MemoryPolicyFactory、ResolverFactory | 同一 snapshot 可复现；历史版本能查看和回退，来源与项目权限可追踪。 | 计划中 |
 | [M08 上下文装配、检索与压缩](./M08-context.md) | M04、M06、M07 | ContextEngineFactory、RetrieverFactory、CompressorFactory | 长会话超限前有可解释压缩/阻塞，消息与工具协议保持完整。 | 计划中 |

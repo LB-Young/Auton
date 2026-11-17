@@ -16,3 +16,6 @@ export type PolicyDecision = components['schemas']['PolicyDecision'];
 
 export type ModelInfo = components['schemas']['ModelInfo'];
 export type ModelResult = components['schemas']['ModelResult'];
+
+export type JudgmentInfo = components['schemas']['JudgmentInfo'];
+export type JudgmentResult = components['schemas']['JudgmentResult'];

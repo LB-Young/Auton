@@ -169,6 +169,14 @@ class ConstitutionService:
             raise control_error("stale_revision")
         return goal
 
+    async def validate_action(self, request: ActionRequest) -> None:
+        async with self._lock:
+            await self._replay()
+            goal = self._goal(request.principal, request.goal_id, request.goal_revision)
+            if goal.cancelled:
+                raise control_error("authorization_revoked")
+            self._authorize(request)
+
     async def register_goal(self, principal: Principal, goal_id: str, revision: int = 1) -> None:
         async with self._lock:
             self._check()

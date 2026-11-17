@@ -18,6 +18,12 @@ dependencies = [
   "uvicorn[standard]>=0.34,<1",
 ]
 
+[project.optional-dependencies]
+judgment = [
+    "laya==0.3.20",
+    "transformers>=4.48,<5",
+]
+
 [dependency-groups]
 dev = [
   "httpx>=0.28,<1",
@@ -43,7 +49,7 @@ select = ["E", "F", "I", "UP", "B", "ASYNC"]
 [tool.mypy]
 python_version = "3.12"
 strict = true
-files = ["src", "tests", "scripts/export_contracts.py", "scripts/dev.py", "scripts/check_boundaries.py", "scripts/setup.py", "scripts/check_secrets.py", "scripts/model_smoke.py"]
+files = ["src", "tests", "scripts/export_contracts.py", "scripts/dev.py", "scripts/check_boundaries.py", "scripts/setup.py", "scripts/check_secrets.py", "scripts/model_smoke.py", "scripts/judgment_smoke.py", "scripts/download_laya.py"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -58,7 +64,7 @@ root_package = "auton"
 name = "Kernel is independent"
 type = "forbidden"
 source_modules = ["auton.kernel"]
-forbidden_modules = ["auton.bootstrap", "auton.demo", "auton.server", "auton.constitution", "auton.model"]
+forbidden_modules = ["auton.bootstrap", "auton.demo", "auton.server", "auton.constitution", "auton.model", "auton.judgment"]
 
 [[tool.importlinter.contracts]]
 name = "Demo never imports transport or composition"
@@ -89,3 +95,15 @@ name = "Transport only uses model ports and contracts"
 type = "forbidden"
 source_modules = ["auton.server"]
 forbidden_modules = ["auton.model.gateway", "auton.model.provider", "auton.model.factory", "auton.model.registry"]
+
+[[tool.importlinter.contracts]]
+name = "Judgment uses only public execution and policy contracts"
+type = "forbidden"
+source_modules = ["auton.judgment"]
+forbidden_modules = ["auton.bootstrap", "auton.server", "auton.constitution.control", "auton.constitution.factory", "auton.model.gateway", "auton.model.provider", "auton.model.factory"]
+
+[[tool.importlinter.contracts]]
+name = "Transport does not import decision implementation"
+type = "forbidden"
+source_modules = ["auton.server"]
+forbidden_modules = ["auton.judgment.service", "auton.judgment.adapter", "auton.judgment.factory", "auton.judgment.worker"]

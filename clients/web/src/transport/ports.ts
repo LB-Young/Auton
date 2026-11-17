@@ -1,4 +1,6 @@
 import type {
+  JudgmentInfo,
+  JudgmentResult,
   ModelInfo,
   ModelResult,
   Bootstrap,
@@ -9,6 +11,8 @@ import type {
 } from '../shared/contracts';
 
 export interface ApiClient {
+  judgment(): Promise<JudgmentInfo>;
+  previewJudgment(state: string, isPublic: boolean, requestId: string): Promise<JudgmentResult>;
   models(): Promise<ModelInfo[]>;
   probeModel(id: string, requestId: string): Promise<ModelResult>;
   bootstrap(): Promise<Bootstrap>;

@@ -17,6 +17,7 @@ class ModelSpec(BaseModel):
     provider: Literal["deepseek", "mock"]
     location: Literal["local", "remote"]
     declared_revision: str
+    executor_tier: Literal["small_2b", "small_7b", "strong", "test_fixture"] = "strong"
     base_revision: str | None = None
     adapter_revision: str | None = None
     template_revision: str | None = None

@@ -49,8 +49,8 @@ export function Models({ feature }: { feature: ModelFeature }) {
       <h1>模型</h1>
       <p className="module-description">连接执行模型，查看能力、实际返回版本与调用用量。</p>
       <p className="module-note">
-        连接检测只发送固定的公开短句，会产生少量费用并计入预算。主对话仍为框架演示。Laya
-        判断模型将在 M05 接入。
+        连接检测只发送固定的公开短句，会产生少量费用并计入预算。主对话仍为框架演示。本地 Laya
+        判断见页面下方。
       </p>
       {error && (
         <div role="alert" className="notice-banner">

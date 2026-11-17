@@ -11,6 +11,7 @@ from auton.bootstrap.config import ApplicationConfig
 from auton.demo.config import DemoConfig
 from auton.demo.factory import DemoConversationFactory
 from auton.demo.ports import ConversationPort
+from auton.judgment.config import JudgmentConfig
 from auton.kernel.config import KernelConfig
 from auton.kernel.modules import ModuleDescriptor, resolve_modules
 from auton.kernel.ports import ModuleFactory, RuntimeDependencies
@@ -26,6 +27,7 @@ def test_factory_swap_has_identical_http_and_event_contract(
             kernel=KernelConfig(backend="memory"),
             profile="test",
             models=ModelConfig(backend="mock"),
+            judgment=JudgmentConfig(backend="mock"),
             implementation=implementation,
             chunk_delay_seconds=0,
             allowed_origins=("http://testserver",),

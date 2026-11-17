@@ -1297,3 +1297,45 @@ svg {
     scroll-behavior: auto !important;
   }
 }
+
+.model-workspace {
+  overflow-y: auto;
+  min-height: 0;
+  flex: 1;
+}
+.model-workspace > .module-page {
+  overflow: visible;
+}
+.judgment-workspace {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 24px 60px;
+}
+.judgment-label {
+  display: block;
+  margin: 24px 0 10px;
+  font-size: 13px;
+}
+.judgment-input {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+.judgment-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 1.8;
+  margin: 14px 0;
+}
+.judgment-result {
+  margin-top: 24px;
+  overflow-wrap: anywhere;
+}

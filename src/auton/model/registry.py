@@ -60,6 +60,7 @@ class ModelRegistryFactory:
                 (
                     ModelSpec(
                         id="fixture-model",
+                        executor_tier="test_fixture",
                         provider="mock",
                         location="local",
                         declared_revision="fixture-v1",

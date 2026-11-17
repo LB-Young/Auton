@@ -1,6 +1,6 @@
 # Auton
 
-个人 Agent 工作台。当前完成 **M01 项目框架、M02 持久事件内核、M03 固定控制策略与 M04 执行模型网关**：模块工厂、显式依赖组装、FastAPI API、React 对话界面与合成 Demo；M05–M21 尚未实现。
+个人 Agent 工作台。当前完成 **M01 项目框架、M02 持久事件内核、M03 固定控制策略、M04 执行模型网关与 M05 本地判断接入**：模块工厂、显式依赖组装、FastAPI API、React 对话界面与合成 Demo；M06–M21 尚未实现。
 
 后端和开发/验收辅助工具优先使用 Python。仅浏览器界面及其必要构建配置使用 TypeScript/React；Makefile 是 Python 命令入口。
 
@@ -107,3 +107,9 @@ M03 设置页展示权限、外发边界和单目标预算，并提供不实际�
 复制 `.env.example` 到忽略的 `.env`，本机填入 `DEEPSEEK_API_KEY`，或使用同名环境变量。默认配置仅授权 public 数据发往 DeepSeek；主对话仍是 Demo。模型页可发送固定公开短句检测连接并显示用量，失败不会切到 Mock。
 
 `ModelGatewayPort` 支持流式文本、JSON 和工具协议，预算/幂等/断流状态落事件日志。显式真实验收：`.venv/bin/python scripts/model_smoke.py`，会调用六个短请求并产生少量费用；不在 CI 自动执行。详情见 [M04 验收](docs/milestones/evidence/M04.md)。
+
+## 本地 Laya 判断（M05）
+
+`make judgment-setup` 安装可选依赖并下载固定多语言权重到忽略的 `weights/laya-multilingual`；`make judgment-smoke` 运行本地小样本验收。启动不会自动下载，缺权重时在模型页显示实际状态，推理不回退云端。
+
+模型页提供四种类型化判断的独立预览与轨迹记录。**当前 checkpoint 的领域质量未达自动采用要求，默认保持建议模式**；真实中英六例中档位/信息充分性各正确 3/6，保留高分误判。开启自动链路前需独立质量门禁，见 [M05 验收](docs/milestones/evidence/M05.md)。

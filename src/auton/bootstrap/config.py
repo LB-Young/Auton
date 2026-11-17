@@ -7,6 +7,7 @@ from urllib.parse import urlsplit
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from auton.constitution.config import ConstitutionConfig
+from auton.judgment.config import JudgmentConfig
 from auton.kernel.config import KernelConfig
 from auton.model.config import ModelConfig
 
@@ -14,6 +15,7 @@ from auton.model.config import ModelConfig
 class ApplicationConfig(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True, hide_input_in_errors=True)
     constitution: ConstitutionConfig = Field(default_factory=ConstitutionConfig)
+    judgment: JudgmentConfig = Field(default_factory=JudgmentConfig)
     models: ModelConfig = Field(default_factory=ModelConfig)
     kernel: KernelConfig = Field(default_factory=KernelConfig)
     profile: Literal["demo", "test", "dev", "production"] = "demo"
@@ -28,6 +30,10 @@ class ApplicationConfig(BaseModel):
 
     @model_validator(mode="after")
     def validate_profile(self) -> "ApplicationConfig":
+        if self.judgment.backend == "mock" and self.profile != "test":
+            raise ValueError("Mock judgment is test-only")
+        if self.profile == "test" and self.judgment.backend != "mock":
+            raise ValueError("Test profile requires explicit mock judgment")
         if self.models.backend == "mock" and self.profile != "test":
             raise ValueError("Mock model is test-only")
         if self.profile == "test" and self.models.backend != "mock":
