@@ -7,6 +7,7 @@ from urllib.parse import urlsplit
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from auton.constitution.config import ConstitutionConfig
+from auton.genome.contracts import GenomeConfig
 from auton.judgment.config import JudgmentConfig
 from auton.kernel.config import KernelConfig
 from auton.model.config import ModelConfig
@@ -16,6 +17,7 @@ from auton.tools.config import ToolConfig
 class ApplicationConfig(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True, hide_input_in_errors=True)
     constitution: ConstitutionConfig = Field(default_factory=ConstitutionConfig)
+    genome: GenomeConfig = Field(default_factory=GenomeConfig)
     tools: ToolConfig = Field(default_factory=ToolConfig)
     judgment: JudgmentConfig = Field(default_factory=JudgmentConfig)
     models: ModelConfig = Field(default_factory=ModelConfig)

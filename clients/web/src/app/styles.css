@@ -1367,3 +1367,9 @@ svg {
   border-radius: 8px;
   background: var(--surface-soft);
 }
+
+.asset-record {
+  border-top: 1px solid var(--line);
+  margin-top: 24px;
+  padding-top: 16px;
+}

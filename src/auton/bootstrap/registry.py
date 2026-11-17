@@ -1,7 +1,6 @@
 from auton.kernel.modules import ModuleDescriptor
 
 PLANNED = (
-    ("genome", "资产与记忆", "M07"),
     ("context", "上下文引擎", "M08"),
     ("agent", "单 Agent 运行时", "M09"),
     ("experience", "轨迹与恢复", "M10"),
@@ -79,6 +78,16 @@ def module_catalog(demo: bool) -> list[ModuleDescriptor]:
             requires=("policy", "event_log"),
             factory_entry="tools.ToolHostFactory",
             config_schema="ToolConfig",
+        ),
+        ModuleDescriptor(
+            id="genome",
+            title="版本资产与记忆治理",
+            milestone="M07",
+            status="ready",
+            provides=("assets",),
+            requires=("policy", "event_log"),
+            factory_entry="genome.GenomeFactory",
+            config_schema="GenomeConfig",
         ),
         ModuleDescriptor(
             id="demo",

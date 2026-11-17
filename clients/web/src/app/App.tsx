@@ -37,6 +37,7 @@ import type { Application } from './composition';
 import type { Artifact, PolicyDecision } from '../shared/contracts';
 import { Judgment } from '../features/judgment/Judgment';
 import { Tools } from '../features/tools/Tools';
+import { Genome } from '../features/genome/Genome';
 import { Models } from '../features/models/Models';
 import { Markdown } from '../shared/Markdown';
 
@@ -657,6 +658,8 @@ export function App({ application }: { application: Application }) {
                   </div>
                 </div>
               </>
+            ) : view === 'genome' ? (
+              <Genome feature={application.genome} />
             ) : view === 'tools' ? (
               <Tools feature={application.tools} />
             ) : view === 'model' ? (

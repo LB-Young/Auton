@@ -26,3 +26,9 @@ export type ToolPlan = components['schemas']['ToolPlan'];
 export type ToolApproval = components['schemas']['ToolApproval'];
 export type ToolReceipt = components['schemas']['ToolReceipt'];
 export type WorkspaceView = components['schemas']['WorkspaceView'];
+
+export type Asset = components['schemas']['Asset-Output'];
+export type Project = components['schemas']['Project-Output'];
+export type AssetRevision = components['schemas']['Revision'];
+export type Snapshot = components['schemas']['Snapshot'];
+export type VersionInfo = components['schemas']['VersionInfo'];

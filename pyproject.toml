@@ -64,7 +64,7 @@ root_package = "auton"
 name = "Kernel is independent"
 type = "forbidden"
 source_modules = ["auton.kernel"]
-forbidden_modules = ["auton.bootstrap", "auton.demo", "auton.server", "auton.constitution", "auton.model", "auton.judgment", "auton.tools"]
+forbidden_modules = ["auton.bootstrap", "auton.demo", "auton.server", "auton.constitution", "auton.model", "auton.judgment", "auton.tools", "auton.genome"]
 
 [[tool.importlinter.contracts]]
 name = "Demo never imports transport or composition"
@@ -119,3 +119,15 @@ name = "Transport does not import tool implementations"
 type = "forbidden"
 source_modules = ["auton.server"]
 forbidden_modules = ["auton.tools.service", "auton.tools.adapters", "auton.tools.factory", "auton.tools.sandbox", "auton.tools.ledger"]
+
+[[tool.importlinter.contracts]]
+name = "Genome uses public policy contracts"
+type = "forbidden"
+source_modules = ["auton.genome"]
+forbidden_modules = ["auton.bootstrap", "auton.server", "auton.constitution.control", "auton.constitution.factory", "auton.tools.service"]
+
+[[tool.importlinter.contracts]]
+name = "Transport uses public asset ports"
+type = "forbidden"
+source_modules = ["auton.server"]
+forbidden_modules = ["auton.genome.service", "auton.genome.repository", "auton.genome.factory", "auton.genome.policy"]

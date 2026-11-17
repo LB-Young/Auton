@@ -1,6 +1,6 @@
 # Auton 开发里程碑
 
-> v0.1，2026-11-16。M01 项目框架已实现并通过本地验收，见 [验收记录](./evidence/M01.md)。M02 已完成，见 [验收](./evidence/M02.md)。M03 已完成，见 [验收](./evidence/M03.md)。M04 已接入真实 DeepSeek，见 [验收](./evidence/M04.md)。M05 已完成本地工程接入，当前质量未达自动采用门槛，见 [验收](./evidence/M05.md)。M06 受控工具范围已完成，见 [验收](./evidence/M06.md)。M07–M21 计划中。
+> v0.1，2026-11-16。M01 项目框架已实现并通过本地验收，见 [验收记录](./evidence/M01.md)。M02 已完成，见 [验收](./evidence/M02.md)。M03 已完成，见 [验收](./evidence/M03.md)。M04 已接入真实 DeepSeek，见 [验收](./evidence/M04.md)。M05 已完成本地工程接入，当前质量未达自动采用门槛，见 [验收](./evidence/M05.md)。M06 受控工具范围已完成，见 [验收](./evidence/M06.md)。M07 人工资产与记忆治理已完成，见 [验收](./evidence/M07.md)。M08–M21 计划中。
 > 开发顺序以本目录为准，替代总架构原先 M1–M6 的粗粒度安排；旧 M/J/R/D/T 编号只是研究阶段参考，不直接等同本目录编号。
 
 ## 1. 必须先做什么
@@ -25,7 +25,7 @@
 | [M04 执行模型网关与能力注册](./M04-model.md) | M02、M03 | ModelGatewayFactory、ProviderFactory、ModelRegistryFactory | 相同 Port 可替换两个实现；真实请求可流式返回并记录模型版本、成本和结束原因。 | 已完成（本地与真实协议验收） |
 | [M05 本地 Laya 判断层与执行模型路由](./M05-judgment.md) | M03、M04 | JudgmentFactory、LayaAdapterFactory、RoutePolicyFactory | 每次本地判断关联输入、问题、原始响应、策略建议与任务版本。 | 工程验收通过；自动采用关闭 |
 | [M06 工具宿主、执行隔离与操作账本](./M06-tools.md) | M02、M03 | ToolHostFactory、ToolAdapterFactory、SandboxFactory、OperationLedgerFactory | 可只读的任务不能写入；越界路径、过期审批和取消后新动作被拒绝。 | 已完成（受控本地范围） |
-| [M07 资产、项目资料与记忆治理](./M07-genome.md) | M02、M03 | GenomeFactory、AssetRepositoryFactory、MemoryPolicyFactory、ResolverFactory | 同一 snapshot 可复现；历史版本能查看和回退，来源与项目权限可追踪。 | 计划中 |
+| [M07 资产、项目资料与记忆治理](./M07-genome.md) | M02、M03 | GenomeFactory、AssetRepositoryFactory、MemoryPolicyFactory、ResolverFactory | 同一 snapshot 可复现；历史版本能查看和回退，来源与项目权限可追踪。 | 已完成（人工治理范围） |
 | [M08 上下文装配、检索与压缩](./M08-context.md) | M04、M06、M07 | ContextEngineFactory、RetrieverFactory、CompressorFactory | 长会话超限前有可解释压缩/阻塞，消息与工具协议保持完整。 | 计划中 |
 | [M09 单 Agent 运行时与任务状态机](./M09-agent.md) | M05、M06、M08 | AgentRuntimeFactory、SessionFactory、RunFactory | 完成一个受控文件任务与一个只读调研任务，交付真实 artifact 和验收结果。 | 计划中 |
 | [M10 轨迹投影、检查点与恢复](./M10-experience.md) | M02、M09 | ExperienceFactory、ProjectionFactory、CheckpointRepositoryFactory | 删掉可重建投影后从 EventLog 恢复得到一致查询结果。 | 计划中 |

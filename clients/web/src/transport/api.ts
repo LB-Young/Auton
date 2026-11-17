@@ -8,6 +8,10 @@ import type {
   ToolApproval,
   ToolReceipt,
   WorkspaceView,
+  Project,
+  AssetRevision,
+  Snapshot,
+  VersionInfo,
   ModelInfo,
   ModelResult,
   Bootstrap,
@@ -63,6 +67,32 @@ export class ApiClientFactory {
         }),
       reconcileTool: (id) =>
         request<ToolReceipt>(`/tools/operations/${encodeURIComponent(id)}/reconcile`, {}),
+      projects: () => request<Project[]>('/projects'),
+      createProject: (project) => request<AssetRevision>('/projects', project),
+      assets: (project) =>
+        request<AssetRevision>(`/projects/${encodeURIComponent(project)}/assets`),
+      proposeAsset: (project, asset, expected) =>
+        request<AssetRevision>(`/projects/${encodeURIComponent(project)}/candidates`, {
+          asset,
+          expected,
+        }),
+      changeAsset: (project, id, action, expected, revision) =>
+        request<AssetRevision>(
+          `/projects/${encodeURIComponent(project)}/assets/${encodeURIComponent(id)}/${action}`,
+          action === 'promote'
+            ? { expected, candidates_revision: revision }
+            : { expected, revision },
+        ),
+      assetHistory: (project, id) =>
+        request<VersionInfo[]>(
+          `/projects/${encodeURIComponent(project)}/assets/${encodeURIComponent(id)}/history`,
+        ),
+      assetDiff: (project, id, revision) =>
+        request<string>(
+          `/projects/${encodeURIComponent(project)}/assets/${encodeURIComponent(id)}/diff?revision=${encodeURIComponent(revision)}`,
+        ),
+      resolveAssets: (project) =>
+        request<Snapshot>(`/projects/${encodeURIComponent(project)}/snapshots`, {}),
       models: () => request<ModelInfo[]>('/models'),
       probeModel: (id, request_id) =>
         request<ModelResult>(`/models/${encodeURIComponent(id)}/probe`, { request_id }),

@@ -1,6 +1,6 @@
 # M07：资产、项目资料与记忆治理
 
-> 状态：计划中。当前仅建立开发计划，未实现本里程碑。
+> 状态：人工资产管理与固定治理范围已完成本地验收，见 [M07 验收与限制](./evidence/M07.md)。
 
 ## 目标与前置依赖
 
@@ -14,10 +14,10 @@ GenomeFactory、AssetRepositoryFactory、MemoryPolicyFactory、ResolverFactory�
 
 ## 开发任务
 
-- [ ] 实现 git-backed 资产格式、schema、版本与来源；注册项目边界、资料引用和项目说明。
-- [ ] Resolver 按固定规则返回不可变 snapshot，记录 AssetUsed 与适用范围；不能任意混入别的项目资料。
-- [ ] 建立 learning 候选、晋升/冲突/过期/删除的治理接口；用户显式记忆与推断记忆来源分开。
-- [ ] 只有受限写入/发布 Port 可修改正式资产；读取任务不能直接改 main。
+- [x] 实现 git-backed 资产格式、schema、版本与来源；注册项目边界、资料引用和项目说明。
+- [x] Resolver 按固定规则返回不可变 snapshot，记录 AssetUsed 与适用范围；不能任意混入别的项目资料。
+- [x] 建立 learning 候选、晋升/冲突/过期/删除的治理接口；用户显式记忆与推断记忆来源分开。
+- [x] 只有受限写入/发布 Port 可修改正式资产；读取任务不能直接改 main。
 
 ## 前端交付
 

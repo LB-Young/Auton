@@ -8,6 +8,7 @@ from fastapi.testclient import TestClient
 
 from auton.bootstrap.app import ApplicationFactory
 from auton.bootstrap.config import ApplicationConfig
+from auton.genome.contracts import GenomeConfig
 from auton.judgment.config import JudgmentConfig
 from auton.kernel.config import KernelConfig
 from auton.kernel.ports import RuntimeDependencies
@@ -26,6 +27,7 @@ def client(deps: RuntimeDependencies, tmp_path: Path) -> Iterator[TestClient]:
         ApplicationConfig(
             kernel=KernelConfig(backend="memory"),
             tools=ToolConfig(directory=tmp_path / "tools"),
+            genome=GenomeConfig(directory=tmp_path / "assets"),
             profile="test",
             models=ModelConfig(backend="mock"),
             judgment=JudgmentConfig(backend="mock"),

@@ -7,6 +7,11 @@ import type {
   ToolApproval,
   ToolReceipt,
   WorkspaceView,
+  Asset,
+  Project,
+  AssetRevision,
+  Snapshot,
+  VersionInfo,
   ModelInfo,
   ModelResult,
   Bootstrap,
@@ -26,6 +31,20 @@ export interface ApiClient {
   approveTool(id: string): Promise<ToolApproval>;
   executeTool(id: string, approvalId: string | null): Promise<ToolReceipt>;
   reconcileTool(id: string): Promise<ToolReceipt>;
+  projects(): Promise<Project[]>;
+  createProject(project: Project): Promise<AssetRevision>;
+  assets(project: string): Promise<AssetRevision>;
+  proposeAsset(project: string, asset: Asset, expected: string | null): Promise<AssetRevision>;
+  changeAsset(
+    project: string,
+    id: string,
+    action: 'promote' | 'revoke' | 'rollback',
+    expected: string,
+    revision: string | null,
+  ): Promise<AssetRevision>;
+  assetHistory(project: string, id: string): Promise<VersionInfo[]>;
+  assetDiff(project: string, id: string, revision: string): Promise<string>;
+  resolveAssets(project: string): Promise<Snapshot>;
   models(): Promise<ModelInfo[]>;
   probeModel(id: string, requestId: string): Promise<ModelResult>;
   bootstrap(): Promise<Bootstrap>;

@@ -5,6 +5,7 @@ from auton.constitution.config import ActionRequest, ConstitutionConfig, PolicyD
 ROLE_ACTIONS = {
     "runtime": frozenset(
         {
+            "asset.read",
             "demo.start",
             "demo.stop",
             "model.generate",
@@ -14,7 +15,7 @@ ROLE_ACTIONS = {
         }
     ),
     "training": frozenset({"model.train", "dataset.read"}),
-    "evolution": frozenset({"asset.propose", "model.generate", "tool.read"}),
+    "evolution": frozenset({"asset.propose", "model.generate", "tool.read", "asset.read"}),
 }
 PROTECTED = frozenset({"constitution.modify", "checker.modify", "holdout.read", "secret.read"})
 

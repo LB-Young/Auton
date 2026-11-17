@@ -28,6 +28,8 @@ ActionName = Literal[
     "tool.write",
     "dataset.read",
     "model.train",
+    "asset.read",
+    "asset.publish",
     "asset.propose",
     "release.activate",
 ]
@@ -44,6 +46,8 @@ class ConstitutionConfig(BaseModel):
         "tool.write",
         "dataset.read",
         "model.train",
+        "asset.read",
+        "asset.publish",
         "asset.propose",
         "release.activate",
     )

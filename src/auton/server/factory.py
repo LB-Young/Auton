@@ -27,6 +27,7 @@ from auton.demo.ports import (
     SessionEvent,
     StopRun,
 )
+from auton.genome.contracts import Asset, Project, Revision, Snapshot, VersionInfo
 from auton.judgment.contracts import JudgmentInfo, JudgmentRequest, JudgmentResult
 from auton.judgment.questions import JudgmentQuestionsFactory
 from auton.kernel.ports import ApplicationError
@@ -86,6 +87,24 @@ class ToolPrepareCommand(BaseModel):
 class ToolExecuteCommand(BaseModel):
     model_config = ConfigDict(extra="forbid")
     approval_id: str | None = Field(default=None, max_length=200)
+
+
+class AssetProposalCommand(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    asset: Asset
+    expected: str | None = None
+
+
+class AssetPublishCommand(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    expected: str = Field(pattern=r"^[a-f0-9]{40}$")
+    candidates_revision: str = Field(pattern=r"^[a-f0-9]{40}$")
+
+
+class AssetRevisionCommand(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    expected: str = Field(pattern=r"^[a-f0-9]{40}$")
+    revision: str | None = Field(default=None, pattern=r"^[a-f0-9]{40}$")
 
 
 class ServerFactory:
@@ -172,6 +191,91 @@ class ServerFactory:
                 modules=deps.modules,
                 event_storage=deps.storage(),
                 policy=deps.control.public(),
+            )
+
+        @app.get("/api/v1/projects")
+        async def projects(request: Request) -> list[Project]:
+            return await deps.genome.projects(Principal(owner=owner(request)))
+
+        @app.post("/api/v1/projects", status_code=201)
+        async def create_project(request: Request, project: Project) -> Revision:
+            return await deps.genome.create_project(
+                Principal(owner=owner(request), role="user"), project
+            )
+
+        @app.get("/api/v1/projects/{project_id}/assets")
+        async def asset_catalog(request: Request, project_id: str) -> Revision:
+            return await deps.genome.view(Principal(owner=owner(request)), project_id)
+
+        @app.post("/api/v1/projects/{project_id}/candidates")
+        async def propose_asset(
+            request: Request, project_id: str, command: AssetProposalCommand
+        ) -> Revision:
+            return await deps.genome.propose(
+                Principal(owner=owner(request), role="user"),
+                project_id,
+                command.asset,
+                command.expected,
+            )
+
+        @app.post("/api/v1/projects/{project_id}/assets/{asset_id}/promote")
+        async def promote_asset(
+            request: Request, project_id: str, asset_id: str, command: AssetPublishCommand
+        ) -> Revision:
+            return await deps.genome.promote(
+                Principal(owner=owner(request), role="user"),
+                project_id,
+                asset_id,
+                command.expected,
+                command.candidates_revision,
+            )
+
+        @app.post("/api/v1/projects/{project_id}/assets/{asset_id}/revoke")
+        async def revoke_asset(
+            request: Request, project_id: str, asset_id: str, command: AssetRevisionCommand
+        ) -> Revision:
+            return await deps.genome.revoke(
+                Principal(owner=owner(request), role="user"), project_id, asset_id, command.expected
+            )
+
+        @app.post("/api/v1/projects/{project_id}/assets/{asset_id}/rollback")
+        async def rollback_asset(
+            request: Request, project_id: str, asset_id: str, command: AssetRevisionCommand
+        ) -> Revision:
+            if not command.revision:
+                raise ApplicationError(422, "revision_required", "Select a historical version")
+            return await deps.genome.rollback(
+                Principal(owner=owner(request), role="user"),
+                project_id,
+                asset_id,
+                command.revision,
+                command.expected,
+            )
+
+        @app.get("/api/v1/projects/{project_id}/assets/{asset_id}/history")
+        async def asset_history(
+            request: Request, project_id: str, asset_id: str
+        ) -> list[VersionInfo]:
+            return await deps.genome.history(Principal(owner=owner(request)), project_id, asset_id)
+
+        @app.get("/api/v1/projects/{project_id}/assets/{asset_id}/diff")
+        async def asset_diff(
+            request: Request, project_id: str, asset_id: str, revision: str
+        ) -> str:
+            return await deps.genome.diff(
+                Principal(owner=owner(request)), project_id, asset_id, revision
+            )
+
+        @app.post("/api/v1/projects/{project_id}/snapshots")
+        async def resolve_assets(request: Request, project_id: str) -> Snapshot:
+            return await deps.genome.resolve(Principal(owner=owner(request)), project_id)
+
+        @app.get("/api/v1/projects/{project_id}/snapshots/{snapshot_id}")
+        async def get_asset_snapshot(
+            request: Request, project_id: str, snapshot_id: str
+        ) -> Snapshot:
+            return await deps.genome.snapshot(
+                Principal(owner=owner(request)), project_id, snapshot_id
             )
 
         @app.get("/api/v1/tools")
