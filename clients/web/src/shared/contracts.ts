@@ -19,3 +19,10 @@ export type ModelResult = components['schemas']['ModelResult'];
 
 export type JudgmentInfo = components['schemas']['JudgmentInfo'];
 export type JudgmentResult = components['schemas']['JudgmentResult'];
+
+export type ToolDescriptor = components['schemas']['ToolDescriptor'];
+export type ToolPrepareCommand = components['schemas']['ToolPrepareCommand'];
+export type ToolPlan = components['schemas']['ToolPlan'];
+export type ToolApproval = components['schemas']['ToolApproval'];
+export type ToolReceipt = components['schemas']['ToolReceipt'];
+export type WorkspaceView = components['schemas']['WorkspaceView'];

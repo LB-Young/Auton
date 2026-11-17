@@ -8,7 +8,7 @@ from auton.constitution.config import (
     PublicPolicy,
     Usage,
 )
-from auton.constitution.contracts import Reservation
+from auton.constitution.contracts import Approval, Reservation
 
 
 class PolicyControlPort(Protocol):
@@ -44,3 +44,7 @@ class ExecutionControlPort(Protocol):
     async def settle(self, principal: Principal, identifier: str, actual: Usage) -> Reservation: ...
 
     async def release(self, principal: Principal, identifier: str) -> Reservation: ...
+
+
+class ApprovalControlPort(Protocol):
+    async def approve(self, principal: Principal, request: ActionRequest) -> Approval: ...

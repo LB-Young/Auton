@@ -164,6 +164,7 @@ def e2e() -> None:
             'profile = "test"\nimplementation = "scripted"\n'
             f'allowed_origins = ["http://127.0.0.1:{web_port}"]\n'
             '[models]\nbackend = "mock"\n[judgment]\nbackend = "mock"\n'
+            f"[tools]\ndirectory = {json.dumps(str(Path(directory) / 'tools'))}\n"
             "[kernel]\n"
             f"data_directory = {json.dumps(str(Path(directory) / 'data'))}\n",
             encoding="utf-8",

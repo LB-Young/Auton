@@ -20,6 +20,8 @@ from auton.model.gateway import GatewayDependencies
 from auton.server.config import ServerConfig
 from auton.server.factory import ServerFactory
 from auton.server.ports import ServerDependencies
+from auton.tools.factory import ToolHostFactory
+from auton.tools.service import ToolDependencies
 
 
 class ApplicationRuntime:
@@ -57,6 +59,9 @@ class ApplicationFactory:
         judgment = JudgmentFactory().create(
             config.judgment, JudgmentDependencies(control, control, kernel.events, deps, models)
         )
+        tools = ToolHostFactory().create(
+            config.tools, ToolDependencies(control, control, control, kernel.events, deps)
+        )
         conversation: ConversationPort | None = None
         factory: ModuleFactory[DemoConfig, RuntimeDependencies, ConversationPort]
         factory = DemoConversationFactory()
@@ -69,9 +74,9 @@ class ApplicationFactory:
                 deps,
             )
         runtime = ApplicationRuntime(
-            [kernel, control, models, judgment, conversation]
+            [kernel, control, models, judgment, tools, conversation]
             if conversation is not None
-            else [kernel, control, models, judgment]
+            else [kernel, control, models, judgment, tools]
         )
         redactor = Redactor()
         return ServerFactory().create(
@@ -86,6 +91,7 @@ class ApplicationFactory:
                 control=control,
                 models=models,
                 judgment=judgment,
+                tools=tools,
                 redact=redactor.text,
                 logger=LoggerFactory().create(redactor),
             ),

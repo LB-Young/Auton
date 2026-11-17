@@ -1,6 +1,12 @@
 import type {
   JudgmentInfo,
   JudgmentResult,
+  ToolDescriptor,
+  ToolPrepareCommand,
+  ToolPlan,
+  ToolApproval,
+  ToolReceipt,
+  WorkspaceView,
   ModelInfo,
   ModelResult,
   Bootstrap,
@@ -13,6 +19,13 @@ import type {
 export interface ApiClient {
   judgment(): Promise<JudgmentInfo>;
   previewJudgment(state: string, isPublic: boolean, requestId: string): Promise<JudgmentResult>;
+  tools(): Promise<ToolDescriptor[]>;
+  toolWorkspaces(): Promise<WorkspaceView[]>;
+  createToolWorkspace(id: string, readOnly: boolean): Promise<WorkspaceView>;
+  prepareTool(command: ToolPrepareCommand): Promise<ToolPlan>;
+  approveTool(id: string): Promise<ToolApproval>;
+  executeTool(id: string, approvalId: string | null): Promise<ToolReceipt>;
+  reconcileTool(id: string): Promise<ToolReceipt>;
   models(): Promise<ModelInfo[]>;
   probeModel(id: string, requestId: string): Promise<ModelResult>;
   bootstrap(): Promise<Bootstrap>;

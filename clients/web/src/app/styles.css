@@ -1339,3 +1339,31 @@ svg {
   margin-top: 24px;
   overflow-wrap: anywhere;
 }
+
+.tool-page {
+  overflow-y: auto;
+}
+.tool-page select,
+.tool-page input:not([type='checkbox']) {
+  display: block;
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  padding: 10px;
+  margin-top: 10px;
+}
+.tool-page .secondary-button {
+  margin: 8px 8px 0 0;
+}
+.tool-output {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+  max-height: 300px;
+  overflow: auto;
+  padding: 14px;
+  border-radius: 8px;
+  background: var(--surface-soft);
+}

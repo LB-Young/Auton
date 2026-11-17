@@ -3,6 +3,11 @@ import type {
   PolicyDecision,
   JudgmentInfo,
   JudgmentResult,
+  ToolDescriptor,
+  ToolPlan,
+  ToolApproval,
+  ToolReceipt,
+  WorkspaceView,
   ModelInfo,
   ModelResult,
   Bootstrap,
@@ -45,6 +50,19 @@ export class ApiClientFactory {
       judgment: () => request<JudgmentInfo>('/judgment'),
       previewJudgment: (state, isPublic, request_id) =>
         request<JudgmentResult>('/judgment/preview', { state, public: isPublic, request_id }),
+      tools: () => request<ToolDescriptor[]>('/tools'),
+      toolWorkspaces: () => request<WorkspaceView[]>('/tools/workspaces'),
+      createToolWorkspace: (id, read_only) =>
+        request<WorkspaceView>('/tools/workspaces', { id, title: '工具验证', read_only }),
+      prepareTool: (command) => request<ToolPlan>('/tools/operations', command),
+      approveTool: (id) =>
+        request<ToolApproval>(`/tools/operations/${encodeURIComponent(id)}/approve`, {}),
+      executeTool: (id, approval_id) =>
+        request<ToolReceipt>(`/tools/operations/${encodeURIComponent(id)}/execute`, {
+          approval_id,
+        }),
+      reconcileTool: (id) =>
+        request<ToolReceipt>(`/tools/operations/${encodeURIComponent(id)}/reconcile`, {}),
       models: () => request<ModelInfo[]>('/models'),
       probeModel: (id, request_id) =>
         request<ModelResult>(`/models/${encodeURIComponent(id)}/probe`, { request_id }),

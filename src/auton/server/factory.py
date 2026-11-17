@@ -1,13 +1,14 @@
 import asyncio
 import hashlib
 from secrets import token_urlsafe
+from urllib.parse import quote
 
 from anyio import CancelScope
 from fastapi import FastAPI, Request, Response, WebSocket, WebSocketDisconnect
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, JsonValue
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from auton.constitution.config import (
@@ -32,6 +33,14 @@ from auton.kernel.ports import ApplicationError
 from auton.model.contracts import ModelInfo, ModelMessage, ModelRequest, ModelResult
 from auton.server.config import ServerConfig
 from auton.server.ports import BootstrapResponse, HealthResponse, ServerDependencies
+from auton.tools.contracts import (
+    ToolApproval,
+    ToolDescriptor,
+    ToolName,
+    ToolPlan,
+    ToolReceipt,
+    ToolRequest,
+)
 
 
 class PolicyRevision(BaseModel):
@@ -50,6 +59,33 @@ class JudgmentPreview(BaseModel):
     request_id: str = Field(min_length=1, max_length=100, pattern=r"^[a-zA-Z0-9_-]+$")
     state: str = Field(min_length=1, max_length=12000)
     public: bool = False
+
+
+class ToolWorkspaceCommand(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    id: str = Field(pattern=r"^[a-zA-Z0-9_-]{1,80}$")
+    title: str = Field(min_length=1, max_length=100)
+    read_only: bool = True
+
+
+class WorkspaceView(BaseModel):
+    id: str
+    title: str
+    read_only: bool
+    revision: int
+
+
+class ToolPrepareCommand(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    operation_id: str = Field(pattern=r"^[a-zA-Z0-9_-]{1,100}$")
+    workspace_id: str = Field(pattern=r"^[a-zA-Z0-9_-]{1,80}$")
+    tool: ToolName
+    arguments: dict[str, JsonValue]
+
+
+class ToolExecuteCommand(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    approval_id: str | None = Field(default=None, max_length=200)
 
 
 class ServerFactory:
@@ -136,6 +172,76 @@ class ServerFactory:
                 modules=deps.modules,
                 event_storage=deps.storage(),
                 policy=deps.control.public(),
+            )
+
+        @app.get("/api/v1/tools")
+        async def tools_catalog(request: Request) -> list[ToolDescriptor]:
+            owner(request)
+            return deps.tools.catalog()
+
+        @app.get("/api/v1/tools/workspaces")
+        async def tool_workspaces(request: Request) -> list[WorkspaceView]:
+            values = await deps.tools.workspaces(Principal(owner=owner(request)))
+            return [WorkspaceView.model_validate(item.model_dump()) for item in values]
+
+        @app.post("/api/v1/tools/workspaces", status_code=201)
+        async def create_tool_workspace(
+            request: Request, command: ToolWorkspaceCommand
+        ) -> WorkspaceView:
+            value = await deps.tools.create_workspace(
+                Principal(owner=owner(request), role="user"),
+                command.id,
+                command.title,
+                command.read_only,
+            )
+            return WorkspaceView.model_validate(value.model_dump())
+
+        @app.post("/api/v1/tools/operations")
+        async def prepare_tool(request: Request, command: ToolPrepareCommand) -> ToolPlan:
+            principal = Principal(owner=owner(request), role="runtime")
+            workspace = await deps.tools.workspace(principal, command.workspace_id)
+            return await deps.tools.prepare(
+                ToolRequest(
+                    **command.model_dump(),
+                    principal=principal,
+                    goal_id=workspace.goal_id,
+                    goal_revision=workspace.revision,
+                )
+            )
+
+        @app.post("/api/v1/tools/operations/{operation_id}/approve")
+        async def approve_tool(request: Request, operation_id: str) -> ToolApproval:
+            return await deps.tools.approve(
+                Principal(owner=owner(request), role="user"), operation_id
+            )
+
+        @app.post("/api/v1/tools/operations/{operation_id}/execute")
+        async def execute_tool(
+            request: Request, operation_id: str, command: ToolExecuteCommand
+        ) -> ToolReceipt:
+            return await deps.tools.execute(
+                Principal(owner=owner(request)), operation_id, command.approval_id
+            )
+
+        @app.post("/api/v1/tools/operations/{operation_id}/reconcile")
+        async def reconcile_tool(request: Request, operation_id: str) -> ToolReceipt:
+            return await deps.tools.reconcile(Principal(owner=owner(request)), operation_id)
+
+        @app.get("/api/v1/tools/operations/{operation_id}")
+        async def tool_receipt(request: Request, operation_id: str) -> ToolReceipt:
+            return await deps.tools.receipt(Principal(owner=owner(request)), operation_id)
+
+        @app.get("/api/v1/tools/operations/{operation_id}/artifact")
+        async def tool_artifact(request: Request, operation_id: str) -> Response:
+            name, data = await deps.tools.artifact(Principal(owner=owner(request)), operation_id)
+            return Response(
+                data,
+                media_type="text/plain",
+                headers={
+                    "Content-Disposition": "attachment; filename*=UTF-8''" + quote(name, safe=""),
+                    "X-Content-Type-Options": "nosniff",
+                    "Cache-Control": "no-store",
+                },
             )
 
         @app.get("/api/v1/judgment")

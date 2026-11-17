@@ -1,6 +1,6 @@
 # M06：工具宿主、执行隔离与操作账本
 
-> 状态：计划中。当前仅建立开发计划，未实现本里程碑。
+> 状态：当前受控工具范围已完成本地验收，见 [M06 验收与隔离限制](./evidence/M06.md)。任意程序/远程插件尚未开放。
 
 ## 目标与前置依赖
 
@@ -14,10 +14,10 @@ ToolHostFactory、ToolAdapterFactory、SandboxFactory、OperationLedgerFactory�
 
 ## 开发任务
 
-- [ ] 统一 tool schema、发现/调用/结果契约；先提供受控文件读写与进程执行，再接一个 MCP 适配器。
-- [ ] 执行前校验路径、权限、预算和批准；首期隔离等级明确说明，不能把子进程称完整安全沙箱。
-- [ ] 建立 Operation Ledger：逻辑 operation_id、attempt、receipt、unknown 与对账接口。
-- [ ] 实现 artifact 注册、路径授权和原始工具错误分类；输出按不可信输入处理。
+- [x] 统一 tool schema、发现/调用/结果契约；已提供受控文件读写、固定程序执行与一个真实本地 MCP 适配器。
+- [x] 执行前校验路径、权限、预算和批准；首期隔离等级明确说明，不能把子进程称完整安全沙箱。
+- [x] 建立 Operation Ledger：逻辑 operation_id、attempt、receipt、unknown 与对账接口。
+- [x] 实现 artifact 注册、路径授权和原始工具错误分类；输出按不可信输入处理。
 
 ## 前端交付
 

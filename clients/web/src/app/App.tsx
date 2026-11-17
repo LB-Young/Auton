@@ -30,15 +30,18 @@ import {
   Square,
   Sun,
   Workflow,
+  Wrench,
   X,
 } from 'lucide-react';
 import type { Application } from './composition';
 import type { Artifact, PolicyDecision } from '../shared/contracts';
 import { Judgment } from '../features/judgment/Judgment';
+import { Tools } from '../features/tools/Tools';
 import { Models } from '../features/models/Models';
 import { Markdown } from '../shared/Markdown';
 
 const workspaces = [
+  { id: 'tools', label: '工具', icon: Wrench, description: '受控文件、审批与执行凭据。' },
   { id: 'agent', label: '任务', icon: Workflow, description: '查看任务进展、审批与执行记录。' },
   { id: 'genome', label: '资产', icon: Layers, description: '管理技能、项目知识与长期记忆。' },
   { id: 'model', label: '模型', icon: Cpu, description: '连接执行模型，查看能力与判断来源。' },
@@ -328,7 +331,7 @@ export function App({ application }: { application: Application }) {
           )}
         </div>
         <div className="nav-section-label workspace-label">
-          工作区 <span>M01</span>
+          工作区 <span>模块</span>
         </div>
         <nav className="workspace-nav">
           {workspaces.map((item) => (
@@ -339,7 +342,13 @@ export function App({ application }: { application: Application }) {
             >
               <item.icon size={17} />
               {item.label}
-              <span className="planned-label">待开发</span>
+              <span className="planned-label">
+                {state.boot?.modules.some(
+                  (module) => module.id === item.id && module.status === 'ready',
+                )
+                  ? '已接入'
+                  : '待开发'}
+              </span>
             </button>
           ))}
         </nav>
@@ -648,6 +657,8 @@ export function App({ application }: { application: Application }) {
                   </div>
                 </div>
               </>
+            ) : view === 'tools' ? (
+              <Tools feature={application.tools} />
             ) : view === 'model' ? (
               <div className="model-workspace">
                 <Models feature={application.models} />

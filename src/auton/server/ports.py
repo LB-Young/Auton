@@ -14,6 +14,7 @@ from auton.judgment.ports import JudgmentPort
 from auton.kernel.events import StorageInfo
 from auton.kernel.modules import ModuleDescriptor
 from auton.model.ports import ModelGatewayPort
+from auton.tools.ports import ToolHostPort
 
 
 class BootstrapResponse(BaseModel):
@@ -39,6 +40,7 @@ class ServerDependencies:
     lifespan: Callable[[FastAPI], AbstractAsyncContextManager[None]]
     is_ready: Callable[[], bool]
     storage: Callable[[], StorageInfo]
+    tools: ToolHostPort
     judgment: JudgmentPort
     models: ModelGatewayPort
     control: PolicyControlPort

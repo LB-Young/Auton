@@ -1,5 +1,6 @@
 from collections.abc import Iterator
 from datetime import UTC, datetime
+from pathlib import Path
 from uuid import uuid4
 
 import pytest
@@ -11,6 +12,7 @@ from auton.judgment.config import JudgmentConfig
 from auton.kernel.config import KernelConfig
 from auton.kernel.ports import RuntimeDependencies
 from auton.model.config import ModelConfig
+from auton.tools.config import ToolConfig
 
 
 @pytest.fixture
@@ -19,10 +21,11 @@ def deps() -> RuntimeDependencies:
 
 
 @pytest.fixture
-def client(deps: RuntimeDependencies) -> Iterator[TestClient]:
+def client(deps: RuntimeDependencies, tmp_path: Path) -> Iterator[TestClient]:
     app = ApplicationFactory().create(
         ApplicationConfig(
             kernel=KernelConfig(backend="memory"),
+            tools=ToolConfig(directory=tmp_path / "tools"),
             profile="test",
             models=ModelConfig(backend="mock"),
             judgment=JudgmentConfig(backend="mock"),
