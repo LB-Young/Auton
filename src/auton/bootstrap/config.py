@@ -8,11 +8,13 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from auton.constitution.config import ConstitutionConfig
 from auton.kernel.config import KernelConfig
+from auton.model.config import ModelConfig
 
 
 class ApplicationConfig(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True, hide_input_in_errors=True)
     constitution: ConstitutionConfig = Field(default_factory=ConstitutionConfig)
+    models: ModelConfig = Field(default_factory=ModelConfig)
     kernel: KernelConfig = Field(default_factory=KernelConfig)
     profile: Literal["demo", "test", "dev", "production"] = "demo"
     implementation: str = "scripted"
@@ -26,6 +28,10 @@ class ApplicationConfig(BaseModel):
 
     @model_validator(mode="after")
     def validate_profile(self) -> "ApplicationConfig":
+        if self.models.backend == "mock" and self.profile != "test":
+            raise ValueError("Mock model is test-only")
+        if self.profile == "test" and self.models.backend != "mock":
+            raise ValueError("Test profile requires explicit mock models")
         if self.kernel.backend == "memory" and self.profile != "test":
             raise ValueError("Memory event storage is test-only")
         if self.profile in {"dev", "production"} and self.implementation != "disabled":

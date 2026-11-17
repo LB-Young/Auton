@@ -1,4 +1,5 @@
 import asyncio
+import hashlib
 from secrets import token_urlsafe
 
 from anyio import CancelScope
@@ -6,7 +7,7 @@ from fastapi import FastAPI, Request, Response, WebSocket, WebSocketDisconnect
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from auton.constitution.config import (
@@ -26,6 +27,7 @@ from auton.demo.ports import (
     StopRun,
 )
 from auton.kernel.ports import ApplicationError
+from auton.model.contracts import ModelInfo, ModelMessage, ModelRequest, ModelResult
 from auton.server.config import ServerConfig
 from auton.server.ports import BootstrapResponse, HealthResponse, ServerDependencies
 
@@ -34,6 +36,11 @@ class PolicyRevision(BaseModel):
     model_config = ConfigDict(extra="forbid")
     expected_version: str
     config: ConstitutionConfig
+
+
+class ModelProbe(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    request_id: str = Field(min_length=1, max_length=100, pattern=r"^[a-zA-Z0-9_-]+$")
 
 
 class ServerFactory:
@@ -120,6 +127,26 @@ class ServerFactory:
                 modules=deps.modules,
                 event_storage=deps.storage(),
                 policy=deps.control.public(),
+            )
+
+        @app.get("/api/v1/models")
+        async def models(request: Request) -> list[ModelInfo]:
+            owner(request)
+            return deps.models.catalog()
+
+        @app.post("/api/v1/models/{model_id}/probe")
+        async def probe_model(request: Request, model_id: str, command: ModelProbe) -> ModelResult:
+            value = owner(request)
+            return await deps.models.generate(
+                ModelRequest(
+                    model_id=model_id,
+                    request_id="probe-" + command.request_id,
+                    principal=Principal(owner=value, role="runtime"),
+                    goal_id="model-probe-" + hashlib.sha256(value.encode()).hexdigest(),
+                    messages=(ModelMessage(role="user", content="Reply with only the word OK."),),
+                    max_output_tokens=16,
+                    data_domain="public",
+                )
             )
 
         @app.get("/api/v1/policy")

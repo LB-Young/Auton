@@ -1,4 +1,5 @@
 import { createArtifactFeature } from '../features/artifacts/factory';
+import { createModelFeature } from '../features/models/factory';
 import { createPolicyFeature } from '../features/policy/factory';
 import { createChatFeature } from '../features/chat/factory';
 import { ApiClientFactory } from '../transport/api';
@@ -9,6 +10,7 @@ export function createApplication() {
   const events = new EventStreamFactory().create();
   return {
     chat: createChatFeature({ api, events }),
+    models: createModelFeature({ api }),
     policy: createPolicyFeature({ api }),
     artifacts: createArtifactFeature(),
   };

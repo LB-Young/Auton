@@ -13,3 +13,6 @@ export type StopRun = components['schemas']['StopRun'];
 
 export type ActionRequest = components['schemas']['ActionRequest'];
 export type PolicyDecision = components['schemas']['PolicyDecision'];
+
+export type ModelInfo = components['schemas']['ModelInfo'];
+export type ModelResult = components['schemas']['ModelResult'];

@@ -161,8 +161,9 @@ def e2e() -> None:
     with tempfile.TemporaryDirectory(prefix="auton-e2e-") as directory:
         config = Path(directory) / "demo.toml"
         config.write_text(
-            'profile = "demo"\nimplementation = "scripted"\n'
+            'profile = "test"\nimplementation = "scripted"\n'
             f'allowed_origins = ["http://127.0.0.1:{web_port}"]\n'
+            '[models]\nbackend = "mock"\n'
             "[kernel]\n"
             f"data_directory = {json.dumps(str(Path(directory) / 'data'))}\n",
             encoding="utf-8",

@@ -9,6 +9,7 @@ from auton.bootstrap.app import ApplicationFactory
 from auton.bootstrap.config import ApplicationConfig
 from auton.kernel.config import KernelConfig
 from auton.kernel.ports import RuntimeDependencies
+from auton.model.config import ModelConfig
 
 
 @pytest.fixture
@@ -22,6 +23,7 @@ def client(deps: RuntimeDependencies) -> Iterator[TestClient]:
         ApplicationConfig(
             kernel=KernelConfig(backend="memory"),
             profile="test",
+            models=ModelConfig(backend="mock"),
             implementation="scripted",
             chunk_delay_seconds=0.001,
             allowed_origins=("http://testserver",),

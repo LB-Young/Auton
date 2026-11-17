@@ -72,6 +72,40 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/models': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Models */
+    get: operations['models_api_v1_models_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/models/{model_id}/probe': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Probe Model */
+    post: operations['probe_model_api_v1_models__model_id__probe_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/policy': {
     parameters: {
       query?: never;
@@ -363,6 +397,7 @@ export interface components {
        */
       status: 'ready' | 'starting' | 'stopped';
     };
+    JsonValue: unknown;
     /** Message */
     Message: {
       /** Content */
@@ -374,6 +409,113 @@ export interface components {
        * @enum {string}
        */
       role: 'user' | 'assistant';
+    };
+    /** ModelInfo */
+    ModelInfo: {
+      /** Adapter Revision */
+      adapter_revision: string | null;
+      /** Base Revision */
+      base_revision: string | null;
+      /** Capabilities */
+      capabilities: string[];
+      /**
+       * Capability Source
+       * @enum {string}
+       */
+      capability_source: 'provider-declared' | 'test-fixture';
+      /** Context Tokens */
+      context_tokens: number;
+      /** Declared Context Tokens */
+      declared_context_tokens: number;
+      /** Declared Revision */
+      declared_revision: string;
+      /**
+       * Health
+       * @enum {string}
+       */
+      health: 'not_checked' | 'available' | 'unavailable' | 'credential_missing' | 'test_fixture';
+      /** Id */
+      id: string;
+      /** Input Microusd Per Million */
+      input_microusd_per_million: number;
+      /**
+       * Location
+       * @enum {string}
+       */
+      location: 'local' | 'remote';
+      /** Max Output Tokens */
+      max_output_tokens: number;
+      /** Output Microusd Per Million */
+      output_microusd_per_million: number;
+      /** Price Revision */
+      price_revision: string;
+      /** Provider */
+      provider: string;
+      /** Quantization */
+      quantization: string | null;
+      /** Revision Is Pinned */
+      revision_is_pinned: boolean;
+      /**
+       * Runtime Revision
+       * @default deepseek-http-sse-v1
+       */
+      runtime_revision: string;
+      /** Template Revision */
+      template_revision: string | null;
+    };
+    /** ModelProbe */
+    ModelProbe: {
+      /** Request Id */
+      request_id: string;
+    };
+    /** ModelResult */
+    ModelResult: {
+      /** Content */
+      content: string;
+      /**
+       * Finish Reason
+       * @enum {string}
+       */
+      finish_reason: 'stop' | 'tool_calls' | 'length';
+      /** Latency Ms */
+      latency_ms: number;
+      /** Model Id */
+      model_id: string;
+      /** Reported Model */
+      reported_model: string;
+      /** Request Id */
+      request_id: string;
+      /**
+       * Source
+       * @enum {string}
+       */
+      source: 'remote' | 'test';
+      /** System Fingerprint */
+      system_fingerprint: string | null;
+      /**
+       * Tool Calls
+       * @default []
+       */
+      tool_calls: components['schemas']['ToolCall'][];
+      usage: components['schemas']['ModelUsage'];
+    };
+    /** ModelUsage */
+    ModelUsage: {
+      /**
+       * Cost Is Estimate
+       * @default true
+       * @constant
+       */
+      cost_is_estimate: true;
+      /**
+       * Estimated Cost Microusd
+       * @default 0
+       */
+      estimated_cost_microusd: number;
+      /** Input Tokens */
+      input_tokens: number;
+      /** Output Tokens */
+      output_tokens: number;
     };
     /** ModuleDescriptor */
     ModuleDescriptor: {
@@ -577,6 +719,17 @@ export interface components {
       sqlite_version?: string | null;
       /** Synchronous */
       synchronous: string;
+    };
+    /** ToolCall */
+    ToolCall: {
+      /** Arguments */
+      arguments: {
+        [key: string]: components['schemas']['JsonValue'];
+      };
+      /** Id */
+      id: string;
+      /** Name */
+      name: string;
     };
     /** Usage */
     Usage: {
@@ -901,6 +1054,196 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['HealthResponse'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  models_api_v1_models_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ModelInfo'][];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  probe_model_api_v1_models__model_id__probe_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        model_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ModelProbe'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ModelResult'];
         };
       };
       /** @description Unauthorized */

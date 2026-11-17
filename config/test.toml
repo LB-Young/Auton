@@ -2,3 +2,6 @@ profile = "test"
 implementation = "echo"
 chunk_delay_seconds = 0.001
 allowed_origins = ["http://testserver"]
+
+[models]
+backend = "mock"

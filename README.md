@@ -1,6 +1,6 @@
 # Auton
 
-个人 Agent 工作台。当前完成 **M01 项目框架、M02 持久事件内核与 M03 固定控制策略**：模块工厂、显式依赖组装、FastAPI API、React 对话界面与合成 Demo；M04–M21 尚未实现。
+个人 Agent 工作台。当前完成 **M01 项目框架、M02 持久事件内核、M03 固定控制策略与 M04 执行模型网关**：模块工厂、显式依赖组装、FastAPI API、React 对话界面与合成 Demo；M05–M21 尚未实现。
 
 后端和开发/验收辅助工具优先使用 Python。仅浏览器界面及其必要构建配置使用 TypeScript/React；Makefile 是 Python 命令入口。
 
@@ -21,7 +21,7 @@ make dev
 .venv/bin/python scripts/dev.py all
 ```
 
-`make api` / `make web` 可以分别启动。`make help` 列出全部入口。安装需要网络；运行 Demo 不需要任何模型 key，不会调用 Jev、模型 provider 或工具。
+`make api` / `make web` 可以分别启动。`make help` 列出全部入口。安装需要网络；运行 Demo 对话不需要模型 key。模型页连接检测会按需调用 DeepSeek；配置方法见下。
 
 ## 可以体验什么
 
@@ -33,7 +33,7 @@ make dev
 
 **Demo 数据仅在当前后端进程内存中存在。** 同一浏览器刷新可重新查询会话；重启后端后全部清空。主题存 localStorage，所选会话 ID 存 sessionStorage，浏览器归属 cookie 为 HttpOnly；这些不是模型密钥。
 
-这是框架演示，不是已实现的 Agent 执行。聊天尚未接入持久数据库；没有真实项目资料管理、模型连接、工具执行、长期记忆、训练或发布；右侧笔记标记 `source=demo`，未写入项目目录。每个服务最多 50 个会话、每个会话 100 条消息、200 个幂等命令，达到限制时提示重置/新建，不无限占用内存。
+这是框架演示，不是已实现的 Agent 执行。聊天尚未接入持久数据库；没有真实项目资料管理、工具执行、长期记忆、训练或发布；右侧笔记标记 `source=demo`，未写入项目目录。每个服务最多 50 个会话、每个会话 100 条消息、200 个幂等命令，达到限制时提示重置/新建，不无限占用内存。
 
 ## 配置与替换实现
 
@@ -46,7 +46,7 @@ AUTON_CONFIG=config/dev.toml make dev
 
 `echo.toml` 换成内存回声实现，API/页面不变。`dev.toml` 关闭 Demo，真实执行接口返回 `501 not_implemented`，不会伪造模型输出。`test.toml` 用于本地单元/契约测试，来源仅允许 testserver，不用于浏览器演示。
 
-服务仅面向本机开发。HTTP 写命令校验来源白名单、浏览器归属和命令头；WebSocket 校验 Origin 与归属，跨会话访问返回不存在。当前不提供生产账号/公网认证或持久操作审计，不应改成公网监听使用。M03/M06/M11 会进一步实现策略、操作账本与完整服务协议。
+服务仅面向本机开发。HTTP 写命令校验来源白名单、浏览器归属和命令头；WebSocket 校验 Origin 与归属，跨会话访问返回不存在。当前不提供生产账号/公网认证或完整业务操作审计，不应改成公网监听使用。M03/M06/M11 会进一步实现策略、操作账本与完整服务协议。
 
 ## 工程结构与模块规范
 
@@ -101,3 +101,9 @@ M02 存储默认位于 `.auton_local/kernel/events.sqlite3`，设置页明确区
 M03 设置页展示权限、外发边界和单目标预算，并提供不实际执行动作的预检。策略/预算日志可恢复，用户配置修订不会在普通重启时丢失。参见 [M03 验收](docs/milestones/evidence/M03.md)。
 
 下一步是 [M04 执行模型网关](docs/milestones/M04-model.md)；当前指定 DeepSeek 执行、后续本地 Laya 判断，见 [接入选择](docs/milestones/model-provider-decision.md)。完整路线见 [里程碑总表](docs/milestones/README.md)；Jev-only、独立评审筛数据、本地候选须经发布批准等边界保持不变。
+
+## 模型连接（M04）
+
+复制 `.env.example` 到忽略的 `.env`，本机填入 `DEEPSEEK_API_KEY`，或使用同名环境变量。默认配置仅授权 public 数据发往 DeepSeek；主对话仍是 Demo。模型页可发送固定公开短句检测连接并显示用量，失败不会切到 Mock。
+
+`ModelGatewayPort` 支持流式文本、JSON 和工具协议，预算/幂等/断流状态落事件日志。显式真实验收：`.venv/bin/python scripts/model_smoke.py`，会调用六个短请求并产生少量费用；不在 CI 自动执行。详情见 [M04 验收](docs/milestones/evidence/M04.md)。

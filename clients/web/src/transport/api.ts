@@ -1,6 +1,8 @@
 import type {
   ActionRequest,
   PolicyDecision,
+  ModelInfo,
+  ModelResult,
   Bootstrap,
   Session,
   ErrorBody,
@@ -38,6 +40,9 @@ export class ApiClientFactory {
       return (await response.json()) as T;
     }
     return {
+      models: () => request<ModelInfo[]>('/models'),
+      probeModel: (id, request_id) =>
+        request<ModelResult>(`/models/${encodeURIComponent(id)}/probe`, { request_id }),
       bootstrap: () => request<Bootstrap>('/bootstrap'),
       preview: (action: ActionRequest) => request<PolicyDecision>('/policy/preview', action),
       sessions: () => request<Session[]>('/sessions'),

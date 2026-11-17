@@ -12,6 +12,7 @@ from auton.constitution.ports import PolicyControlPort
 from auton.demo.ports import ConversationPort
 from auton.kernel.events import StorageInfo
 from auton.kernel.modules import ModuleDescriptor
+from auton.model.ports import ModelGatewayPort
 
 
 class BootstrapResponse(BaseModel):
@@ -37,6 +38,7 @@ class ServerDependencies:
     lifespan: Callable[[FastAPI], AbstractAsyncContextManager[None]]
     is_ready: Callable[[], bool]
     storage: Callable[[], StorageInfo]
+    models: ModelGatewayPort
     control: PolicyControlPort
     redact: Callable[[str], str]
     logger: logging.Logger

@@ -1,4 +1,6 @@
 import type {
+  ModelInfo,
+  ModelResult,
   Bootstrap,
   Session,
   SessionEvent,
@@ -7,6 +9,8 @@ import type {
 } from '../shared/contracts';
 
 export interface ApiClient {
+  models(): Promise<ModelInfo[]>;
+  probeModel(id: string, requestId: string): Promise<ModelResult>;
   bootstrap(): Promise<Bootstrap>;
   preview(action: ActionRequest): Promise<PolicyDecision>;
   sessions(): Promise<Session[]>;

@@ -147,3 +147,17 @@ def test_policy_settings_do_not_expose_credentials(page: Page) -> None:
     page.get_by_role("button", name="检查工具写入").click()
     expect(page.get_by_role("status")).to_contain_text("需要批准")
     screenshot(page, "M03-policy-settings.png")
+
+
+def test_model_catalog_probe_and_mobile_layout(page: Page) -> None:
+    page.get_by_role("button", name=re.compile("^模型")).click()
+    expect(page.get_by_role("heading", name="模型", exact=True)).to_be_visible()
+    expect(page.get_by_role("heading", name="fixture-model")).to_be_visible()
+    expect(page.get_by_text("测试替身 · 无真实推理", exact=True)).to_be_visible()
+    page.get_by_role("button", name="检测 fixture-model").click()
+    expect(page.get_by_role("status")).to_contain_text("测试响应")
+    expect(page.get_by_role("status")).to_contain_text("输入 10 / 输出 5")
+    screenshot(page, "M04-models.png")
+    page.set_viewport_size({"width": 390, "height": 844})
+    assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth")
+    screenshot(page, "M04-models-mobile.png")

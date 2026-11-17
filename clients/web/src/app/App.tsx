@@ -34,6 +34,7 @@ import {
 } from 'lucide-react';
 import type { Application } from './composition';
 import type { Artifact, PolicyDecision } from '../shared/contracts';
+import { Models } from '../features/models/Models';
 import { Markdown } from '../shared/Markdown';
 
 const workspaces = [
@@ -646,6 +647,8 @@ export function App({ application }: { application: Application }) {
                   </div>
                 </div>
               </>
+            ) : view === 'model' ? (
+              <Models feature={application.models} />
             ) : view === 'settings' ? (
               <section className="module-page">
                 <p className="eyebrow">你的工作空间</p>
@@ -679,7 +682,7 @@ export function App({ application }: { application: Application }) {
                     </div>
                     <div>
                       <dt>判断与模型</dt>
-                      <dd>判断模型与执行模型尚未接入</dd>
+                      <dd>执行模型已接入；连接检测见模型页。Laya 判断待 M05</dd>
                     </div>
                   </dl>
                 </div>
@@ -770,7 +773,7 @@ export function App({ application }: { application: Application }) {
                   </button>
                 </div>
                 <p className="module-note">
-                  当前只开放本机演示。数据持久化、权限配置和模型连接会在对应模块逐步完善。
+                  本机工作台已接入持久事件、固定策略与执行模型网关。真实 Agent 对话将在 M09 接入。
                 </p>
               </section>
             ) : (

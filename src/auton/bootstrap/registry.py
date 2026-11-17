@@ -1,7 +1,6 @@
 from auton.kernel.modules import ModuleDescriptor
 
 PLANNED = (
-    ("model", "执行模型网关", "M04"),
     ("judgment", "Jev 判断与路由", "M05"),
     ("tools", "工具宿主", "M06"),
     ("genome", "资产与记忆", "M07"),
@@ -52,6 +51,16 @@ def module_catalog(demo: bool) -> list[ModuleDescriptor]:
             requires=("event_log",),
             factory_entry="constitution.ConstitutionFactory",
             config_schema="ConstitutionConfig",
+        ),
+        ModuleDescriptor(
+            id="model",
+            title="执行模型网关",
+            milestone="M04",
+            status="ready",
+            provides=("models",),
+            requires=("policy", "event_log"),
+            factory_entry="model.ModelGatewayFactory",
+            config_schema="ModelConfig",
         ),
         ModuleDescriptor(
             id="demo",

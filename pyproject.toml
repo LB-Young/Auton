@@ -11,6 +11,8 @@ dependencies = [
   "anyio>=4.8,<5",
   "apsw>=3.51.3,<4",
   "fastapi>=0.115,<1",
+  "httpx>=0.28,<1",
+  "jsonschema>=4.23,<5",
   "pydantic>=2.10,<3",
   "python-dotenv>=1.0,<2",
   "uvicorn[standard]>=0.34,<1",
@@ -25,6 +27,7 @@ dev = [
   "playwright>=1.50,<2",
   "pytest-asyncio>=0.25,<2",
   "ruff>=0.11,<1",
+  "types-jsonschema>=4.26.0.20261006",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -40,7 +43,7 @@ select = ["E", "F", "I", "UP", "B", "ASYNC"]
 [tool.mypy]
 python_version = "3.12"
 strict = true
-files = ["src", "tests", "scripts/export_contracts.py", "scripts/dev.py", "scripts/check_boundaries.py", "scripts/setup.py", "scripts/check_secrets.py"]
+files = ["src", "tests", "scripts/export_contracts.py", "scripts/dev.py", "scripts/check_boundaries.py", "scripts/setup.py", "scripts/check_secrets.py", "scripts/model_smoke.py"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -55,7 +58,7 @@ root_package = "auton"
 name = "Kernel is independent"
 type = "forbidden"
 source_modules = ["auton.kernel"]
-forbidden_modules = ["auton.bootstrap", "auton.demo", "auton.server", "auton.constitution"]
+forbidden_modules = ["auton.bootstrap", "auton.demo", "auton.server", "auton.constitution", "auton.model"]
 
 [[tool.importlinter.contracts]]
 name = "Demo never imports transport or composition"
@@ -74,3 +77,15 @@ name = "Transport only uses public policy ports"
 type = "forbidden"
 source_modules = ["auton.server"]
 forbidden_modules = ["auton.constitution.control", "auton.constitution.factory", "auton.constitution.secrets"]
+
+[[tool.importlinter.contracts]]
+name = "Model gateway depends only on policy public contracts"
+type = "forbidden"
+source_modules = ["auton.model"]
+forbidden_modules = ["auton.bootstrap", "auton.server", "auton.demo", "auton.constitution.control", "auton.constitution.factory"]
+
+[[tool.importlinter.contracts]]
+name = "Transport only uses model ports and contracts"
+type = "forbidden"
+source_modules = ["auton.server"]
+forbidden_modules = ["auton.model.gateway", "auton.model.provider", "auton.model.factory", "auton.model.registry"]

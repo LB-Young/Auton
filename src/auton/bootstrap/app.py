@@ -6,13 +6,15 @@ from fastapi import FastAPI
 from auton.bootstrap.config import ApplicationConfig, load_config
 from auton.bootstrap.registry import module_catalog
 from auton.constitution.factory import ConstitutionDependencies, ConstitutionFactory
-from auton.constitution.secrets import LoggerFactory, Redactor
+from auton.constitution.secrets import LoggerFactory, Redactor, SecretStoreFactory
 from auton.demo.config import DemoConfig
 from auton.demo.factory import DemoConversationFactory
 from auton.demo.ports import ConversationPort
 from auton.kernel.factory import ClockFactory, IdentifierFactory, KernelFactory
 from auton.kernel.modules import resolve_modules
 from auton.kernel.ports import LifecycleHandle, ModuleFactory, RuntimeDependencies
+from auton.model.factory import ModelGatewayFactory
+from auton.model.gateway import GatewayDependencies
 from auton.server.config import ServerConfig
 from auton.server.factory import ServerFactory
 from auton.server.ports import ServerDependencies
@@ -46,6 +48,10 @@ class ApplicationFactory:
         control = ConstitutionFactory().create(
             config.constitution, ConstitutionDependencies(kernel.events, deps)
         )
+        models = ModelGatewayFactory().create(
+            config.models,
+            GatewayDependencies(control, kernel.events, deps, SecretStoreFactory().create()),
+        )
         conversation: ConversationPort | None = None
         factory: ModuleFactory[DemoConfig, RuntimeDependencies, ConversationPort]
         factory = DemoConversationFactory()
@@ -58,7 +64,9 @@ class ApplicationFactory:
                 deps,
             )
         runtime = ApplicationRuntime(
-            [kernel, control, conversation] if conversation is not None else [kernel, control]
+            [kernel, control, models, conversation]
+            if conversation is not None
+            else [kernel, control, models]
         )
         redactor = Redactor()
         return ServerFactory().create(
@@ -71,6 +79,7 @@ class ApplicationFactory:
                 is_ready=lambda: runtime.ready,
                 storage=kernel.info,
                 control=control,
+                models=models,
                 redact=redactor.text,
                 logger=LoggerFactory().create(redactor),
             ),
