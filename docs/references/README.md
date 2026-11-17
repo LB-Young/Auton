@@ -146,3 +146,8 @@ Auton 自进化架构设计（[`../self-evolution-architecture.md`](../self-evol
 | 20 | skill 对齐开放标准（`name` + `description` 必填）；description 作为独立字段，评测其触发准确率；skill 可捆绑确定性脚本；外部 skill 视为不可信 | Anthropic Skills | §4.2、§7.4、§8.1 |
 | 21 | 用户显式要求"记住"的内容跳过晋升门槛，作为 user-origin 直接写入 | LangChain | §4.3 |
 | 22 | 空闲时预读用户常用项目，生成项目级 knowledge | Letta | §3.1 |
+
+## M02 存储实现参考（2026-11-17）
+
+- [SQLite WAL](./sqlite-wal-storage.md)：并发、持久边界与修复版引擎。
+- [APSW 内嵌引擎](./apsw-embedded-sqlite.md)：Python 驱动隔离与部署要求。

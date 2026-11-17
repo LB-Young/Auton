@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 
 from auton.demo.ports import ConversationPort
+from auton.kernel.events import StorageInfo
 from auton.kernel.modules import ModuleDescriptor
 
 
@@ -16,6 +17,7 @@ class BootstrapResponse(BaseModel):
     implementation: str
     persistence: Literal["memory-only"] = "memory-only"
     modules: list[ModuleDescriptor]
+    event_storage: StorageInfo
 
 
 class HealthResponse(BaseModel):
@@ -30,3 +32,4 @@ class ServerDependencies:
     implementation: str
     lifespan: Callable[[FastAPI], AbstractAsyncContextManager[None]]
     is_ready: Callable[[], bool]
+    storage: Callable[[], StorageInfo]

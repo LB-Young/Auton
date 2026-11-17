@@ -9,7 +9,7 @@ import pytest
 from playwright.sync_api import Browser, Page, expect, sync_playwright
 
 pytestmark = pytest.mark.browser
-BASE = "http://127.0.0.1:5173"
+BASE = os.environ.get("AUTON_BASE_URL", "http://127.0.0.1:5173")
 EVIDENCE = Path(os.environ.get("AUTON_EVIDENCE_DIR", "test-results"))
 
 
@@ -112,3 +112,11 @@ def test_ime_and_send_error_preserve_draft(page: Page) -> None:
     expect(page.get_by_role("complementary", name="产物面板")).to_contain_text(
         "项目起步笔记", timeout=15000
     )
+
+
+def test_persistent_kernel_is_distinct_from_demo_chat_storage(page: Page) -> None:
+    page.get_by_role("button", name="设置与连接").click()
+    expect(page.get_by_role("heading", name="设置与连接")).to_be_visible()
+    expect(page.locator("dl")).to_contain_text("SQLite · WAL/FULL")
+    expect(page.locator("dl")).to_contain_text("仅内存 · 重启服务后清空")
+    screenshot(page, "M02-storage-settings.png")

@@ -166,6 +166,7 @@ export interface components {
     BootstrapResponse: {
       /** Demo */
       demo: boolean;
+      event_storage: components['schemas']['StorageInfo'];
       /** Implementation */
       implementation: string;
       /** Modules */
@@ -348,6 +349,26 @@ export interface components {
       request_id: string;
       /** Run Id */
       run_id: string;
+    };
+    /** StorageInfo */
+    StorageInfo: {
+      /**
+       * Backend
+       * @enum {string}
+       */
+      backend: 'sqlite' | 'memory';
+      /** Durable */
+      durable: boolean;
+      /** Journal Mode */
+      journal_mode: string;
+      /** Ready */
+      ready: boolean;
+      /** Schema Version */
+      schema_version: number;
+      /** Sqlite Version */
+      sqlite_version?: string | null;
+      /** Synchronous */
+      synchronous: string;
     };
     /** ValidationError */
     ValidationError: {

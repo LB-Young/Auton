@@ -6,9 +6,12 @@ from urllib.parse import urlsplit
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from auton.kernel.config import KernelConfig
+
 
 class ApplicationConfig(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
+    kernel: KernelConfig = Field(default_factory=KernelConfig)
     profile: Literal["demo", "test", "dev", "production"] = "demo"
     implementation: str = "scripted"
     chunk_delay_seconds: float = Field(default=0.035, ge=0, le=2)
@@ -21,6 +24,8 @@ class ApplicationConfig(BaseModel):
 
     @model_validator(mode="after")
     def validate_profile(self) -> "ApplicationConfig":
+        if self.kernel.backend == "memory" and self.profile != "test":
+            raise ValueError("Memory event storage is test-only")
         if self.profile in {"dev", "production"} and self.implementation != "disabled":
             raise ValueError("Non-demo profiles must use implementation=disabled in M01")
         if self.profile in {"demo", "test"} and self.implementation not in {"echo", "scripted"}:

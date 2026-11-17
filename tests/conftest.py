@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient
 
 from auton.bootstrap.app import ApplicationFactory
 from auton.bootstrap.config import ApplicationConfig
+from auton.kernel.config import KernelConfig
 from auton.kernel.ports import RuntimeDependencies
 
 
@@ -19,6 +20,7 @@ def deps() -> RuntimeDependencies:
 def client(deps: RuntimeDependencies) -> Iterator[TestClient]:
     app = ApplicationFactory().create(
         ApplicationConfig(
+            kernel=KernelConfig(backend="memory"),
             profile="test",
             implementation="scripted",
             chunk_delay_seconds=0.001,

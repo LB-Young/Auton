@@ -1,8 +1,10 @@
 """Python entry point for development, contract generation and verification."""
 
 import argparse
+import json
 import os
 import signal
+import socket
 import subprocess
 import sys
 import tempfile
@@ -28,7 +30,7 @@ def tool(name: str) -> str:
     return str(Path(PYTHON).parent / (name + (".exe" if os.name == "nt" else "")))
 
 
-def api_command() -> list[str]:
+def api_command(port: int = 8000) -> list[str]:
     return [
         PYTHON,
         "-m",
@@ -38,7 +40,7 @@ def api_command() -> list[str]:
         "--host",
         "127.0.0.1",
         "--port",
-        "8000",
+        str(port),
         "--no-access-log",
     ]
 
@@ -65,12 +67,22 @@ def stop(process: subprocess.Popen[bytes]) -> None:
 
 
 @contextmanager
-def servers() -> Iterator[list[subprocess.Popen[bytes]]]:
+def servers(
+    api_port: int = 8000, web_port: int = 5173, env: dict[str, str] | None = None
+) -> Iterator[list[subprocess.Popen[bytes]]]:
     processes: list[subprocess.Popen[bytes]] = []
     try:
-        for command in [api_command(), web_command()]:
-            processes.append(subprocess.Popen(command, cwd=ROOT, start_new_session=True))
-        for url in ["http://127.0.0.1:8000/api/v1/health", "http://127.0.0.1:5173"]:
+        environment = dict(os.environ if env is None else env)
+        environment.update(AUTON_API_PORT=str(api_port), AUTON_WEB_PORT=str(web_port))
+        # Refuse an occupied port before probing readiness; never test another process.
+        for port in (api_port, web_port):
+            with socket.socket() as probe:
+                probe.bind(("127.0.0.1", port))
+        for command in [api_command(api_port), web_command()]:
+            processes.append(
+                subprocess.Popen(command, cwd=ROOT, env=environment, start_new_session=True)
+            )
+        for url in [f"http://127.0.0.1:{api_port}/api/v1/health", f"http://127.0.0.1:{web_port}"]:
             deadline = time.monotonic() + 30
             while True:
                 if any(process.poll() is not None for process in processes):
@@ -135,6 +147,39 @@ def check() -> None:
     run([NPM, "run", "build"], WEB)
 
 
+def free_port() -> int:
+    with socket.socket() as probe:
+        probe.bind(("127.0.0.1", 0))
+        return int(probe.getsockname()[1])
+
+
+def e2e() -> None:
+    api_port, web_port = free_port(), free_port()
+    while web_port == api_port:
+        web_port = free_port()
+    with tempfile.TemporaryDirectory(prefix="auton-e2e-") as directory:
+        config = Path(directory) / "demo.toml"
+        config.write_text(
+            'profile = "demo"\nimplementation = "scripted"\n'
+            f'allowed_origins = ["http://127.0.0.1:{web_port}"]\n'
+            "[kernel]\n"
+            f"data_directory = {json.dumps(str(Path(directory) / 'data'))}\n",
+            encoding="utf-8",
+        )
+        env = {
+            **os.environ,
+            "AUTON_CONFIG": str(config),
+            "AUTON_BASE_URL": f"http://127.0.0.1:{web_port}",
+        }
+        with servers(api_port, web_port, env):
+            subprocess.run(
+                [PYTHON, "-m", "pytest", "-q", "-m", "browser", "tests/e2e"],
+                cwd=ROOT,
+                env=env,
+                check=True,
+            )
+
+
 def interrupt(_signum: int, _frame: FrameType | None) -> None:
     raise KeyboardInterrupt
 
@@ -153,16 +198,15 @@ def main() -> None:
             run(api_command())
         elif args.command == "web":
             run(web_command())
+        elif args.command == "e2e":
+            e2e()
         else:
             with servers() as processes:
-                if args.command == "e2e":
-                    run([PYTHON, "-m", "pytest", "-q", "-m", "browser", "tests/e2e"])
-                else:
-                    print("Auton: http://127.0.0.1:5173  (Ctrl+C to stop)", flush=True)
-                    while True:
-                        if any(process.poll() is not None for process in processes):
-                            raise RuntimeError("A development server exited")
-                        time.sleep(0.5)
+                print("Auton: http://127.0.0.1:5173  (Ctrl+C to stop)", flush=True)
+                while True:
+                    if any(process.poll() is not None for process in processes):
+                        raise RuntimeError("A development server exited")
+                    time.sleep(0.5)
     except KeyboardInterrupt:
         pass
 

@@ -1,4 +1,5 @@
 from datetime import UTC, datetime
+from pathlib import Path
 
 import pytest
 from fastapi import FastAPI
@@ -10,6 +11,7 @@ from auton.bootstrap.config import ApplicationConfig
 from auton.demo.config import DemoConfig
 from auton.demo.factory import DemoConversationFactory
 from auton.demo.ports import ConversationPort
+from auton.kernel.config import KernelConfig
 from auton.kernel.modules import ModuleDescriptor, resolve_modules
 from auton.kernel.ports import ModuleFactory, RuntimeDependencies
 
@@ -20,6 +22,7 @@ def test_factory_swap_has_identical_http_and_event_contract(
 ) -> None:
     app = ApplicationFactory().create(
         ApplicationConfig(
+            kernel=KernelConfig(backend="memory"),
             profile="test",
             implementation=implementation,
             chunk_delay_seconds=0,
@@ -79,9 +82,14 @@ def test_invalid_configuration_is_rejected(config: dict[str, object]) -> None:
         ApplicationConfig.model_validate(config)
 
 
-def test_real_profile_never_uses_demo(deps: RuntimeDependencies) -> None:
+def test_real_profile_never_uses_demo(deps: RuntimeDependencies, tmp_path: Path) -> None:
     app = ApplicationFactory().create(
-        ApplicationConfig(profile="production", implementation="disabled"), deps
+        ApplicationConfig(
+            profile="production",
+            implementation="disabled",
+            kernel=KernelConfig(data_directory=tmp_path),
+        ),
+        deps,
     )
     with TestClient(app) as client:
         assert client.get("/api/v1/bootstrap").json()["demo"] is False

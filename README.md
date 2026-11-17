@@ -1,6 +1,6 @@
 # Auton
 
-个人 Agent 工作台。当前完成 **M01 项目框架**：模块工厂、显式依赖组装、FastAPI API、React 对话界面与合成 Demo；M02–M21 尚未实现。
+个人 Agent 工作台。当前完成 **M01 项目框架与 M02 持久事件内核**：模块工厂、显式依赖组装、FastAPI API、React 对话界面与合成 Demo；M03–M21 尚未实现。
 
 后端和开发/验收辅助工具优先使用 Python。仅浏览器界面及其必要构建配置使用 TypeScript/React；Makefile 是 Python 命令入口。
 
@@ -33,7 +33,7 @@ make dev
 
 **Demo 数据仅在当前后端进程内存中存在。** 同一浏览器刷新可重新查询会话；重启后端后全部清空。主题存 localStorage，所选会话 ID 存 sessionStorage，浏览器归属 cookie 为 HttpOnly；这些不是模型密钥。
 
-这是框架演示，不是已实现的 Agent 执行。没有数据库、真实项目资料管理、模型连接、工具执行、长期记忆、训练或发布；右侧笔记标记 `source=demo`，未写入项目目录。每个服务最多 50 个会话、每个会话 100 条消息、200 个幂等命令，达到限制时提示重置/新建，不无限占用内存。
+这是框架演示，不是已实现的 Agent 执行。聊天尚未接入持久数据库；没有真实项目资料管理、模型连接、工具执行、长期记忆、训练或发布；右侧笔记标记 `source=demo`，未写入项目目录。每个服务最多 50 个会话、每个会话 100 条消息、200 个幂等命令，达到限制时提示重置/新建，不无限占用内存。
 
 ## 配置与替换实现
 
@@ -75,7 +75,7 @@ make contracts
 
 `make check` 包含 Ruff 格式/lint、mypy strict、非浏览器测试、Python/前端依赖边界、OpenAPI/生成类型漂移检查、ESLint/Prettier 和 TypeScript/生产构建。契约检查在临时目录比较，不修改工作区。
 
-`make contracts` 从 Python schema 导出 `contracts/openapi.json`，再使用必要的 TypeScript 工具生成浏览器类型；不要手动修改生成文件。WebSocket 的 `session.updated` 是带完整状态的快照，包含 sequence、run/goal 引用、schema_version 和来源。慢客户端可合并旧快照；重连重新获取当前内存状态，不承诺持久事件回放或保存每个 token。持久 EventLog 留给 M02。
+`make contracts` 从 Python schema 导出 `contracts/openapi.json`，再使用必要的 TypeScript 工具生成浏览器类型；不要手动修改生成文件。WebSocket 的 `session.updated` 是带完整状态的快照，包含 sequence、run/goal 引用、schema_version 和来源。慢客户端可合并旧快照；重连重新获取当前内存状态，不承诺持久事件回放或保存每个 token。M02 已提供独立 SQLite WAL/FULL EventLog；Demo 聊天尚未接入，业务投影与会话恢复留给 M10/M11。
 
 ## Python 浏览器验收
 
@@ -84,7 +84,7 @@ make browser-install
 make e2e
 ```
 
-先关闭已有 `make dev`。`make e2e` 会临时启动服务、运行 Python Playwright 测试并关闭服务。Linux CI 使用 `python -m playwright install --with-deps chromium`。也可以使用已安装的 Chrome，跳过 Chromium 下载：
+`make e2e` 使用独立临时端口、配置与数据库启动服务，运行 Python Playwright 测试后只关闭本次创建的进程，不干扰已有 `make dev`。Linux CI 使用 `python -m playwright install --with-deps chromium`。也可以使用已安装的 Chrome，跳过 Chromium 下载：
 
 ```bash
 AUTON_BROWSER_CHANNEL=chrome make e2e
@@ -96,4 +96,6 @@ AUTON_BROWSER_CHANNEL=chrome make e2e
 
 `make clean-preview` 预览，`make clean` 删除可再生成缓存/构建文件及空目录；保留 Git 跟踪文件、依赖环境、符号链接与运行数据。
 
-下一步是 [M02 内核与事件持久化](docs/milestones/M02-kernel.md)。完整路线见 [里程碑总表](docs/milestones/README.md)；Jev-only、独立评审筛数据、本地候选须经发布批准等边界保持不变。
+M02 存储默认位于 `.auton_local/kernel/events.sqlite3`，设置页明确区分事件日志持久化与聊天内存模式。见 [M02 验收](docs/milestones/evidence/M02.md)。
+
+下一步是 [M03 固定策略、权限与配置](docs/milestones/M03-constitution.md)。完整路线见 [里程碑总表](docs/milestones/README.md)；Jev-only、独立评审筛数据、本地候选须经发布批准等边界保持不变。

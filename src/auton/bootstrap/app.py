@@ -1,7 +1,5 @@
 from collections.abc import AsyncIterator
 from contextlib import AsyncExitStack, asynccontextmanager
-from datetime import UTC, datetime
-from uuid import uuid4
 
 from fastapi import FastAPI
 
@@ -10,6 +8,7 @@ from auton.bootstrap.registry import module_catalog
 from auton.demo.config import DemoConfig
 from auton.demo.factory import DemoConversationFactory
 from auton.demo.ports import ConversationPort
+from auton.kernel.factory import ClockFactory, IdentifierFactory, KernelFactory
 from auton.kernel.modules import resolve_modules
 from auton.kernel.ports import LifecycleHandle, ModuleFactory, RuntimeDependencies
 from auton.server.config import ServerConfig
@@ -41,6 +40,7 @@ class ApplicationFactory:
         enabled = config.profile in {"demo", "test"}
         modules = module_catalog(enabled)
         resolve_modules(modules)
+        kernel = KernelFactory().create(config.kernel, deps)
         conversation: ConversationPort | None = None
         factory: ModuleFactory[DemoConfig, RuntimeDependencies, ConversationPort]
         factory = DemoConversationFactory()
@@ -52,7 +52,9 @@ class ApplicationFactory:
                 ),
                 deps,
             )
-        runtime = ApplicationRuntime([conversation] if conversation is not None else [])
+        runtime = ApplicationRuntime(
+            [kernel, conversation] if conversation is not None else [kernel]
+        )
         return ServerFactory().create(
             ServerConfig(profile=config.profile, allowed_origins=config.allowed_origins),
             ServerDependencies(
@@ -61,6 +63,7 @@ class ApplicationFactory:
                 implementation=config.implementation,
                 lifespan=runtime.lifespan,
                 is_ready=lambda: runtime.ready,
+                storage=kernel.info,
             ),
         )
 
@@ -68,5 +71,7 @@ class ApplicationFactory:
 def create_app() -> FastAPI:
     return ApplicationFactory().create(
         load_config(),
-        RuntimeDependencies(now=lambda: datetime.now(UTC), new_id=lambda: str(uuid4())),
+        RuntimeDependencies(
+            now=ClockFactory().create().now, new_id=IdentifierFactory().create().new_id
+        ),
     )

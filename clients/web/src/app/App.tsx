@@ -665,6 +665,14 @@ export function App({ application }: { application: Application }) {
                       <dd>{state.boot?.profile ?? '不可用'}</dd>
                     </div>
                     <div>
+                      <dt>事件日志</dt>
+                      <dd>
+                        {state.boot?.event_storage?.ready
+                          ? `${state.boot.event_storage.backend === 'sqlite' ? 'SQLite' : '测试内存'} · ${state.boot.event_storage.journal_mode}/${state.boot.event_storage.synchronous}`
+                          : '未就绪'}
+                      </dd>
+                    </div>
+                    <div>
                       <dt>会话存储</dt>
                       <dd>仅内存 · 重启服务后清空</dd>
                     </div>

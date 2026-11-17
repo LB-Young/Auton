@@ -43,6 +43,9 @@
             "title": "Demo",
             "type": "boolean"
           },
+          "event_storage": {
+            "$ref": "#/components/schemas/StorageInfo"
+          },
           "implementation": {
             "title": "Implementation",
             "type": "string"
@@ -69,7 +72,8 @@
           "profile",
           "demo",
           "implementation",
-          "modules"
+          "modules",
+          "event_storage"
         ],
         "title": "BootstrapResponse",
         "type": "object"
@@ -476,6 +480,59 @@
           "run_id"
         ],
         "title": "StopRun",
+        "type": "object"
+      },
+      "StorageInfo": {
+        "properties": {
+          "backend": {
+            "enum": [
+              "sqlite",
+              "memory"
+            ],
+            "title": "Backend",
+            "type": "string"
+          },
+          "durable": {
+            "title": "Durable",
+            "type": "boolean"
+          },
+          "journal_mode": {
+            "title": "Journal Mode",
+            "type": "string"
+          },
+          "ready": {
+            "title": "Ready",
+            "type": "boolean"
+          },
+          "schema_version": {
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "sqlite_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sqlite Version"
+          },
+          "synchronous": {
+            "title": "Synchronous",
+            "type": "string"
+          }
+        },
+        "required": [
+          "backend",
+          "ready",
+          "durable",
+          "schema_version",
+          "journal_mode",
+          "synchronous"
+        ],
+        "title": "StorageInfo",
         "type": "object"
       },
       "ValidationError": {

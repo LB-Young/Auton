@@ -1,6 +1,6 @@
 # M02：核心内核与事件持久化
 
-> 状态：计划中。当前仅建立开发计划，未实现本里程碑。
+> 状态：已完成（2026-11-17，本地验收通过）。见 [验收记录](./evidence/M02.md)。
 
 ## 目标与前置依赖
 
@@ -14,10 +14,10 @@ KernelFactory、EventLogFactory、ClockFactory。对外 Port、配置、实现�
 
 ## 开发任务
 
-- [ ] 定义 Goal/Task/Run/Attempt/Operation 标识、goal_revision 和版本化事件信封；共享类型不塞入业务策略。
-- [ ] 实现 SQLite WAL EventLog、migration、事务追加、稳定游标与幂等事件写入；内存实现仅用于测试。
-- [ ] 建立 Clock/ID/事务 Port、应用生命周期与结构化错误；恢复时区分未提交、已提交和未知结果。
-- [ ] 明确原始数据、投影、artifact 引用的存储位置与保留策略，记录 schema 升级兼容范围。
+- [x] 定义 Goal/Task/Run/Attempt/Operation 标识、goal_revision 和版本化事件信封；共享类型不塞入业务策略。
+- [x] 实现 SQLite WAL EventLog、migration、事务追加、稳定游标与幂等事件写入；内存实现仅用于测试。
+- [x] 建立 Clock/ID/事务 Port、应用生命周期与结构化错误；恢复时区分未提交、已提交和未知结果。
+- [x] 明确原始数据、投影、artifact 引用的存储位置与保留策略，记录 schema 升级兼容范围。
 
 ## 前端交付
 

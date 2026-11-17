@@ -88,6 +88,7 @@ class ServerFactory:
                 demo=deps.conversation is not None,
                 implementation=deps.implementation,
                 modules=deps.modules,
+                event_storage=deps.storage(),
             )
 
         @app.get("/api/v1/capabilities")
