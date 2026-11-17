@@ -1,5 +1,6 @@
 # Auton 架构设计：自进化 Agent（Greenfield 版）
 
+> 2026-11-17 接入修订：用户当前指定 DeepSeek 执行、本地 Laya 判断；原 Jev 专属接入表述按 [最新选择](./milestones/model-provider-decision.md) 更新，判断来源与训练来源必须如实记录。
 > 状态：设计稿 v0.7（2026-11-16），从零构建，不考虑现有代码兼容
 > 发布扩展：本地决策 student 的效果评估、按判断点接手、灰度与回滚见 [专项设计](./decision-model-evaluation-and-release.md)。本文的 Jev-only 是当前运行阶段；未来须经独立发布批准才能改变，训练完成不自动激活。
 > v0.7 变更：开发路线改为 [M01–M21 模块里程碑](./milestones/README.md)。第一步必须先搭框架、模块工厂和前端骨架，后续逐模块实现；Web 不再放到末期。工厂与前端规格见该目录。M01 框架现已实现并通过本地验收，后续模块仍待开发；详见 [验收记录](./milestones/evidence/M01.md)。

@@ -1,22 +1,22 @@
-# M05：Jev 判断层与执行模型路由
+# M05：类型化判断层（当前 Laya）与执行模型路由
 
 > 状态：计划中。当前仅建立开发计划，未实现本里程碑。
 
 ## 目标与前置依赖
 
-让声明的在线语义判断只走 Jev，并逐次保存可追踪的判断与实际采用动作。
+当前按用户要求使用本地 Laya 作为主判断 provider，逐次保存真实模型来源、判断与实际采用动作。见 [接入选择](./model-provider-decision.md)。
 
 前置：M03、M04。M01 必须先完成；其余按依赖验收后进入。
 
 ## 模块与工厂
 
-JudgmentFactory、JevAdapterFactory、RoutePolicyFactory。对外 Port、配置、实现选择、依赖注入与生命周期遵守 [工厂规范](./module-factory-contract.md)，调用方不得依赖具体 adapter。
+JudgmentFactory、LayaAdapterFactory（JevAdapterFactory 留后续可选）、RoutePolicyFactory。对外 Port、配置、实现选择、依赖注入与生命周期遵守 [工厂规范](./module-factory-contract.md)，调用方不得依赖具体 adapter。
 
 ## 开发任务
 
 - [ ] 实现类型化 question/answer、稳定选项 ID、原始响应引用、状态截止点和版本记录。
 - [ ] 先做信息充分性、执行能力档位、工具域与 Skill 匹配的少量判断点；扩展点以 registry 登记。
-- [ ] 固定约束先过滤，Jev 提供语义判断，RoutePolicy 选允许的执行候选；不将 confidence 当任务成功率。
+- [ ] 固定约束先过滤，当前主 provider 提供语义判断，RoutePolicy 选允许的执行候选；不将 confidence 当任务成功率。
 - [ ] 保存每批/每问题结果、失败、弃权和未采用答案；状态晚到或目标修订时拒绝应用旧结果。
 
 ## 前端交付
@@ -25,8 +25,8 @@ JudgmentFactory、JevAdapterFactory、RoutePolicyFactory。对外 Port、配置�
 
 ## 验收条件
 
-1. 每次 Jev 调用可关联输入、问题、响应、policy action 和任务版本。
-2. Jev 超时或不允许外发时等待/阻塞，不自动改用本地判断模型。
+1. 每次判断调用可关联输入、问题、响应、policy action 和任务版本。
+2. 主判断 provider 不可用时等待/阻塞，不自动切到托管服务或其他本地候选。
 3. 执行模型 2B/7B/强模型选择与判断来源选择在 API/配置中分离。
 
 ## 必验故障

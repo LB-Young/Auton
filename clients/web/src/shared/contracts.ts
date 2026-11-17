@@ -10,3 +10,6 @@ export type ErrorBody = components['schemas']['ErrorBody'];
 export type CreateSession = components['schemas']['CreateSession'];
 export type SendMessage = components['schemas']['SendMessage'];
 export type StopRun = components['schemas']['StopRun'];
+
+export type ActionRequest = components['schemas']['ActionRequest'];
+export type PolicyDecision = components['schemas']['PolicyDecision'];

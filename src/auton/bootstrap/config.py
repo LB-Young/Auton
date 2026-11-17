@@ -6,11 +6,13 @@ from urllib.parse import urlsplit
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from auton.constitution.config import ConstitutionConfig
 from auton.kernel.config import KernelConfig
 
 
 class ApplicationConfig(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True)
+    model_config = ConfigDict(extra="forbid", frozen=True, hide_input_in_errors=True)
+    constitution: ConstitutionConfig = Field(default_factory=ConstitutionConfig)
     kernel: KernelConfig = Field(default_factory=KernelConfig)
     profile: Literal["demo", "test", "dev", "production"] = "demo"
     implementation: str = "scripted"

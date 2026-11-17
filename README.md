@@ -1,6 +1,6 @@
 # Auton
 
-个人 Agent 工作台。当前完成 **M01 项目框架与 M02 持久事件内核**：模块工厂、显式依赖组装、FastAPI API、React 对话界面与合成 Demo；M03–M21 尚未实现。
+个人 Agent 工作台。当前完成 **M01 项目框架、M02 持久事件内核与 M03 固定控制策略**：模块工厂、显式依赖组装、FastAPI API、React 对话界面与合成 Demo；M04–M21 尚未实现。
 
 后端和开发/验收辅助工具优先使用 Python。仅浏览器界面及其必要构建配置使用 TypeScript/React；Makefile 是 Python 命令入口。
 
@@ -98,4 +98,6 @@ AUTON_BROWSER_CHANNEL=chrome make e2e
 
 M02 存储默认位于 `.auton_local/kernel/events.sqlite3`，设置页明确区分事件日志持久化与聊天内存模式。见 [M02 验收](docs/milestones/evidence/M02.md)。
 
-下一步是 [M03 固定策略、权限与配置](docs/milestones/M03-constitution.md)。完整路线见 [里程碑总表](docs/milestones/README.md)；Jev-only、独立评审筛数据、本地候选须经发布批准等边界保持不变。
+M03 设置页展示权限、外发边界和单目标预算，并提供不实际执行动作的预检。策略/预算日志可恢复，用户配置修订不会在普通重启时丢失。参见 [M03 验收](docs/milestones/evidence/M03.md)。
+
+下一步是 [M04 执行模型网关](docs/milestones/M04-model.md)；当前指定 DeepSeek 执行、后续本地 Laya 判断，见 [接入选择](docs/milestones/model-provider-decision.md)。完整路线见 [里程碑总表](docs/milestones/README.md)；Jev-only、独立评审筛数据、本地候选须经发布批准等边界保持不变。

@@ -33,7 +33,7 @@ import {
   X,
 } from 'lucide-react';
 import type { Application } from './composition';
-import type { Artifact } from '../shared/contracts';
+import type { Artifact, PolicyDecision } from '../shared/contracts';
 import { Markdown } from '../shared/Markdown';
 
 const workspaces = [
@@ -101,6 +101,7 @@ export function App({ application }: { application: Application }) {
   const state = useSyncExternalStore(controller.subscribe, controller.getSnapshot);
   const session = state.sessions.find((item) => item.id === state.selected);
   const [view, setView] = useState('chat');
+  const [policyPreview, setPolicyPreview] = useState<PolicyDecision | null>(null);
   const [sidebar, setSidebar] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [search, setSearch] = useState<string | null>(null);
@@ -678,9 +679,85 @@ export function App({ application }: { application: Application }) {
                     </div>
                     <div>
                       <dt>判断与模型</dt>
-                      <dd>尚未接入真实 Jev 或执行模型</dd>
+                      <dd>判断模型与执行模型尚未接入</dd>
                     </div>
                   </dl>
+                </div>
+                <div className="settings-card">
+                  <h2>权限与预算</h2>
+                  <dl>
+                    <div>
+                      <dt>策略版本</dt>
+                      <dd>{state.boot?.policy?.version ?? '服务尚未提供'}</dd>
+                    </div>
+                    <div>
+                      <dt>允许外发至</dt>
+                      <dd>
+                        {state.boot?.policy?.remote_providers.length
+                          ? state.boot.policy.remote_providers.join('、')
+                          : '未授权外发'}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>外发数据范围</dt>
+                      <dd>仅明确标记为公开的数据；私密与密钥留在本地</dd>
+                    </div>
+                    <div>
+                      <dt>单目标 token 上限</dt>
+                      <dd>
+                        {state.boot?.policy?.budget_per_goal.tokens.toLocaleString() ?? '未就绪'}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>单目标费用上限</dt>
+                      <dd>
+                        {state.boot?.policy
+                          ? `$${(state.boot.policy.budget_per_goal.cost_microusd / 1000000).toFixed(2)}`
+                          : '未就绪'}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>需批准的动作</dt>
+                      <dd>{state.boot?.policy?.approval_actions.join('、') ?? '未就绪'}</dd>
+                    </div>
+                  </dl>
+                  <div className="composer-options">
+                    <button
+                      className="secondary-button"
+                      onClick={() =>
+                        void application.policy
+                          .preview('private-remote')
+                          .then(setPolicyPreview)
+                          .catch(() => setNotice('预检服务暂不可用'))
+                      }
+                    >
+                      检查私密数据外发
+                    </button>
+                    <button
+                      className="secondary-button"
+                      onClick={() =>
+                        void application.policy
+                          .preview('tool-write')
+                          .then(setPolicyPreview)
+                          .catch(() => setNotice('预检服务暂不可用'))
+                      }
+                    >
+                      检查工具写入
+                    </button>
+                  </div>
+                  {policyPreview && (
+                    <p className="notice-banner" role="status">
+                      {policyPreview.outcome === 'deny'
+                        ? '禁止执行'
+                        : policyPreview.outcome === 'approval_required'
+                          ? '需要批准'
+                          : '预检允许'}{' '}
+                      · 仅预检，未执行任何动作
+                    </p>
+                  )}
+                  <p className="module-note">
+                    预检通过不代表已执行。真实动作审批在工具/发布模块接入；已派发操作需对账后才能释放预算。
+                  </p>
                 </div>
                 <div className="settings-card">
                   <h2>外观</h2>

@@ -12,6 +12,7 @@ dependencies = [
   "apsw>=3.51.3,<4",
   "fastapi>=0.115,<1",
   "pydantic>=2.10,<3",
+  "python-dotenv>=1.0,<2",
   "uvicorn[standard]>=0.34,<1",
 ]
 
@@ -39,7 +40,7 @@ select = ["E", "F", "I", "UP", "B", "ASYNC"]
 [tool.mypy]
 python_version = "3.12"
 strict = true
-files = ["src", "tests", "scripts/export_contracts.py", "scripts/dev.py", "scripts/check_boundaries.py", "scripts/setup.py"]
+files = ["src", "tests", "scripts/export_contracts.py", "scripts/dev.py", "scripts/check_boundaries.py", "scripts/setup.py", "scripts/check_secrets.py"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -54,16 +55,22 @@ root_package = "auton"
 name = "Kernel is independent"
 type = "forbidden"
 source_modules = ["auton.kernel"]
-forbidden_modules = ["auton.bootstrap", "auton.demo", "auton.server"]
+forbidden_modules = ["auton.bootstrap", "auton.demo", "auton.server", "auton.constitution"]
 
 [[tool.importlinter.contracts]]
 name = "Demo never imports transport or composition"
 type = "forbidden"
 source_modules = ["auton.demo"]
-forbidden_modules = ["auton.server", "auton.bootstrap"]
+forbidden_modules = ["auton.server", "auton.bootstrap", "auton.constitution"]
 
 [[tool.importlinter.contracts]]
 name = "Transport only uses demo public contracts"
 type = "forbidden"
 source_modules = ["auton.server"]
 forbidden_modules = ["auton.bootstrap", "auton.demo.service", "auton.demo.factory"]
+
+[[tool.importlinter.contracts]]
+name = "Transport only uses public policy ports"
+type = "forbidden"
+source_modules = ["auton.server"]
+forbidden_modules = ["auton.constitution.control", "auton.constitution.factory", "auton.constitution.secrets"]

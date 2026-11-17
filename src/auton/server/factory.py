@@ -3,10 +3,19 @@ from secrets import token_urlsafe
 
 from anyio import CancelScope
 from fastapi import FastAPI, Request, Response, WebSocket, WebSocketDisconnect
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel, ConfigDict
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
+from auton.constitution.config import (
+    ActionRequest,
+    ConstitutionConfig,
+    PolicyDecision,
+    Principal,
+    PublicPolicy,
+)
 from auton.demo.ports import (
     ConversationPort,
     CreateSession,
@@ -21,6 +30,12 @@ from auton.server.config import ServerConfig
 from auton.server.ports import BootstrapResponse, HealthResponse, ServerDependencies
 
 
+class PolicyRevision(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    expected_version: str
+    config: ConstitutionConfig
+
+
 class ServerFactory:
     def create(self, config: ServerConfig, deps: ServerDependencies) -> FastAPI:
         app = FastAPI(
@@ -28,7 +43,7 @@ class ServerFactory:
             version="0.1.0",
             lifespan=deps.lifespan,
             responses={
-                status: {"model": ErrorBody} for status in (401, 403, 404, 409, 429, 501, 503)
+                status: {"model": ErrorBody} for status in (401, 403, 404, 409, 422, 429, 501, 503)
             },
         )
         app.add_middleware(
@@ -43,11 +58,26 @@ class ServerFactory:
         )
         owners: set[str] = set()
 
+        @app.exception_handler(RequestValidationError)
+        async def invalid_request(
+            _request: Request, _error: RequestValidationError
+        ) -> JSONResponse:
+            return JSONResponse(
+                status_code=422,
+                content={
+                    "code": "invalid_request",
+                    "message": "请求或配置字段不合法；输入内容不会回显",
+                },
+            )
+
         @app.exception_handler(ApplicationError)
         async def application_error(_request: Request, error: ApplicationError) -> JSONResponse:
+            deps.logger.info("request_rejected code=%s", deps.redact(error.code))
             return JSONResponse(
                 status_code=error.status,
-                content=ErrorBody(code=error.code, message=str(error)).model_dump(),
+                content=ErrorBody(
+                    code=deps.redact(error.code), message=deps.redact(str(error))
+                ).model_dump(),
             )
 
         def service() -> ConversationPort:
@@ -89,7 +119,26 @@ class ServerFactory:
                 implementation=deps.implementation,
                 modules=deps.modules,
                 event_storage=deps.storage(),
+                policy=deps.control.public(),
             )
+
+        @app.get("/api/v1/policy")
+        async def public_policy(request: Request) -> PublicPolicy:
+            owner(request)
+            return deps.control.public()
+
+        @app.post("/api/v1/policy/preview")
+        async def preview_policy(request: Request, action: ActionRequest) -> PolicyDecision:
+            value = owner(request)
+            # HTTP callers cannot impersonate a human role via a preview body.
+            action = action.model_copy(update={"principal": Principal(owner=value, role="runtime")})
+            return deps.control.preview(action)
+
+        @app.post("/api/v1/policy/revisions")
+        async def revise_policy(request: Request, revision: PolicyRevision) -> PublicPolicy:
+            principal = Principal(owner=owner(request), role="user")
+            await deps.control.reconfigure(principal, revision.config, revision.expected_version)
+            return deps.control.public()
 
         @app.get("/api/v1/capabilities")
         async def capabilities() -> list[dict[str, object]]:
@@ -109,7 +158,19 @@ class ServerFactory:
 
         @app.post("/api/v1/sessions/{session_id}/messages", status_code=202)
         async def send(request: Request, session_id: str, command: SendMessage) -> Session:
-            return await service().send(owner(request), session_id, command)
+            value = owner(request)
+            decision = deps.control.preview(
+                ActionRequest(
+                    principal=Principal(owner=value),
+                    goal_id=session_id,
+                    goal_revision=1,
+                    operation_id=command.request_id,
+                    action="demo.start",
+                )
+            )
+            if decision.outcome != "allow":
+                raise ApplicationError(403, decision.reason_codes[0], "当前策略不允许启动此演示")
+            return await service().send(value, session_id, command)
 
         @app.post("/api/v1/sessions/{session_id}/stop")
         async def stop(request: Request, session_id: str, command: StopRun) -> Session:

@@ -1,7 +1,6 @@
 from auton.kernel.modules import ModuleDescriptor
 
 PLANNED = (
-    ("constitution", "固定策略与权限", "M03"),
     ("model", "执行模型网关", "M04"),
     ("judgment", "Jev 判断与路由", "M05"),
     ("tools", "工具宿主", "M06"),
@@ -45,6 +44,16 @@ def module_catalog(demo: bool) -> list[ModuleDescriptor]:
             config_schema="KernelConfig",
         ),
         ModuleDescriptor(
+            id="constitution",
+            title="固定策略与权限",
+            milestone="M03",
+            status="ready",
+            provides=("policy",),
+            requires=("event_log",),
+            factory_entry="constitution.ConstitutionFactory",
+            config_schema="ConstitutionConfig",
+        ),
+        ModuleDescriptor(
             id="demo",
             title="模拟会话",
             milestone="M01",
@@ -60,7 +69,9 @@ def module_catalog(demo: bool) -> list[ModuleDescriptor]:
             milestone="M01",
             status="ready",
             provides=("http",),
-            requires=("core", "event_log", "conversation") if demo else ("core", "event_log"),
+            requires=("core", "event_log", "policy", "conversation")
+            if demo
+            else ("core", "event_log", "policy"),
             factory_entry="server.ServerFactory",
             config_schema="ServerConfig",
         ),

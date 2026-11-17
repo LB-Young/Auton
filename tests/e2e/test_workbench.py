@@ -117,6 +117,33 @@ def test_ime_and_send_error_preserve_draft(page: Page) -> None:
 def test_persistent_kernel_is_distinct_from_demo_chat_storage(page: Page) -> None:
     page.get_by_role("button", name="设置与连接").click()
     expect(page.get_by_role("heading", name="设置与连接")).to_be_visible()
-    expect(page.locator("dl")).to_contain_text("SQLite · WAL/FULL")
-    expect(page.locator("dl")).to_contain_text("仅内存 · 重启服务后清空")
+    expect(
+        page.locator(".settings-card")
+        .filter(has=page.get_by_role("heading", name="连接状态"))
+        .locator("dl")
+    ).to_contain_text("SQLite · WAL/FULL")
+    expect(
+        page.locator(".settings-card")
+        .filter(has=page.get_by_role("heading", name="连接状态"))
+        .locator("dl")
+    ).to_contain_text("仅内存 · 重启服务后清空")
     screenshot(page, "M02-storage-settings.png")
+
+
+def test_policy_settings_do_not_expose_credentials(page: Page) -> None:
+    page.get_by_role("button", name="设置与连接").click()
+    expect(page.get_by_role("heading", name="权限与预算")).to_be_visible()
+    expect(
+        page.locator(".settings-card").filter(has=page.get_by_role("heading", name="权限与预算"))
+    ).to_contain_text("未授权外发")
+    expect(
+        page.locator(".settings-card").filter(has=page.get_by_role("heading", name="权限与预算"))
+    ).to_contain_text("100,000")
+    expect(
+        page.locator(".settings-card").filter(has=page.get_by_role("heading", name="权限与预算"))
+    ).to_contain_text("$5.00")
+    page.get_by_role("button", name="检查私密数据外发").click()
+    expect(page.get_by_role("status")).to_contain_text("禁止执行")
+    page.get_by_role("button", name="检查工具写入").click()
+    expect(page.get_by_role("status")).to_contain_text("需要批准")
+    screenshot(page, "M03-policy-settings.png")

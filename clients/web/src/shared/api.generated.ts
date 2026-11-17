@@ -72,6 +72,57 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/policy': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Public Policy */
+    get: operations['public_policy_api_v1_policy_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/policy/preview': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Preview Policy */
+    post: operations['preview_policy_api_v1_policy_preview_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/policy/revisions': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Revise Policy */
+    post: operations['revise_policy_api_v1_policy_revisions_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/sessions': {
     parameters: {
       query?: never;
@@ -145,6 +196,45 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
+    /** ActionRequest */
+    ActionRequest: {
+      /** Action */
+      action: string;
+      /**
+       * Autonomy
+       * @default 0
+       */
+      autonomy: number;
+      /**
+       * Data Domain
+       * @default local-only
+       * @enum {string}
+       */
+      data_domain: 'public' | 'local-only' | 'secret';
+      /**
+       * Destination
+       * @default local
+       * @enum {string}
+       */
+      destination: 'local' | 'remote';
+      /** Goal Id */
+      goal_id: string;
+      /** Goal Revision */
+      goal_revision: number;
+      /**
+       * Input Digest
+       * @default 0000000000000000000000000000000000000000000000000000000000000000
+       */
+      input_digest: string;
+      /**
+       * Operation Id
+       * @default preview
+       */
+      operation_id: string;
+      principal: components['schemas']['Principal'];
+      /** Provider */
+      provider?: string | null;
+    };
     /** Artifact */
     Artifact: {
       /** Content */
@@ -177,8 +267,79 @@ export interface components {
        * @constant
        */
       persistence: 'memory-only';
+      policy: components['schemas']['PublicPolicy'];
       /** Profile */
       profile: string;
+    };
+    /** ConstitutionConfig */
+    ConstitutionConfig: {
+      /**
+       * Allowed Actions
+       * @default [
+       *       "demo.start",
+       *       "demo.stop",
+       *       "model.generate",
+       *       "judgment.evaluate",
+       *       "tool.read",
+       *       "tool.write",
+       *       "dataset.read",
+       *       "model.train",
+       *       "asset.propose",
+       *       "release.activate"
+       *     ]
+       */
+      allowed_actions: (
+        | 'demo.start'
+        | 'demo.stop'
+        | 'model.generate'
+        | 'judgment.evaluate'
+        | 'tool.read'
+        | 'tool.write'
+        | 'dataset.read'
+        | 'model.train'
+        | 'asset.propose'
+        | 'release.activate'
+      )[];
+      /**
+       * Approval Actions
+       * @default [
+       *       "tool.write",
+       *       "release.activate"
+       *     ]
+       */
+      approval_actions: (
+        | 'demo.start'
+        | 'demo.stop'
+        | 'model.generate'
+        | 'judgment.evaluate'
+        | 'tool.read'
+        | 'tool.write'
+        | 'dataset.read'
+        | 'model.train'
+        | 'asset.propose'
+        | 'release.activate'
+      )[];
+      /**
+       * Authorization Ttl Seconds
+       * @default 300
+       */
+      authorization_ttl_seconds: number;
+      /**
+       * Autonomy Max
+       * @default 1
+       */
+      autonomy_max: number;
+      budget?: components['schemas']['Usage'];
+      /**
+       * Max Concurrent
+       * @default 4
+       */
+      max_concurrent: number;
+      /**
+       * Remote Providers
+       * @default []
+       */
+      remote_providers: ('deepseek' | 'typesafe')[];
     };
     /** CreateSession */
     CreateSession: {
@@ -191,11 +352,6 @@ export interface components {
       code: string;
       /** Message */
       message: string;
-    };
-    /** HTTPValidationError */
-    HTTPValidationError: {
-      /** Detail */
-      detail?: components['schemas']['ValidationError'][];
     };
     /** HealthResponse */
     HealthResponse: {
@@ -256,6 +412,58 @@ export interface components {
        * Version
        * @default 1
        */
+      version: string;
+    };
+    /** PolicyDecision */
+    PolicyDecision: {
+      /**
+       * Outcome
+       * @enum {string}
+       */
+      outcome: 'allow' | 'deny' | 'approval_required';
+      /** Policy Version */
+      policy_version: string;
+      /** Reason Codes */
+      reason_codes: string[];
+    };
+    /** PolicyRevision */
+    PolicyRevision: {
+      config: components['schemas']['ConstitutionConfig'];
+      /** Expected Version */
+      expected_version: string;
+    };
+    /** Principal */
+    Principal: {
+      /** Owner */
+      owner: string;
+      /**
+       * Role
+       * @default runtime
+       * @enum {string}
+       */
+      role: 'user' | 'runtime' | 'training' | 'evolution';
+    };
+    /** PublicPolicy */
+    PublicPolicy: {
+      /** Allowed Actions */
+      allowed_actions: string[];
+      /** Approval Actions */
+      approval_actions: string[];
+      /** Autonomy Max */
+      autonomy_max: number;
+      budget_per_goal: components['schemas']['Usage'];
+      /** Max Concurrent */
+      max_concurrent: number;
+      /**
+       * Remote Data Domains
+       * @default [
+       *       "public"
+       *     ]
+       */
+      remote_data_domains: 'public'[];
+      /** Remote Providers */
+      remote_providers: string[];
+      /** Version */
       version: string;
     };
     /** SendMessage */
@@ -370,18 +578,23 @@ export interface components {
       /** Synchronous */
       synchronous: string;
     };
-    /** ValidationError */
-    ValidationError: {
-      /** Context */
-      ctx?: Record<string, never>;
-      /** Input */
-      input?: unknown;
-      /** Location */
-      loc: (string | number)[];
-      /** Message */
-      msg: string;
-      /** Error Type */
-      type: string;
+    /** Usage */
+    Usage: {
+      /**
+       * Cost Microusd
+       * @default 0
+       */
+      cost_microusd: number;
+      /**
+       * Tokens
+       * @default 0
+       */
+      tokens: number;
+      /**
+       * Tool Calls
+       * @default 0
+       */
+      tool_calls: number;
     };
   };
   responses: never;
@@ -439,6 +652,15 @@ export interface operations {
       };
       /** @description Conflict */
       409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
         headers: {
           [name: string]: unknown;
         };
@@ -531,6 +753,15 @@ export interface operations {
           'application/json': components['schemas']['ErrorBody'];
         };
       };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
       /** @description Too Many Requests */
       429: {
         headers: {
@@ -609,6 +840,15 @@ export interface operations {
       };
       /** @description Conflict */
       409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
         headers: {
           [name: string]: unknown;
         };
@@ -699,6 +939,299 @@ export interface operations {
           'application/json': components['schemas']['ErrorBody'];
         };
       };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  public_policy_api_v1_policy_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['PublicPolicy'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  preview_policy_api_v1_policy_preview_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ActionRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['PolicyDecision'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  revise_policy_api_v1_policy_revisions_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['PolicyRevision'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['PublicPolicy'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
       /** @description Too Many Requests */
       429: {
         headers: {
@@ -775,6 +1308,15 @@ export interface operations {
       };
       /** @description Conflict */
       409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
         headers: {
           [name: string]: unknown;
         };
@@ -869,13 +1411,13 @@ export interface operations {
           'application/json': components['schemas']['ErrorBody'];
         };
       };
-      /** @description Validation Error */
+      /** @description Unprocessable Entity */
       422: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['HTTPValidationError'];
+          'application/json': components['schemas']['ErrorBody'];
         };
       };
       /** @description Too Many Requests */
@@ -963,13 +1505,13 @@ export interface operations {
           'application/json': components['schemas']['ErrorBody'];
         };
       };
-      /** @description Validation Error */
+      /** @description Unprocessable Entity */
       422: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['HTTPValidationError'];
+          'application/json': components['schemas']['ErrorBody'];
         };
       };
       /** @description Too Many Requests */
@@ -1061,13 +1603,13 @@ export interface operations {
           'application/json': components['schemas']['ErrorBody'];
         };
       };
-      /** @description Validation Error */
+      /** @description Unprocessable Entity */
       422: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['HTTPValidationError'];
+          'application/json': components['schemas']['ErrorBody'];
         };
       };
       /** @description Too Many Requests */
@@ -1159,13 +1701,13 @@ export interface operations {
           'application/json': components['schemas']['ErrorBody'];
         };
       };
-      /** @description Validation Error */
+      /** @description Unprocessable Entity */
       422: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['HTTPValidationError'];
+          'application/json': components['schemas']['ErrorBody'];
         };
       };
       /** @description Too Many Requests */

@@ -139,6 +139,7 @@ def check() -> None:
         ["-m", "mypy"],
         ["-m", "pytest", "-q", "-m", "not browser"],
         ["scripts/check_boundaries.py"],
+        ["scripts/check_secrets.py"],
     ]:
         run([PYTHON, *arguments])
     run([tool("lint-imports")])

@@ -1,6 +1,6 @@
 # M03：固定策略、权限与配置
 
-> 状态：计划中。当前仅建立开发计划，未实现本里程碑。
+> 状态：已完成（2026-11-17，本地验收通过）。见 [验收记录](./evidence/M03.md)。
 
 ## 目标与前置依赖
 
@@ -14,10 +14,10 @@ ConstitutionFactory、PolicyEvaluatorFactory。对外 Port、配置、实现选�
 
 ## 开发任务
 
-- [ ] 实现只读 Constitution、配置版本、权限域、隐私域和自主上限；用户修订生成新版本。
-- [ ] 定义 preflight/allow/deny/approval_required 结果与 reason codes；配置加载不能默默扩大权限。
-- [ ] 实现预算保留/消耗/释放的最小接口，取消/撤权令牌与 revision 校验，后续模块复用。
-- [ ] 区分开发密钥、本地 secret 和公开配置；服务端校验控制面命令，日志脱敏。
+- [x] 实现只读 Constitution、配置版本、权限域、隐私域和自主上限；用户修订生成新版本。
+- [x] 定义 preflight/allow/deny/approval_required 结果与 reason codes；配置加载不能默默扩大权限。
+- [x] 实现预算保留/消耗/释放的最小接口，取消/撤权令牌与 revision 校验，后续模块复用。
+- [x] 区分开发密钥、本地 secret 和公开配置；服务端校验控制面命令，日志脱敏。
 
 ## 前端交付
 

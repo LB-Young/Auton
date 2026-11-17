@@ -1,4 +1,6 @@
 import type {
+  ActionRequest,
+  PolicyDecision,
   Bootstrap,
   Session,
   ErrorBody,
@@ -37,6 +39,7 @@ export class ApiClientFactory {
     }
     return {
       bootstrap: () => request<Bootstrap>('/bootstrap'),
+      preview: (action: ActionRequest) => request<PolicyDecision>('/policy/preview', action),
       sessions: () => request<Session[]>('/sessions'),
       create: (request_id) => request<Session>('/sessions', { request_id } satisfies CreateSession),
       send: (id, content, request_id) =>

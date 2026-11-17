@@ -5,6 +5,8 @@ from fastapi import FastAPI
 
 from auton.bootstrap.config import ApplicationConfig, load_config
 from auton.bootstrap.registry import module_catalog
+from auton.constitution.factory import ConstitutionDependencies, ConstitutionFactory
+from auton.constitution.secrets import LoggerFactory, Redactor
 from auton.demo.config import DemoConfig
 from auton.demo.factory import DemoConversationFactory
 from auton.demo.ports import ConversationPort
@@ -41,6 +43,9 @@ class ApplicationFactory:
         modules = module_catalog(enabled)
         resolve_modules(modules)
         kernel = KernelFactory().create(config.kernel, deps)
+        control = ConstitutionFactory().create(
+            config.constitution, ConstitutionDependencies(kernel.events, deps)
+        )
         conversation: ConversationPort | None = None
         factory: ModuleFactory[DemoConfig, RuntimeDependencies, ConversationPort]
         factory = DemoConversationFactory()
@@ -53,8 +58,9 @@ class ApplicationFactory:
                 deps,
             )
         runtime = ApplicationRuntime(
-            [kernel, conversation] if conversation is not None else [kernel]
+            [kernel, control, conversation] if conversation is not None else [kernel, control]
         )
+        redactor = Redactor()
         return ServerFactory().create(
             ServerConfig(profile=config.profile, allowed_origins=config.allowed_origins),
             ServerDependencies(
@@ -64,6 +70,9 @@ class ApplicationFactory:
                 lifespan=runtime.lifespan,
                 is_ready=lambda: runtime.ready,
                 storage=kernel.info,
+                control=control,
+                redact=redactor.text,
+                logger=LoggerFactory().create(redactor),
             ),
         )
 

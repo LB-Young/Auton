@@ -1,6 +1,89 @@
 {
   "components": {
     "schemas": {
+      "ActionRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Action",
+            "type": "string"
+          },
+          "autonomy": {
+            "default": 0,
+            "maximum": 3.0,
+            "minimum": 0.0,
+            "title": "Autonomy",
+            "type": "integer"
+          },
+          "data_domain": {
+            "default": "local-only",
+            "enum": [
+              "public",
+              "local-only",
+              "secret"
+            ],
+            "title": "Data Domain",
+            "type": "string"
+          },
+          "destination": {
+            "default": "local",
+            "enum": [
+              "local",
+              "remote"
+            ],
+            "title": "Destination",
+            "type": "string"
+          },
+          "goal_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Goal Id",
+            "type": "string"
+          },
+          "goal_revision": {
+            "minimum": 1.0,
+            "title": "Goal Revision",
+            "type": "integer"
+          },
+          "input_digest": {
+            "default": "0000000000000000000000000000000000000000000000000000000000000000",
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Input Digest",
+            "type": "string"
+          },
+          "operation_id": {
+            "default": "preview",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Operation Id",
+            "type": "string"
+          },
+          "principal": {
+            "$ref": "#/components/schemas/Principal"
+          },
+          "provider": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider"
+          }
+        },
+        "required": [
+          "principal",
+          "goal_id",
+          "goal_revision",
+          "action"
+        ],
+        "title": "ActionRequest",
+        "type": "object"
+      },
       "Artifact": {
         "additionalProperties": false,
         "properties": {
@@ -63,6 +146,9 @@
             "title": "Persistence",
             "type": "string"
           },
+          "policy": {
+            "$ref": "#/components/schemas/PublicPolicy"
+          },
           "profile": {
             "title": "Profile",
             "type": "string"
@@ -73,9 +159,107 @@
           "demo",
           "implementation",
           "modules",
-          "event_storage"
+          "event_storage",
+          "policy"
         ],
         "title": "BootstrapResponse",
+        "type": "object"
+      },
+      "ConstitutionConfig": {
+        "additionalProperties": false,
+        "properties": {
+          "allowed_actions": {
+            "default": [
+              "demo.start",
+              "demo.stop",
+              "model.generate",
+              "judgment.evaluate",
+              "tool.read",
+              "tool.write",
+              "dataset.read",
+              "model.train",
+              "asset.propose",
+              "release.activate"
+            ],
+            "items": {
+              "enum": [
+                "demo.start",
+                "demo.stop",
+                "model.generate",
+                "judgment.evaluate",
+                "tool.read",
+                "tool.write",
+                "dataset.read",
+                "model.train",
+                "asset.propose",
+                "release.activate"
+              ],
+              "type": "string"
+            },
+            "title": "Allowed Actions",
+            "type": "array"
+          },
+          "approval_actions": {
+            "default": [
+              "tool.write",
+              "release.activate"
+            ],
+            "items": {
+              "enum": [
+                "demo.start",
+                "demo.stop",
+                "model.generate",
+                "judgment.evaluate",
+                "tool.read",
+                "tool.write",
+                "dataset.read",
+                "model.train",
+                "asset.propose",
+                "release.activate"
+              ],
+              "type": "string"
+            },
+            "title": "Approval Actions",
+            "type": "array"
+          },
+          "authorization_ttl_seconds": {
+            "default": 300,
+            "maximum": 3600.0,
+            "minimum": 1.0,
+            "title": "Authorization Ttl Seconds",
+            "type": "integer"
+          },
+          "autonomy_max": {
+            "default": 1,
+            "maximum": 3.0,
+            "minimum": 0.0,
+            "title": "Autonomy Max",
+            "type": "integer"
+          },
+          "budget": {
+            "$ref": "#/components/schemas/Usage"
+          },
+          "max_concurrent": {
+            "default": 4,
+            "maximum": 32.0,
+            "minimum": 1.0,
+            "title": "Max Concurrent",
+            "type": "integer"
+          },
+          "remote_providers": {
+            "default": [],
+            "items": {
+              "enum": [
+                "deepseek",
+                "typesafe"
+              ],
+              "type": "string"
+            },
+            "title": "Remote Providers",
+            "type": "array"
+          }
+        },
+        "title": "ConstitutionConfig",
         "type": "object"
       },
       "CreateSession": {
@@ -111,19 +295,6 @@
           "message"
         ],
         "title": "ErrorBody",
-        "type": "object"
-      },
-      "HTTPValidationError": {
-        "properties": {
-          "detail": {
-            "items": {
-              "$ref": "#/components/schemas/ValidationError"
-            },
-            "title": "Detail",
-            "type": "array"
-          }
-        },
-        "title": "HTTPValidationError",
         "type": "object"
       },
       "HealthResponse": {
@@ -261,6 +432,144 @@
           "status"
         ],
         "title": "ModuleDescriptor",
+        "type": "object"
+      },
+      "PolicyDecision": {
+        "properties": {
+          "outcome": {
+            "enum": [
+              "allow",
+              "deny",
+              "approval_required"
+            ],
+            "title": "Outcome",
+            "type": "string"
+          },
+          "policy_version": {
+            "title": "Policy Version",
+            "type": "string"
+          },
+          "reason_codes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reason Codes",
+            "type": "array"
+          }
+        },
+        "required": [
+          "outcome",
+          "reason_codes",
+          "policy_version"
+        ],
+        "title": "PolicyDecision",
+        "type": "object"
+      },
+      "PolicyRevision": {
+        "additionalProperties": false,
+        "properties": {
+          "config": {
+            "$ref": "#/components/schemas/ConstitutionConfig"
+          },
+          "expected_version": {
+            "title": "Expected Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "expected_version",
+          "config"
+        ],
+        "title": "PolicyRevision",
+        "type": "object"
+      },
+      "Principal": {
+        "additionalProperties": false,
+        "properties": {
+          "owner": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Owner",
+            "type": "string"
+          },
+          "role": {
+            "default": "runtime",
+            "enum": [
+              "user",
+              "runtime",
+              "training",
+              "evolution"
+            ],
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "owner"
+        ],
+        "title": "Principal",
+        "type": "object"
+      },
+      "PublicPolicy": {
+        "properties": {
+          "allowed_actions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Allowed Actions",
+            "type": "array"
+          },
+          "approval_actions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Approval Actions",
+            "type": "array"
+          },
+          "autonomy_max": {
+            "title": "Autonomy Max",
+            "type": "integer"
+          },
+          "budget_per_goal": {
+            "$ref": "#/components/schemas/Usage"
+          },
+          "max_concurrent": {
+            "title": "Max Concurrent",
+            "type": "integer"
+          },
+          "remote_data_domains": {
+            "default": [
+              "public"
+            ],
+            "items": {
+              "const": "public",
+              "type": "string"
+            },
+            "title": "Remote Data Domains",
+            "type": "array"
+          },
+          "remote_providers": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Remote Providers",
+            "type": "array"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "version",
+          "allowed_actions",
+          "remote_providers",
+          "approval_actions",
+          "autonomy_max",
+          "budget_per_goal",
+          "max_concurrent"
+        ],
+        "title": "PublicPolicy",
         "type": "object"
       },
       "SendMessage": {
@@ -535,44 +844,29 @@
         "title": "StorageInfo",
         "type": "object"
       },
-      "ValidationError": {
+      "Usage": {
+        "additionalProperties": false,
         "properties": {
-          "ctx": {
-            "title": "Context",
-            "type": "object"
+          "cost_microusd": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Cost Microusd",
+            "type": "integer"
           },
-          "input": {
-            "title": "Input"
+          "tokens": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Tokens",
+            "type": "integer"
           },
-          "loc": {
-            "items": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "integer"
-                }
-              ]
-            },
-            "title": "Location",
-            "type": "array"
-          },
-          "msg": {
-            "title": "Message",
-            "type": "string"
-          },
-          "type": {
-            "title": "Error Type",
-            "type": "string"
+          "tool_calls": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Tool Calls",
+            "type": "integer"
           }
         },
-        "required": [
-          "loc",
-          "msg",
-          "type"
-        ],
-        "title": "ValidationError",
+        "title": "Usage",
         "type": "object"
       }
     }
@@ -636,6 +930,16 @@
               }
             },
             "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
           },
           "429": {
             "content": {
@@ -730,6 +1034,16 @@
             },
             "description": "Conflict"
           },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
           "429": {
             "content": {
               "application/json": {
@@ -820,6 +1134,16 @@
             },
             "description": "Conflict"
           },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
           "429": {
             "content": {
               "application/json": {
@@ -908,6 +1232,16 @@
             },
             "description": "Conflict"
           },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
           "429": {
             "content": {
               "application/json": {
@@ -940,6 +1274,320 @@
           }
         },
         "summary": "Health"
+      }
+    },
+    "/api/v1/policy": {
+      "get": {
+        "operationId": "public_policy_api_v1_policy_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicPolicy"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Public Policy"
+      }
+    },
+    "/api/v1/policy/preview": {
+      "post": {
+        "operationId": "preview_policy_api_v1_policy_preview_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PolicyDecision"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Preview Policy"
+      }
+    },
+    "/api/v1/policy/revisions": {
+      "post": {
+        "operationId": "revise_policy_api_v1_policy_revisions_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PolicyRevision"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicPolicy"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Revise Policy"
       }
     },
     "/api/v1/sessions": {
@@ -999,6 +1647,16 @@
               }
             },
             "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
           },
           "429": {
             "content": {
@@ -1100,11 +1758,11 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/ErrorBody"
                 }
               }
             },
-            "description": "Validation Error"
+            "description": "Unprocessable Entity"
           },
           "429": {
             "content": {
@@ -1209,11 +1867,11 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/ErrorBody"
                 }
               }
             },
-            "description": "Validation Error"
+            "description": "Unprocessable Entity"
           },
           "429": {
             "content": {
@@ -1328,11 +1986,11 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/ErrorBody"
                 }
               }
             },
-            "description": "Validation Error"
+            "description": "Unprocessable Entity"
           },
           "429": {
             "content": {
@@ -1447,11 +2105,11 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/ErrorBody"
                 }
               }
             },
-            "description": "Validation Error"
+            "description": "Unprocessable Entity"
           },
           "429": {
             "content": {
