@@ -1544,3 +1544,27 @@ svg {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+.assessment-page pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 28rem;
+  overflow-y: auto;
+}
+.assessment-page code {
+  overflow-wrap: anywhere;
+}
+.assessment-page details {
+  margin-block: 0.75rem;
+}
+.assessment-page summary {
+  cursor: pointer;
+}
+.assessment-page .assessment-report {
+  display: block;
+  margin-block: 0.5rem;
+}
+.assessment-page select,
+.assessment-page textarea {
+  max-width: 100%;
+}

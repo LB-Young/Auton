@@ -1,7 +1,7 @@
 import hashlib
 from typing import Annotated, Literal
 
-from pydantic import Field, model_validator
+from pydantic import Field, JsonValue, model_validator
 
 from auton.judgment.contracts import JudgmentResult
 from auton.model.contracts import Contract, ModelMessage, ModelResult, ToolCall
@@ -104,6 +104,8 @@ class AgentRun(Contract):
     phase: Literal["idle", "judgment", "context", "model", "tool", "acceptance"] = "idle"
     reason: str = "queued"
     steps: int = 0
+    budget_limits: dict[str, int] = Field(default_factory=dict)
+    executor_spec: dict[str, JsonValue] = Field(default_factory=dict)
     tokens_used: int = 0
     cost_microusd: int = 0
     model_results: tuple[ModelResult, ...] = ()

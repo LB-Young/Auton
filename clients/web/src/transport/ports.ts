@@ -29,6 +29,7 @@ import type {
 } from '../shared/contracts';
 
 export interface ApiClient {
+  assessment: AssessmentApi;
   runHistory(
     project: string,
     after: number,
@@ -104,4 +105,35 @@ export interface RunEventStream {
     onFrame: (frame: import('../shared/contracts').RunFrame) => void,
     onConnection: (connected: boolean) => void,
   ): () => void;
+}
+
+export interface AssessmentApi {
+  status(): Promise<import('../shared/contracts').AssessmentStatus>;
+  bank(): Promise<import('../shared/contracts').CaseBank>;
+  seed(
+    command: import('../shared/contracts').SeedCommand,
+  ): Promise<import('../shared/contracts').CaseBank>;
+  importCases(
+    command: import('../shared/contracts').ImportCases,
+  ): Promise<import('../shared/contracts').CaseBank>;
+  windows(): Promise<import('../shared/contracts').WindowView[]>;
+  openWindow(
+    command: import('../shared/contracts').BlindWindowCommand,
+  ): Promise<import('../shared/contracts').BlindWindow>;
+  evaluate(
+    command: import('../shared/contracts').EvaluateCommand,
+  ): Promise<import('../shared/contracts').EvalJob>;
+  job(id: string): Promise<import('../shared/contracts').EvalJob>;
+  reports(project: string): Promise<import('../shared/contracts').EvalReport[]>;
+  aggregate(project: string): Promise<import('../shared/contracts').Aggregate>;
+  compare(
+    command: import('../shared/contracts').CompareCommand,
+  ): Promise<import('../shared/contracts').Comparison>;
+  calibrations(): Promise<import('../shared/contracts').CalibrationReport[]>;
+  calibrate(
+    command: import('../shared/contracts').CalibrationCommand,
+  ): Promise<import('../shared/contracts').CalibrationReport>;
+  batch(
+    command: import('../shared/contracts').BatchEvaluation,
+  ): Promise<import('../shared/contracts').BatchResult>;
 }

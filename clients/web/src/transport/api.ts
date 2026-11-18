@@ -54,6 +54,24 @@ export class ApiClientFactory {
       return (await response.json()) as T;
     }
     return {
+      assessment: {
+        status: () => request('/assessment/status'),
+        bank: () => request('/assessment/bank'),
+        seed: (command) => request('/assessment/seed', command),
+        importCases: (command) => request('/assessment/bank', command),
+        windows: () => request('/assessment/windows'),
+        openWindow: (command) => request('/assessment/windows', command),
+        evaluate: (command) => request('/assessment/jobs', command),
+        job: (id) => request(`/assessment/jobs/${encodeURIComponent(id)}`),
+        reports: (project) =>
+          request(`/assessment/reports?project_id=${encodeURIComponent(project)}`),
+        aggregate: (project) =>
+          request(`/assessment/aggregate?project_id=${encodeURIComponent(project)}`),
+        compare: (command) => request('/assessment/compare', command),
+        calibrations: () => request('/assessment/calibrations'),
+        calibrate: (command) => request('/assessment/calibrations', command),
+        batch: (command) => request('/assessment/batches', command),
+      },
       runHistory: (project_id, after, search) =>
         request(
           `/agent/history?${new URLSearchParams({ project_id, after: String(after), search })}`,

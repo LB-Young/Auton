@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
 
+from auton.assess.contracts import AssessConfig
 from auton.bootstrap.app import ApplicationFactory, ApplicationRuntime
 from auton.bootstrap.config import ApplicationConfig
 from auton.demo.config import DemoConfig
@@ -21,10 +22,11 @@ from auton.server.identity import ServerSettings
 
 @pytest.mark.parametrize("implementation", ["echo", "scripted"])
 def test_factory_swap_has_identical_http_and_event_contract(
-    implementation: str, deps: RuntimeDependencies
+    implementation: str, deps: RuntimeDependencies, tmp_path: Path
 ) -> None:
     app = ApplicationFactory().create(
         ApplicationConfig(
+            assess=AssessConfig(directory=tmp_path / "assess"),
             kernel=KernelConfig(backend="memory"),
             server=ServerSettings(identity_backend="memory"),
             profile="test",
@@ -91,6 +93,7 @@ def test_invalid_configuration_is_rejected(config: dict[str, object]) -> None:
 def test_real_profile_never_uses_demo(deps: RuntimeDependencies, tmp_path: Path) -> None:
     app = ApplicationFactory().create(
         ApplicationConfig(
+            assess=AssessConfig(directory=tmp_path / "assess"),
             server=ServerSettings(directory=tmp_path / "server"),
             profile="production",
             implementation="disabled",

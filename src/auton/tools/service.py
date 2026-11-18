@@ -27,6 +27,7 @@ from auton.tools.contracts import (
     ToolReceipt,
     ToolRequest,
     ToolWorkspace,
+    workspace_event_id,
 )
 from auton.tools.ledger import OperationLedger
 from auton.tools.ports import ToolAdapterPort, ToolError
@@ -112,7 +113,7 @@ class ToolHost:
 
     @staticmethod
     def workspace_event(owner: str, workspace_id: str) -> str:
-        return "tool-workspace:" + OperationLedger.key(owner, workspace_id)
+        return workspace_event_id(owner, workspace_id)
 
     async def workspace(self, principal: Principal, workspace_id: str) -> ToolWorkspace:
         stored = await self.deps.events.lookup(self.workspace_event(principal.owner, workspace_id))

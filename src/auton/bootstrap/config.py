@@ -7,6 +7,7 @@ from urllib.parse import urlsplit
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from auton.agent.contracts import AgentConfig
+from auton.assess.contracts import AssessConfig
 from auton.constitution.config import ConstitutionConfig
 from auton.context.contracts import ContextConfig
 from auton.experience.contracts import ExperienceConfig
@@ -19,6 +20,7 @@ from auton.tools.config import ToolConfig
 
 
 class ApplicationConfig(BaseModel):
+    assess: AssessConfig = Field(default_factory=AssessConfig)
     model_config = ConfigDict(extra="forbid", frozen=True, hide_input_in_errors=True)
     server: ServerSettings = Field(default_factory=ServerSettings)
     experience: ExperienceConfig = Field(default_factory=ExperienceConfig)

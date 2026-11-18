@@ -8,6 +8,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 
 from auton.agent.ports import AgentRuntimePort
+from auton.assess.ports import AssessPort
 from auton.constitution.config import PublicPolicy
 from auton.constitution.ports import PolicyControlPort
 from auton.context.ports import ContextEnginePort
@@ -55,6 +56,7 @@ class ServerDependencies:
     commands: CommandHandlerPort
     identity: IdentityPort
     events: EventLogPort
+    assess: AssessPort
     experience: ExperiencePort
     agent: AgentRuntimePort
     context: ContextEnginePort

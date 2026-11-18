@@ -13,6 +13,26 @@ from pydantic import BaseModel, ConfigDict, Field, JsonValue, model_validator
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from auton.agent.contracts import AgentRun, CreateRun, RunCommand, RunPage
+from auton.assess.contracts import (
+    Aggregate,
+    AssessmentStatus,
+    BatchEvaluation,
+    BatchResult,
+    BlindWindow,
+    BlindWindowCommand,
+    CalibrationCommand,
+    CalibrationReport,
+    CaseBank,
+    CompareCommand,
+    Comparison,
+    EvalCase,
+    EvalJob,
+    EvalReport,
+    EvaluateCommand,
+    ImportCases,
+    SeedCommand,
+    WindowView,
+)
 from auton.constitution.config import (
     ActionRequest,
     ConstitutionConfig,
@@ -403,6 +423,85 @@ class ServerFactory:
             return await deps.commands.recover(
                 Principal(owner=owner(request), role="user"), project_id, run_id, command
             )
+
+        @app.get("/api/v1/assessment/status")
+        async def assessment_status(request: Request) -> AssessmentStatus:
+            owner(request)
+            return deps.assess.status()
+
+        @app.get("/api/v1/assessment/bank")
+        async def assessment_bank(request: Request) -> CaseBank:
+            return await deps.assess.bank(Principal(owner=owner(request), role="user"))
+
+        @app.post("/api/v1/assessment/bank")
+        async def import_assessment_cases(request: Request, command: ImportCases) -> CaseBank:
+            return await deps.assess.import_cases(
+                Principal(owner=owner(request), role="user"), command
+            )
+
+        @app.post("/api/v1/assessment/seed")
+        async def seed_assessment_cases(request: Request, command: SeedCommand) -> CaseBank:
+            return await deps.assess.seed(Principal(owner=owner(request), role="user"), command)
+
+        @app.get("/api/v1/assessment/train-cases")
+        async def assessment_training_cases(request: Request) -> tuple[EvalCase, ...]:
+            return await deps.assess.train_cases(Principal(owner=owner(request), role="user"))
+
+        @app.get("/api/v1/assessment/windows")
+        async def assessment_windows(request: Request) -> tuple[WindowView, ...]:
+            return await deps.assess.windows(Principal(owner=owner(request), role="user"))
+
+        @app.post("/api/v1/assessment/windows")
+        async def assessment_window(request: Request, command: BlindWindowCommand) -> BlindWindow:
+            return await deps.assess.open_window(
+                Principal(owner=owner(request), role="user"), command
+            )
+
+        @app.post("/api/v1/assessment/jobs")
+        async def evaluate_run(request: Request, command: EvaluateCommand) -> EvalJob:
+            return await deps.assess.evaluate(Principal(owner=owner(request), role="user"), command)
+
+        @app.get("/api/v1/assessment/jobs/{job_id}")
+        async def assessment_job(request: Request, job_id: str) -> EvalJob:
+            return await deps.assess.job(Principal(owner=owner(request), role="user"), job_id)
+
+        @app.get("/api/v1/assessment/reports")
+        async def assessment_reports(request: Request, project_id: str) -> tuple[EvalReport, ...]:
+            return await deps.assess.reports(
+                Principal(owner=owner(request), role="user"), project_id
+            )
+
+        @app.get("/api/v1/assessment/reports/{report_id}")
+        async def assessment_report(request: Request, report_id: str) -> EvalReport:
+            return await deps.assess.report(Principal(owner=owner(request), role="user"), report_id)
+
+        @app.get("/api/v1/assessment/aggregate")
+        async def assessment_aggregate(request: Request, project_id: str) -> Aggregate:
+            return await deps.assess.aggregate(
+                Principal(owner=owner(request), role="user"), project_id
+            )
+
+        @app.post("/api/v1/assessment/compare")
+        async def compare_assessment(request: Request, command: CompareCommand) -> Comparison:
+            return await deps.assess.compare(
+                Principal(owner=owner(request), role="user"), command.baseline, command.candidate
+            )
+
+        @app.post("/api/v1/assessment/batches")
+        async def assessment_batch(request: Request, command: BatchEvaluation) -> BatchResult:
+            return await deps.assess.batch(Principal(owner=owner(request), role="user"), command)
+
+        @app.post("/api/v1/assessment/calibrations")
+        async def calibrate_judge(
+            request: Request, command: CalibrationCommand
+        ) -> CalibrationReport:
+            return await deps.assess.calibrate(
+                Principal(owner=owner(request), role="user"), command
+            )
+
+        @app.get("/api/v1/assessment/calibrations")
+        async def assessment_calibrations(request: Request) -> tuple[CalibrationReport, ...]:
+            return await deps.assess.calibrations(Principal(owner=owner(request), role="user"))
 
         @app.get("/api/v1/agent/history")
         async def run_history(

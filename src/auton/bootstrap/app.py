@@ -5,6 +5,8 @@ from fastapi import FastAPI
 
 from auton.agent.factory import AgentRuntimeFactory
 from auton.agent.service import AgentDependencies
+from auton.assess.factory import AssessFactory
+from auton.assess.service import AssessDependencies
 from auton.bootstrap.config import ApplicationConfig, load_config
 from auton.bootstrap.registry import module_catalog
 from auton.constitution.factory import ConstitutionDependencies, ConstitutionFactory
@@ -20,6 +22,7 @@ from auton.genome.factory import GenomeFactory
 from auton.genome.service import GenomeDependencies
 from auton.judgment.factory import JudgmentFactory
 from auton.judgment.service import JudgmentDependencies
+from auton.kernel.config import KernelConfig
 from auton.kernel.factory import ClockFactory, IdentifierFactory, KernelFactory
 from auton.kernel.modules import resolve_modules
 from auton.kernel.ports import LifecycleHandle, ModuleFactory, RuntimeDependencies
@@ -89,6 +92,21 @@ class ApplicationFactory:
         experience = ExperienceFactory().create(
             config.experience, ExperienceDependencies(kernel.events, agent, genome, context, deps)
         )
+        judge_kernel = KernelFactory().create(
+            KernelConfig(
+                backend=config.kernel.backend,
+                data_directory=config.assess.directory / "judge-journal",
+            ),
+            deps,
+        )
+        judge_models = ModelGatewayFactory().create(
+            config.models,
+            GatewayDependencies(control, judge_kernel.events, deps, SecretStoreFactory().create()),
+        )
+        assess = AssessFactory().create(
+            config.assess,
+            AssessDependencies(agent, tools, context, judge_models, kernel.events, deps, True),
+        )
         identity = IdentityFactory().create(config.server, deps)
         commands = CommandHandlerFactory().create(agent, experience)
         uploads = UploadFactory().create(config.server, genome, deps)
@@ -114,6 +132,9 @@ class ApplicationFactory:
                 context,
                 agent,
                 experience,
+                judge_kernel,
+                judge_models,
+                assess,
                 identity,
                 commands,
                 uploads,
@@ -130,6 +151,9 @@ class ApplicationFactory:
                 context,
                 agent,
                 experience,
+                judge_kernel,
+                judge_models,
+                assess,
                 identity,
                 commands,
                 uploads,
@@ -157,6 +181,7 @@ class ApplicationFactory:
                 context=context,
                 agent=agent,
                 experience=experience,
+                assess=assess,
                 identity=identity,
                 commands=commands,
                 feedback=FeedbackFactory().create(agent, kernel.events, deps),

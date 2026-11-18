@@ -16,7 +16,7 @@ from playwright.sync_api import expect, sync_playwright
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def main(reuse_completed: bool = False) -> None:
+def main(reuse_completed: bool = False, assess: bool = False) -> None:
     root = ROOT / ".auton_local/workbench-smoke"
     root.mkdir(parents=True, exist_ok=True, mode=0o700)
     api_port, web_port = free_port(), free_port()
@@ -35,6 +35,7 @@ def main(reuse_completed: bool = False) -> None:
         ("genome", "assets"),
         ("agent", "agent"),
         ("experience", "experience"),
+        ("assess", "assess"),
     ]:
         field = "data_directory" if section == "kernel" else "directory"
         text += f"[{section}]\n{field} = {json.dumps(str(root / folder))}\n"
@@ -112,6 +113,40 @@ def main(reuse_completed: bool = False) -> None:
             output.mkdir(exist_ok=True)
             page.screenshot(path=str(output / "M12-native-preview.png"), full_page=True)
             page.keyboard.press("Escape")
+            assessment_reports = []
+            if assess:
+                for semantic in (False, True):
+                    response = page.request.post(
+                        base + "/api/v1/assessment/jobs",
+                        headers={"X-Auton-Client": "web", "Origin": base},
+                        data={
+                            "request_id": "native-assess-" + str(semantic) + "-" + run_id[:48],
+                            "project_id": "browser-smoke",
+                            "run_id": run_id,
+                            "expected_version": run["version"],
+                            "semantic": semantic,
+                            "repeats": 2 if semantic else 1,
+                        },
+                        timeout=150000,
+                    )
+                    assert response.ok, response.text()
+                    report = response.json()["report"]
+                    assert report and report["source"] == "runtime"
+                    assert not report["quality_release_eligible"]
+                    if not semantic:
+                        assert report["outcome"] == "pass"
+                        if not reuse_completed:
+                            assert report["environment_verified"]
+                    else:
+                        assert report["outcome"] == "unknown"
+                        assert len(report["judges"]) == 2
+                        assert all(j["source"] == "remote" for j in report["judges"])
+                    assessment_reports.append(report)
+                page.goto(base + "?view=assess")
+                page.get_by_label("评测项目", exact=True).select_option("browser-smoke")
+                expect(page.get_by_label("评测统计")).to_contain_text("真实运行：1")
+                page.screenshot(path=str(output / "M13-native-assessment.png"), full_page=True)
+                page.goto(base + "?view=agent&project=browser-smoke&run=" + run_id)
             saved_url = page.url
             before = page.request.get(base + "/api/v1/bootstrap").json()["identity"]["identity_id"]
             print("Native task passed; restarting only the isolated backend.", flush=True)
@@ -153,6 +188,7 @@ def main(reuse_completed: bool = False) -> None:
                 "artifact_sha256": hashlib.sha256(artifact.body()).hexdigest(),
                 "identity_preserved": before == after,
                 "restart_reissued_model_calls": 0,
+                "assessment_reports": assessment_reports,
             }
             (output / "workbench-native.json").write_text(json.dumps(summary, indent=2) + "\n")
             print(json.dumps(summary), flush=True)
@@ -167,4 +203,10 @@ if __name__ == "__main__":
         action="store_true",
         help="Inspect a completed fixture using private browser state; no new model calls",
     )
-    main(parser.parse_args().reuse_completed)
+    parser.add_argument(
+        "--assess",
+        action="store_true",
+        help="Also run independent checks and two real private-journal judge calls (API cost)",
+    )
+    args = parser.parse_args()
+    main(args.reuse_completed, args.assess)

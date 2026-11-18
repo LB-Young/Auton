@@ -108,3 +108,12 @@ class AdapterResult(Contract):
     exit_code: int | None = None
     sha256: str | None = None
     size_bytes: int = 0
+
+
+def workspace_event_id(owner: str, workspace_id: str) -> str:
+    return "tool-workspace:" + hashlib.sha256((owner + "\0" + workspace_id).encode()).hexdigest()
+
+
+def operation_event_id(owner: str, operation_id: str, stage: str) -> str:
+    hashed = hashlib.sha256((owner + "\0" + operation_id).encode()).hexdigest()
+    return f"tool:{hashed}:{stage}"

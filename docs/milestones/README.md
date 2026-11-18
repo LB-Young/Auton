@@ -31,7 +31,7 @@
 | [M10 轨迹投影、检查点与恢复](./M10-experience.md) | M02、M09 | ExperienceFactory、ProjectionFactory、CheckpointRepositoryFactory | 删掉可重建投影后从 EventLog 恢复得到一致查询结果。 | 已完成（单机轨迹与恢复） |
 | [M11 服务端 API、命令与事件流](./M11-server.md) | M03、M09、M10 | ServerFactory、CommandHandlerFactory、EventStreamFactory | 浏览器断开不取消服务端任务；重连后正确恢复状态且不重复命令。 | 已完成（本机服务协议） |
 | [M12 前端工作台完善与真实联调](./M12-web.md) | M07、M09、M10、M11 | WebAppFactory、createChatFeature、createProjectsFeature、ArtifactViewerFactory | 真实任务从新建到审批、工具、产物、刷新恢复可完整操作。 | 已完成（受控真实任务工作台） |
-| [M13 独立评估、可信信号与校准](./M13-assess.md) | M03、M10 | AssessFactory、CheckerFactory、JudgeFactory、EvalStoreFactory | 评测者不能被优化/训练模块修改，test/meta 不泄漏给候选生成器。 | 计划中 |
+| [M13 独立评估、可信信号与校准](./M13-assess.md) | M03、M10 | AssessFactory、CheckerFactory、JudgeFactory、EvalStoreFactory | 评测者不能被优化/训练模块修改，test/meta 不泄漏给候选生成器。 | 工程验收通过；语义校准门禁关闭 |
 | [M14 多 Agent 委派与结果集成](./M14-delegation.md) | M06、M09、M10、M13 | DelegationFactory、RoleFactory、WorkspaceLeaseFactory、ResultIntegratorFactory | 同一受控任务的单/多 Agent 对照记录总成本与收益，不以更多调用宣称提升。 | 计划中 |
 | [M15 资产诊断、候选补丁与门禁](./M15-evolve.md) | M07、M13 | EvolutionFactory、DiagnoserFactory、MutationStrategyFactory、GateFactory | 用一个受控 Skill 改进案例跑通候选到评测报告，失败候选被保留原因。 | 计划中 |
 | [M16 决策轨迹复核与样本筛选](./M16-decision-review.md) | M05、M10、M13 | DecisionReviewFactory、AttributionPolicyFactory、ReviewerAdapterFactory | 错误但被补救成功的判断不会自动 KEEP，合理但环境失败的判断不会机械 DROP。 | 计划中 |

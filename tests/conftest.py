@@ -7,6 +7,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from auton.agent.contracts import AgentConfig
+from auton.assess.contracts import AssessConfig
 from auton.bootstrap.app import ApplicationFactory
 from auton.bootstrap.config import ApplicationConfig
 from auton.experience.contracts import ExperienceConfig
@@ -28,6 +29,7 @@ def deps() -> RuntimeDependencies:
 def client(deps: RuntimeDependencies, tmp_path: Path) -> Iterator[TestClient]:
     app = ApplicationFactory().create(
         ApplicationConfig(
+            assess=AssessConfig(directory=tmp_path / "assess"),
             kernel=KernelConfig(backend="memory"),
             tools=ToolConfig(directory=tmp_path / "tools"),
             experience=ExperienceConfig(directory=tmp_path / "experience"),

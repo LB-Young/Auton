@@ -5,7 +5,7 @@ from pydantic import JsonValue
 from auton.kernel.events import Event, EventScope
 from auton.kernel.ports import RuntimeDependencies
 from auton.kernel.storage import EventLogPort, StorageError
-from auton.tools.contracts import ToolRequest
+from auton.tools.contracts import ToolRequest, operation_event_id
 from auton.tools.ports import ToolError
 
 
@@ -18,14 +18,14 @@ class OperationLedger:
         return hashlib.sha256((owner + "\0" + operation).encode()).hexdigest()
 
     async def get(self, owner: str, operation: str, stage: str) -> dict[str, JsonValue] | None:
-        value = await self.events.lookup(f"tool:{self.key(owner, operation)}:{stage}")
+        value = await self.events.lookup(operation_event_id(owner, operation, stage))
         return value.event.payload if value else None
 
     async def put(
         self, request: ToolRequest, stage: str, payload: dict[str, JsonValue]
     ) -> dict[str, JsonValue]:
         event = Event(
-            event_id=f"tool:{self.key(request.principal.owner, request.operation_id)}:{stage}",
+            event_id=operation_event_id(request.principal.owner, request.operation_id, stage),
             kind=f"tool.{stage}",
             timestamp=self.runtime.now(),
             source="runtime",

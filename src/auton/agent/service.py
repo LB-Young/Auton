@@ -204,7 +204,19 @@ class AgentRuntime:
             )
             # Session identity is scoped and stable; no public identity grants ownership.
             run = run.model_copy(
-                update={"session_id": self.sessions.create(principal.owner, command.project_id)}
+                update={
+                    "session_id": self.sessions.create(principal.owner, command.project_id),
+                    "executor_spec": model.model_dump(mode="json"),
+                    "budget_limits": self.config.model_dump(
+                        include={
+                            "max_steps",
+                            "max_tokens",
+                            "max_cost_microusd",
+                            "max_tool_calls",
+                            "max_output_tokens",
+                        }
+                    ),
+                }
             )
             await self.repo.save(principal.owner, run, command.request_id, command.digest)
             self._launch(runtime, run.id)

@@ -1,3 +1,4 @@
+import { AssessmentFeatureFactory } from '../features/assessment/factory';
 import { createProjectsFeature } from '../features/projects/factory';
 import { createArtifactFeature } from '../features/artifacts/factory';
 import { createJudgmentFeature } from '../features/judgment/factory';
@@ -18,6 +19,7 @@ export function createApplication() {
   const events = new EventStreamFactory().create();
   return {
     projects,
+    assessment: new AssessmentFeatureFactory().create({ api }),
     chat: createChatFeature({ api, events }),
     judgment: createJudgmentFeature({ api }),
     tools: createToolsFeature({ api }),

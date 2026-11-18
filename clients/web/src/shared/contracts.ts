@@ -58,3 +58,37 @@ export type RunPage = components['schemas']['RunPage'];
 export type FeedbackCommand = components['schemas']['FeedbackCommand'];
 
 export type FeedbackReceipt = components['schemas']['FeedbackReceipt'];
+
+export type AssessmentStatus = components['schemas']['AssessmentStatus'];
+
+export type EvalJob = components['schemas']['EvalJob'];
+
+export type EvalReport = components['schemas']['EvalReport'];
+
+export type Aggregate = components['schemas']['Aggregate'];
+
+export type CalibrationReport = components['schemas']['CalibrationReport'];
+
+export type CaseBank = components['schemas']['CaseBank'];
+
+export type WindowView = components['schemas']['WindowView'];
+
+export type BlindWindow = components['schemas']['BlindWindow'];
+
+export type BlindWindowCommand = components['schemas']['BlindWindowCommand'];
+
+export type CalibrationCommand = components['schemas']['CalibrationCommand'];
+
+export type ImportCases = components['schemas']['ImportCases'];
+
+export type SeedCommand = components['schemas']['SeedCommand'];
+
+export type Comparison = components['schemas']['Comparison'];
+
+export type CompareCommand = components['schemas']['CompareCommand'];
+
+export type BatchEvaluation = components['schemas']['BatchEvaluation'];
+
+export type BatchResult = components['schemas']['BatchResult'];
+
+export type EvaluateCommand = components['schemas']['EvaluateCommand-Input'];

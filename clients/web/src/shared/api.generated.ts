@@ -124,6 +124,230 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/assessment/aggregate': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Assessment Aggregate */
+    get: operations['assessment_aggregate_api_v1_assessment_aggregate_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/assessment/bank': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Assessment Bank */
+    get: operations['assessment_bank_api_v1_assessment_bank_get'];
+    put?: never;
+    /** Import Assessment Cases */
+    post: operations['import_assessment_cases_api_v1_assessment_bank_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/assessment/batches': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Assessment Batch */
+    post: operations['assessment_batch_api_v1_assessment_batches_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/assessment/calibrations': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Assessment Calibrations */
+    get: operations['assessment_calibrations_api_v1_assessment_calibrations_get'];
+    put?: never;
+    /** Calibrate Judge */
+    post: operations['calibrate_judge_api_v1_assessment_calibrations_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/assessment/compare': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Compare Assessment */
+    post: operations['compare_assessment_api_v1_assessment_compare_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/assessment/jobs': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Evaluate Run */
+    post: operations['evaluate_run_api_v1_assessment_jobs_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/assessment/jobs/{job_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Assessment Job */
+    get: operations['assessment_job_api_v1_assessment_jobs__job_id__get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/assessment/reports': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Assessment Reports */
+    get: operations['assessment_reports_api_v1_assessment_reports_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/assessment/reports/{report_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Assessment Report */
+    get: operations['assessment_report_api_v1_assessment_reports__report_id__get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/assessment/seed': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Seed Assessment Cases */
+    post: operations['seed_assessment_cases_api_v1_assessment_seed_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/assessment/status': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Assessment Status */
+    get: operations['assessment_status_api_v1_assessment_status_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/assessment/train-cases': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Assessment Training Cases */
+    get: operations['assessment_training_cases_api_v1_assessment_train_cases_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/assessment/windows': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Assessment Windows */
+    get: operations['assessment_windows_api_v1_assessment_windows_get'];
+    put?: never;
+    /** Assessment Window */
+    post: operations['assessment_window_api_v1_assessment_windows_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/bootstrap': {
     parameters: {
       query?: never;
@@ -928,6 +1152,10 @@ export interface components {
       approvals: {
         [key: string]: string;
       };
+      /** Budget Limits */
+      budget_limits: {
+        [key: string]: number;
+      };
       check: components['schemas']['AcceptanceCheck'] | null;
       command: components['schemas']['CreateRun-Output'];
       /**
@@ -946,6 +1174,10 @@ export interface components {
        * @constant
        */
       executor_selection: 'user-explicit';
+      /** Executor Spec */
+      executor_spec: {
+        [key: string]: components['schemas']['JsonValue'];
+      };
       /**
        * Final Text
        * @default
@@ -1067,6 +1299,61 @@ export interface components {
        */
       version: number;
     };
+    /** Aggregate */
+    Aggregate: {
+      /** Cost Microusd */
+      cost_microusd: number;
+      /** Critical Failures */
+      critical_failures: number;
+      /** Environment Errors */
+      environment_errors: number;
+      /** Evaluation Cost Microusd */
+      evaluation_cost_microusd: number;
+      /** Evaluation Unknown Calls */
+      evaluation_unknown_calls: number;
+      /** Failed */
+      failed: number;
+      /** Groups */
+      groups: {
+        [key: string]: {
+          [key: string]: number;
+        };
+      };
+      /** Incomplete */
+      incomplete: number;
+      /** Known Denominator */
+      known_denominator: number;
+      /** Pass Rate */
+      pass_rate: number | null;
+      /** Passed */
+      passed: number;
+      /** Release Eligible */
+      release_eligible: number;
+      /**
+       * Scope
+       * @default descriptive-only
+       * @constant
+       */
+      scope: 'descriptive-only';
+      /** Source Counts */
+      source_counts: {
+        [key: string]: number;
+      };
+      /** Split Counts */
+      split_counts: {
+        [key: string]: number;
+      };
+      /** Tokens */
+      tokens: number;
+      /** Total */
+      total: number;
+      /** Unknown */
+      unknown: number;
+      /** Wilson Lower */
+      wilson_lower: number | null;
+      /** Wilson Upper */
+      wilson_upper: number | null;
+    };
     /** Answer */
     Answer: {
       /** Confidence */
@@ -1110,6 +1397,28 @@ export interface components {
       source: 'demo';
       /** Title */
       title: string;
+    };
+    /** AssessmentStatus */
+    AssessmentStatus: {
+      /** Active Jobs */
+      active_jobs: number;
+      /** Config Digest */
+      config_digest: string;
+      /** Judge Model */
+      judge_model: string;
+      /** Max Calibration Calls */
+      max_calibration_calls: number;
+      /** Min Calibration Lower */
+      min_calibration_lower: number;
+      /** Min Calibration Samples */
+      min_calibration_samples: number;
+      /**
+       * Private Judge Journal
+       * @default true
+       */
+      private_judge_journal: boolean;
+      /** Rubric Revision */
+      rubric_revision: string;
     };
     /** Asset */
     'Asset-Input': {
@@ -1210,6 +1519,86 @@ export interface components {
       /** Revision */
       revision?: string | null;
     };
+    /** BatchEvaluation */
+    BatchEvaluation: {
+      /** Bank Revision */
+      bank_revision: string;
+      /** Project Id */
+      project_id: string;
+      /**
+       * Repeats
+       * @default 1
+       */
+      repeats: number;
+      /** Request Id */
+      request_id: string;
+      /** Runs */
+      runs: components['schemas']['CaseRunBinding'][];
+      /**
+       * Semantic
+       * @default false
+       */
+      semantic: boolean;
+      /** Window Id */
+      window_id: string;
+    };
+    /** BatchResult */
+    BatchResult: {
+      aggregate: components['schemas']['Aggregate'];
+      /** Bank Revision */
+      bank_revision: string;
+      /** Blocked Cases */
+      blocked_cases: string[];
+      /** Complete */
+      complete: boolean;
+      /** Expected Cases */
+      expected_cases: number;
+      /** Id */
+      id: string;
+      /** Reports */
+      reports: components['schemas']['EvalReport'][];
+      /** Window Id */
+      window_id: string;
+    };
+    /** BlindWindow */
+    BlindWindow: {
+      /** Bank Revision */
+      bank_revision: string;
+      /** Candidate Revision */
+      candidate_revision: string;
+      /** Id */
+      id: string;
+      /** Max Uses */
+      max_uses: number;
+      /** Purpose */
+      purpose: string;
+      /**
+       * Split
+       * @enum {string}
+       */
+      split: 'test' | 'meta';
+      /** Split Digest */
+      split_digest: string;
+    };
+    /** BlindWindowCommand */
+    BlindWindowCommand: {
+      /** Bank Revision */
+      bank_revision: string;
+      /** Candidate Revision */
+      candidate_revision: string;
+      /**
+       * Purpose
+       * @enum {string}
+       */
+      purpose: 'release' | 'calibration';
+      /** Request Id */
+      request_id: string;
+      /**
+       * Split
+       * @enum {string}
+       */
+      split: 'test' | 'meta';
+    };
     /** BootstrapResponse */
     BootstrapResponse: {
       /** Demo */
@@ -1229,6 +1618,124 @@ export interface components {
       policy: components['schemas']['PublicPolicy'];
       /** Profile */
       profile: string;
+    };
+    /** CalibrationCommand */
+    CalibrationCommand: {
+      /** Bank Revision */
+      bank_revision: string;
+      /**
+       * Confirm Public
+       * @default false
+       */
+      confirm_public: boolean;
+      /**
+       * Repeats
+       * @default 2
+       */
+      repeats: number;
+      /** Request Id */
+      request_id: string;
+      /** Window Id */
+      window_id: string;
+    };
+    /** CalibrationReport */
+    CalibrationReport: {
+      /** Agreement */
+      agreement: number | null;
+      /** Bank Revision */
+      bank_revision: string;
+      /** Configuration Digest */
+      configuration_digest: string;
+      /** Confirmed Judge Cost Microusd */
+      confirmed_judge_cost_microusd: number;
+      /** Confirmed Judge Tokens */
+      confirmed_judge_tokens: number;
+      /** Coverage */
+      coverage: number;
+      /** Critical Errors */
+      critical_errors: number;
+      /** Critical Missing */
+      critical_missing: number;
+      /** Critical Samples */
+      critical_samples: number;
+      /** Families */
+      families: number;
+      /** Groups */
+      groups: {
+        [key: string]: components['schemas']['GroupCalibration'];
+      };
+      /** Id */
+      id: string;
+      /** Judge Calls */
+      judge_calls: number;
+      /** Judge Identity */
+      judge_identity: string | null;
+      /** Kappa */
+      kappa: number | null;
+      /** Known */
+      known: number;
+      /** Meta Digest */
+      meta_digest: string;
+      /** Negative Gold */
+      negative_gold: number;
+      /** Passed */
+      passed: boolean;
+      /** Positive Gold */
+      positive_gold: number;
+      /** Reasons */
+      reasons: string[];
+      /** Repeat Disagreements */
+      repeat_disagreements: number;
+      /** Rubric Revision */
+      rubric_revision: string;
+      /** Samples */
+      samples: number;
+      /** Source Qualified */
+      source_qualified: boolean;
+      /** Supported Groups */
+      supported_groups: string[];
+      /** Unknown Judge Calls */
+      unknown_judge_calls: number;
+      /** Wilson Lower */
+      wilson_lower: number | null;
+    };
+    /** CaseBank */
+    CaseBank: {
+      /** Cases */
+      cases: components['schemas']['CaseInfo'][];
+      /** Counts */
+      counts: {
+        [key: string]: number;
+      };
+      /** Revision */
+      revision: string;
+    };
+    /** CaseInfo */
+    CaseInfo: {
+      /** Critical */
+      critical: boolean;
+      /** Digest */
+      digest: string;
+      /** Family */
+      family: string;
+      /** Id */
+      id: string;
+      /** Kind */
+      kind: string;
+      /**
+       * Split
+       * @enum {string}
+       */
+      split: 'train' | 'development' | 'test' | 'meta';
+    };
+    /** CaseRunBinding */
+    CaseRunBinding: {
+      /** Case Id */
+      case_id: string;
+      /** Expected Version */
+      expected_version: number;
+      /** Run Id */
+      run_id: string;
     };
     /** CheckpointReference */
     CheckpointReference: {
@@ -1259,6 +1766,30 @@ export interface components {
       session_id: string;
       /** Version */
       version: number;
+    };
+    /** CompareCommand */
+    CompareCommand: {
+      /** Baseline */
+      baseline: string;
+      /** Candidate */
+      candidate: string;
+    };
+    /** Comparison */
+    Comparison: {
+      /** Baseline */
+      baseline: string;
+      /** Candidate */
+      candidate: string;
+      /** Comparable */
+      comparable: boolean;
+      /** Cost Delta Microusd */
+      cost_delta_microusd: number;
+      /** Outcome Changed */
+      outcome_changed: boolean;
+      /** Reasons */
+      reasons: string[];
+      /** Token Delta */
+      token_delta: number;
     };
     /** ConstitutionConfig */
     ConstitutionConfig: {
@@ -1578,6 +2109,283 @@ export interface components {
       /** Message */
       message: string;
     };
+    /** EvalCase */
+    'EvalCase-Input': {
+      /**
+       * Critical
+       * @default false
+       */
+      critical: boolean;
+      /**
+       * Data Domain
+       * @default local-only
+       * @enum {string}
+       */
+      data_domain: 'public' | 'local-only';
+      /**
+       * Domain
+       * @default general
+       */
+      domain: string;
+      /** Evidence Text */
+      evidence_text?: {
+        [key: string]: string;
+      };
+      /** Expected Sha256 */
+      expected_sha256?: string | null;
+      /** Family */
+      family: string;
+      /** Human Answer */
+      human_answer?: string | null;
+      /**
+       * Human Verdict
+       * @default unknown
+       * @enum {string}
+       */
+      human_verdict: 'pass' | 'fail' | 'unknown';
+      /** Id */
+      id: string;
+      /**
+       * Kind
+       * @enum {string}
+       */
+      kind: 'file' | 'research';
+      /** Origin Group */
+      origin_group: string;
+      /** Prompt */
+      prompt: string;
+      /**
+       * Source
+       * @enum {string}
+       */
+      source: 'human_seed' | 'benchmark' | 'episode' | 'test_fixture';
+      /**
+       * Split
+       * @enum {string}
+       */
+      split: 'train' | 'development' | 'test' | 'meta';
+      /**
+       * Tags
+       * @default []
+       */
+      tags: string[];
+      /** Target Path */
+      target_path?: string | null;
+    };
+    /** EvalCase */
+    'EvalCase-Output': {
+      /**
+       * Critical
+       * @default false
+       */
+      critical: boolean;
+      /**
+       * Data Domain
+       * @default local-only
+       * @enum {string}
+       */
+      data_domain: 'public' | 'local-only';
+      /**
+       * Domain
+       * @default general
+       */
+      domain: string;
+      /** Evidence Text */
+      evidence_text: {
+        [key: string]: string;
+      };
+      /** Expected Sha256 */
+      expected_sha256: string | null;
+      /** Family */
+      family: string;
+      /** Human Answer */
+      human_answer: string | null;
+      /**
+       * Human Verdict
+       * @default unknown
+       * @enum {string}
+       */
+      human_verdict: 'pass' | 'fail' | 'unknown';
+      /** Id */
+      id: string;
+      /**
+       * Kind
+       * @enum {string}
+       */
+      kind: 'file' | 'research';
+      /** Origin Group */
+      origin_group: string;
+      /** Prompt */
+      prompt: string;
+      /**
+       * Source
+       * @enum {string}
+       */
+      source: 'human_seed' | 'benchmark' | 'episode' | 'test_fixture';
+      /**
+       * Split
+       * @enum {string}
+       */
+      split: 'train' | 'development' | 'test' | 'meta';
+      /**
+       * Tags
+       * @default []
+       */
+      tags: string[];
+      /** Target Path */
+      target_path: string | null;
+    };
+    /** EvalJob */
+    EvalJob: {
+      command: components['schemas']['EvaluateCommand-Output'];
+      /** Id */
+      id: string;
+      /** Reason */
+      reason: string;
+      report: components['schemas']['EvalReport'] | null;
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: 'running' | 'complete' | 'blocked';
+    };
+    /** EvalReport */
+    EvalReport: {
+      /** Bank Revision */
+      bank_revision: string | null;
+      /** Candidate Revision */
+      candidate_revision: string;
+      /** Case Id */
+      case_id: string | null;
+      /** Checkpoint Digest */
+      checkpoint_digest: string;
+      /** Checkpoint Event Id */
+      checkpoint_event_id: string;
+      /** Checkpoint Version */
+      checkpoint_version: number;
+      /** Conditions Digest */
+      conditions_digest: string;
+      /** Config Digest */
+      config_digest: string;
+      /**
+       * Environment Verified
+       * @default false
+       */
+      environment_verified: boolean;
+      /** Evaluation Cost Microusd */
+      evaluation_cost_microusd: number | null;
+      /** Evaluation Unknown Calls */
+      evaluation_unknown_calls: number;
+      /** Family */
+      family: string;
+      /** Goal Revision */
+      goal_revision: number;
+      /** Groups */
+      groups: string[];
+      /** Id */
+      id: string;
+      /** Judges */
+      judges: components['schemas']['JudgeObservation'][];
+      metrics: components['schemas']['Metrics'];
+      /**
+       * Outcome
+       * @enum {string}
+       */
+      outcome: 'pass' | 'fail' | 'unknown' | 'environment_error' | 'incomplete';
+      /** Project Id */
+      project_id: string;
+      /**
+       * Quality Release Eligible
+       * @default false
+       */
+      quality_release_eligible: boolean;
+      /** Reasons */
+      reasons: string[];
+      /** Request Id */
+      request_id: string;
+      /** Rubric Revision */
+      rubric_revision: string;
+      /** Run Id */
+      run_id: string;
+      /**
+       * Semantic Verdict
+       * @enum {string}
+       */
+      semantic_verdict: 'pass' | 'fail' | 'unknown';
+      /** Signals */
+      signals: components['schemas']['Signal'][];
+      /**
+       * Source
+       * @enum {string}
+       */
+      source: 'runtime' | 'test';
+      /**
+       * Split
+       * @enum {string}
+       */
+      split: 'operational' | 'train' | 'development' | 'test' | 'meta';
+      /** Split Digest */
+      split_digest: string | null;
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: 'complete' | 'blocked';
+    };
+    /** EvaluateCommand */
+    'EvaluateCommand-Input': {
+      /** Bank Revision */
+      bank_revision?: string | null;
+      /** Case Id */
+      case_id?: string | null;
+      /** Expected Version */
+      expected_version: number;
+      /** Project Id */
+      project_id: string;
+      /**
+       * Repeats
+       * @default 1
+       */
+      repeats: number;
+      /** Request Id */
+      request_id: string;
+      /** Run Id */
+      run_id: string;
+      /**
+       * Semantic
+       * @default false
+       */
+      semantic: boolean;
+      /** Window Id */
+      window_id?: string | null;
+    };
+    /** EvaluateCommand */
+    'EvaluateCommand-Output': {
+      /** Bank Revision */
+      bank_revision: string | null;
+      /** Case Id */
+      case_id: string | null;
+      /** Expected Version */
+      expected_version: number;
+      /** Project Id */
+      project_id: string;
+      /**
+       * Repeats
+       * @default 1
+       */
+      repeats: number;
+      /** Request Id */
+      request_id: string;
+      /** Run Id */
+      run_id: string;
+      /**
+       * Semantic
+       * @default false
+       */
+      semantic: boolean;
+      /** Window Id */
+      window_id: string | null;
+    };
     /** Evidence */
     Evidence: {
       /** Asset Ids */
@@ -1649,6 +2457,21 @@ export interface components {
        */
       verified_quality: false;
     };
+    /** GroupCalibration */
+    GroupCalibration: {
+      /** Correct */
+      correct: number;
+      /** Families */
+      families: number;
+      /** Known */
+      known: number;
+      /** Qualified */
+      qualified: boolean;
+      /** Samples */
+      samples: number;
+      /** Wilson Lower */
+      wilson_lower: number | null;
+    };
     /** HealthResponse */
     HealthResponse: {
       /** Profile */
@@ -1670,7 +2493,69 @@ export interface components {
       /** Remaining Seconds */
       remaining_seconds: number;
     };
+    /** ImportCases */
+    ImportCases: {
+      /** Cases */
+      cases: components['schemas']['EvalCase-Input'][];
+      /** Expected Revision */
+      expected_revision: string;
+      /** Request Id */
+      request_id: string;
+    };
     JsonValue: unknown;
+    /** JudgeObservation */
+    JudgeObservation: {
+      /** Configuration Digest */
+      configuration_digest: string;
+      /**
+       * Cost Microusd
+       * @default 0
+       */
+      cost_microusd: number | null;
+      /**
+       * Dispatch Outcome
+       * @default not_dispatched
+       * @enum {string}
+       */
+      dispatch_outcome: 'not_dispatched' | 'confirmed' | 'unknown';
+      /**
+       * Evidence
+       * @default []
+       */
+      evidence: string[];
+      /** Fingerprint */
+      fingerprint: string | null;
+      /** Reason */
+      reason: string;
+      /** Reported Confidence */
+      reported_confidence: number | null;
+      /** Reported Model */
+      reported_model: string | null;
+      /** Request Id */
+      request_id: string;
+      /** Rubric Revision */
+      rubric_revision: string;
+      /**
+       * Self Eval Bias
+       * @default false
+       */
+      self_eval_bias: boolean;
+      /**
+       * Source
+       * @enum {string}
+       */
+      source: 'remote' | 'test' | 'unavailable';
+      /**
+       * Tokens
+       * @default 0
+       */
+      tokens: number | null;
+      /**
+       * Verdict
+       * @enum {string}
+       */
+      verdict: 'pass' | 'fail' | 'unknown';
+    };
     /** JudgmentInfo */
     JudgmentInfo: {
       /**
@@ -1752,6 +2637,35 @@ export interface components {
        * @enum {string}
        */
       role: 'user' | 'assistant';
+    };
+    /** Metrics */
+    Metrics: {
+      /** Confirmed Model Calls */
+      confirmed_model_calls: number;
+      /** Cost Microusd */
+      cost_microusd: number;
+      /** Extra Model Calls */
+      extra_model_calls: number;
+      /** Failed Tools */
+      failed_tools: number;
+      /** Model Latency Ms */
+      model_latency_ms: number;
+      /**
+       * Scope
+       * @default run-lifetime
+       * @constant
+       */
+      scope: 'run-lifetime';
+      /** Tokens */
+      tokens: number;
+      /** Tool Attempts */
+      tool_attempts: number;
+      /** Unconfirmed Model Calls */
+      unconfirmed_model_calls: number;
+      /** Unknown Tools */
+      unknown_tools: number;
+      /** Usage Complete */
+      usage_complete: boolean;
     };
     /** ModelInfo */
     ModelInfo: {
@@ -2145,6 +3059,13 @@ export interface components {
       run: components['schemas']['AgentRun'];
       transient: components['schemas']['TransientProgress'] | null;
     };
+    /** SeedCommand */
+    SeedCommand: {
+      /** Expected Revision */
+      expected_revision: string;
+      /** Request Id */
+      request_id: string;
+    };
     /** SendMessage */
     SendMessage: {
       /** Content */
@@ -2229,6 +3150,33 @@ export interface components {
       session_id: string;
       /** Timestamp */
       timestamp: string;
+    };
+    /** Signal */
+    Signal: {
+      /**
+       * Critical
+       * @default false
+       */
+      critical: boolean;
+      /**
+       * Evidence
+       * @default []
+       */
+      evidence: string[];
+      /** Name */
+      name: string;
+      /** Reason */
+      reason: string;
+      /**
+       * Source
+       * @enum {string}
+       */
+      source: 'deterministic' | 'model-judge' | 'human' | 'unverified-self-report';
+      /**
+       * Verdict
+       * @enum {string}
+       */
+      verdict: 'pass' | 'fail' | 'unknown';
     };
     /** Snapshot */
     Snapshot: {
@@ -2701,6 +3649,14 @@ export interface components {
       revision: string;
       /** Status */
       status: string;
+    };
+    /** WindowView */
+    WindowView: {
+      /** Current */
+      current: boolean;
+      /** Used */
+      used: number;
+      window: components['schemas']['BlindWindow'];
     };
     /** WorkspaceView */
     WorkspaceView: {
@@ -3537,6 +4493,1802 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['RunSnapshot'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  assessment_aggregate_api_v1_assessment_aggregate_get: {
+    parameters: {
+      query: {
+        project_id: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Aggregate'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  assessment_bank_api_v1_assessment_bank_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['CaseBank'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  import_assessment_cases_api_v1_assessment_bank_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ImportCases'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['CaseBank'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  assessment_batch_api_v1_assessment_batches_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['BatchEvaluation'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['BatchResult'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  assessment_calibrations_api_v1_assessment_calibrations_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['CalibrationReport'][];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  calibrate_judge_api_v1_assessment_calibrations_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CalibrationCommand'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['CalibrationReport'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  compare_assessment_api_v1_assessment_compare_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CompareCommand'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Comparison'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  evaluate_run_api_v1_assessment_jobs_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['EvaluateCommand-Input'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['EvalJob'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  assessment_job_api_v1_assessment_jobs__job_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        job_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['EvalJob'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  assessment_reports_api_v1_assessment_reports_get: {
+    parameters: {
+      query: {
+        project_id: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['EvalReport'][];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  assessment_report_api_v1_assessment_reports__report_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        report_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['EvalReport'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  seed_assessment_cases_api_v1_assessment_seed_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['SeedCommand'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['CaseBank'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  assessment_status_api_v1_assessment_status_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['AssessmentStatus'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  assessment_training_cases_api_v1_assessment_train_cases_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['EvalCase-Output'][];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  assessment_windows_api_v1_assessment_windows_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['WindowView'][];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  assessment_window_api_v1_assessment_windows_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['BlindWindowCommand'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['BlindWindow'];
         };
       };
       /** @description Unauthorized */

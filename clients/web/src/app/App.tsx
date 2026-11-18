@@ -39,6 +39,7 @@ import { Judgment } from '../features/judgment/Judgment';
 import { Tools } from '../features/tools/Tools';
 import { Trajectory } from '../features/experience/Trajectory';
 import { Agent } from '../features/agent/Agent';
+import { Assessment } from '../features/assessment/Assessment';
 import { Context } from '../features/context/Context';
 import { Genome } from '../features/genome/Genome';
 import { Models } from '../features/models/Models';
@@ -775,6 +776,8 @@ export function App({ application }: { application: Application }) {
                   <Judgment feature={application.judgment} />
                 </div>
               </div>
+            ) : view === 'assess' ? (
+              <Assessment feature={application.assessment} />
             ) : view === 'settings' ? (
               <section className="module-page">
                 <p className="eyebrow">你的工作空间</p>

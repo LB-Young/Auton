@@ -238,6 +238,13 @@
             "title": "Approvals",
             "type": "object"
           },
+          "budget_limits": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Budget Limits",
+            "type": "object"
+          },
           "check": {
             "anyOf": [
               {
@@ -269,6 +276,13 @@
             "default": "user-explicit",
             "title": "Executor Selection",
             "type": "string"
+          },
+          "executor_spec": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonValue"
+            },
+            "title": "Executor Spec",
+            "type": "object"
           },
           "final_text": {
             "default": "",
@@ -456,6 +470,8 @@
           "phase",
           "reason",
           "steps",
+          "budget_limits",
+          "executor_spec",
           "tokens_used",
           "cost_microusd",
           "model_results",
@@ -478,6 +494,150 @@
           "runtime_revision"
         ],
         "title": "AgentRun",
+        "type": "object"
+      },
+      "Aggregate": {
+        "additionalProperties": false,
+        "properties": {
+          "cost_microusd": {
+            "title": "Cost Microusd",
+            "type": "integer"
+          },
+          "critical_failures": {
+            "title": "Critical Failures",
+            "type": "integer"
+          },
+          "environment_errors": {
+            "title": "Environment Errors",
+            "type": "integer"
+          },
+          "evaluation_cost_microusd": {
+            "title": "Evaluation Cost Microusd",
+            "type": "integer"
+          },
+          "evaluation_unknown_calls": {
+            "title": "Evaluation Unknown Calls",
+            "type": "integer"
+          },
+          "failed": {
+            "title": "Failed",
+            "type": "integer"
+          },
+          "groups": {
+            "additionalProperties": {
+              "additionalProperties": {
+                "type": "integer"
+              },
+              "type": "object"
+            },
+            "title": "Groups",
+            "type": "object"
+          },
+          "incomplete": {
+            "title": "Incomplete",
+            "type": "integer"
+          },
+          "known_denominator": {
+            "title": "Known Denominator",
+            "type": "integer"
+          },
+          "pass_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pass Rate"
+          },
+          "passed": {
+            "title": "Passed",
+            "type": "integer"
+          },
+          "release_eligible": {
+            "title": "Release Eligible",
+            "type": "integer"
+          },
+          "scope": {
+            "const": "descriptive-only",
+            "default": "descriptive-only",
+            "title": "Scope",
+            "type": "string"
+          },
+          "source_counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Source Counts",
+            "type": "object"
+          },
+          "split_counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Split Counts",
+            "type": "object"
+          },
+          "tokens": {
+            "title": "Tokens",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          },
+          "unknown": {
+            "title": "Unknown",
+            "type": "integer"
+          },
+          "wilson_lower": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wilson Lower"
+          },
+          "wilson_upper": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wilson Upper"
+          }
+        },
+        "required": [
+          "scope",
+          "source_counts",
+          "split_counts",
+          "release_eligible",
+          "evaluation_cost_microusd",
+          "evaluation_unknown_calls",
+          "total",
+          "passed",
+          "failed",
+          "unknown",
+          "environment_errors",
+          "incomplete",
+          "known_denominator",
+          "pass_rate",
+          "wilson_lower",
+          "wilson_upper",
+          "critical_failures",
+          "tokens",
+          "cost_microusd",
+          "groups"
+        ],
+        "title": "Aggregate",
         "type": "object"
       },
       "Answer": {
@@ -606,6 +766,56 @@
           "source"
         ],
         "title": "Artifact",
+        "type": "object"
+      },
+      "AssessmentStatus": {
+        "additionalProperties": false,
+        "properties": {
+          "active_jobs": {
+            "title": "Active Jobs",
+            "type": "integer"
+          },
+          "config_digest": {
+            "title": "Config Digest",
+            "type": "string"
+          },
+          "judge_model": {
+            "title": "Judge Model",
+            "type": "string"
+          },
+          "max_calibration_calls": {
+            "title": "Max Calibration Calls",
+            "type": "integer"
+          },
+          "min_calibration_lower": {
+            "title": "Min Calibration Lower",
+            "type": "number"
+          },
+          "min_calibration_samples": {
+            "title": "Min Calibration Samples",
+            "type": "integer"
+          },
+          "private_judge_journal": {
+            "default": true,
+            "title": "Private Judge Journal",
+            "type": "boolean"
+          },
+          "rubric_revision": {
+            "title": "Rubric Revision",
+            "type": "string"
+          }
+        },
+        "required": [
+          "config_digest",
+          "rubric_revision",
+          "judge_model",
+          "min_calibration_samples",
+          "min_calibration_lower",
+          "active_jobs",
+          "max_calibration_calls",
+          "private_judge_journal"
+        ],
+        "title": "AssessmentStatus",
         "type": "object"
       },
       "Asset-Input": {
@@ -890,6 +1100,206 @@
         "title": "AssetRevisionCommand",
         "type": "object"
       },
+      "BatchEvaluation": {
+        "additionalProperties": false,
+        "properties": {
+          "bank_revision": {
+            "title": "Bank Revision",
+            "type": "string"
+          },
+          "project_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "repeats": {
+            "default": 1,
+            "maximum": 3.0,
+            "minimum": 1.0,
+            "title": "Repeats",
+            "type": "integer"
+          },
+          "request_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,100}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "runs": {
+            "items": {
+              "$ref": "#/components/schemas/CaseRunBinding"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "title": "Runs",
+            "type": "array"
+          },
+          "semantic": {
+            "default": false,
+            "title": "Semantic",
+            "type": "boolean"
+          },
+          "window_id": {
+            "title": "Window Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "project_id",
+          "bank_revision",
+          "window_id",
+          "runs"
+        ],
+        "title": "BatchEvaluation",
+        "type": "object"
+      },
+      "BatchResult": {
+        "additionalProperties": false,
+        "properties": {
+          "aggregate": {
+            "$ref": "#/components/schemas/Aggregate"
+          },
+          "bank_revision": {
+            "title": "Bank Revision",
+            "type": "string"
+          },
+          "blocked_cases": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Blocked Cases",
+            "type": "array"
+          },
+          "complete": {
+            "title": "Complete",
+            "type": "boolean"
+          },
+          "expected_cases": {
+            "title": "Expected Cases",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "reports": {
+            "items": {
+              "$ref": "#/components/schemas/EvalReport"
+            },
+            "title": "Reports",
+            "type": "array"
+          },
+          "window_id": {
+            "title": "Window Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "expected_cases",
+          "complete",
+          "blocked_cases",
+          "id",
+          "bank_revision",
+          "window_id",
+          "reports",
+          "aggregate"
+        ],
+        "title": "BatchResult",
+        "type": "object"
+      },
+      "BlindWindow": {
+        "additionalProperties": false,
+        "properties": {
+          "bank_revision": {
+            "title": "Bank Revision",
+            "type": "string"
+          },
+          "candidate_revision": {
+            "title": "Candidate Revision",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "max_uses": {
+            "title": "Max Uses",
+            "type": "integer"
+          },
+          "purpose": {
+            "title": "Purpose",
+            "type": "string"
+          },
+          "split": {
+            "enum": [
+              "test",
+              "meta"
+            ],
+            "title": "Split",
+            "type": "string"
+          },
+          "split_digest": {
+            "title": "Split Digest",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "bank_revision",
+          "split",
+          "split_digest",
+          "purpose",
+          "candidate_revision",
+          "max_uses"
+        ],
+        "title": "BlindWindow",
+        "type": "object"
+      },
+      "BlindWindowCommand": {
+        "additionalProperties": false,
+        "properties": {
+          "bank_revision": {
+            "title": "Bank Revision",
+            "type": "string"
+          },
+          "candidate_revision": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Candidate Revision",
+            "type": "string"
+          },
+          "purpose": {
+            "enum": [
+              "release",
+              "calibration"
+            ],
+            "title": "Purpose",
+            "type": "string"
+          },
+          "request_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,100}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "split": {
+            "enum": [
+              "test",
+              "meta"
+            ],
+            "title": "Split",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "bank_revision",
+          "split",
+          "purpose",
+          "candidate_revision"
+        ],
+        "title": "BlindWindowCommand",
+        "type": "object"
+      },
       "BootstrapResponse": {
         "properties": {
           "demo": {
@@ -937,6 +1347,332 @@
           "policy"
         ],
         "title": "BootstrapResponse",
+        "type": "object"
+      },
+      "CalibrationCommand": {
+        "additionalProperties": false,
+        "properties": {
+          "bank_revision": {
+            "title": "Bank Revision",
+            "type": "string"
+          },
+          "confirm_public": {
+            "default": false,
+            "title": "Confirm Public",
+            "type": "boolean"
+          },
+          "repeats": {
+            "default": 2,
+            "maximum": 3.0,
+            "minimum": 2.0,
+            "title": "Repeats",
+            "type": "integer"
+          },
+          "request_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,100}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "window_id": {
+            "title": "Window Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "bank_revision",
+          "window_id"
+        ],
+        "title": "CalibrationCommand",
+        "type": "object"
+      },
+      "CalibrationReport": {
+        "additionalProperties": false,
+        "properties": {
+          "agreement": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Agreement"
+          },
+          "bank_revision": {
+            "title": "Bank Revision",
+            "type": "string"
+          },
+          "configuration_digest": {
+            "title": "Configuration Digest",
+            "type": "string"
+          },
+          "confirmed_judge_cost_microusd": {
+            "title": "Confirmed Judge Cost Microusd",
+            "type": "integer"
+          },
+          "confirmed_judge_tokens": {
+            "title": "Confirmed Judge Tokens",
+            "type": "integer"
+          },
+          "coverage": {
+            "title": "Coverage",
+            "type": "number"
+          },
+          "critical_errors": {
+            "title": "Critical Errors",
+            "type": "integer"
+          },
+          "critical_missing": {
+            "title": "Critical Missing",
+            "type": "integer"
+          },
+          "critical_samples": {
+            "title": "Critical Samples",
+            "type": "integer"
+          },
+          "families": {
+            "title": "Families",
+            "type": "integer"
+          },
+          "groups": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/GroupCalibration"
+            },
+            "title": "Groups",
+            "type": "object"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "judge_calls": {
+            "title": "Judge Calls",
+            "type": "integer"
+          },
+          "judge_identity": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Judge Identity"
+          },
+          "kappa": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kappa"
+          },
+          "known": {
+            "title": "Known",
+            "type": "integer"
+          },
+          "meta_digest": {
+            "title": "Meta Digest",
+            "type": "string"
+          },
+          "negative_gold": {
+            "title": "Negative Gold",
+            "type": "integer"
+          },
+          "passed": {
+            "title": "Passed",
+            "type": "boolean"
+          },
+          "positive_gold": {
+            "title": "Positive Gold",
+            "type": "integer"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "repeat_disagreements": {
+            "title": "Repeat Disagreements",
+            "type": "integer"
+          },
+          "rubric_revision": {
+            "title": "Rubric Revision",
+            "type": "string"
+          },
+          "samples": {
+            "title": "Samples",
+            "type": "integer"
+          },
+          "source_qualified": {
+            "title": "Source Qualified",
+            "type": "boolean"
+          },
+          "supported_groups": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Supported Groups",
+            "type": "array"
+          },
+          "unknown_judge_calls": {
+            "title": "Unknown Judge Calls",
+            "type": "integer"
+          },
+          "wilson_lower": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wilson Lower"
+          }
+        },
+        "required": [
+          "judge_calls",
+          "unknown_judge_calls",
+          "confirmed_judge_tokens",
+          "confirmed_judge_cost_microusd",
+          "meta_digest",
+          "groups",
+          "supported_groups",
+          "id",
+          "bank_revision",
+          "judge_identity",
+          "rubric_revision",
+          "configuration_digest",
+          "samples",
+          "families",
+          "known",
+          "positive_gold",
+          "negative_gold",
+          "agreement",
+          "kappa",
+          "wilson_lower",
+          "coverage",
+          "repeat_disagreements",
+          "critical_samples",
+          "critical_errors",
+          "critical_missing",
+          "source_qualified",
+          "passed",
+          "reasons"
+        ],
+        "title": "CalibrationReport",
+        "type": "object"
+      },
+      "CaseBank": {
+        "additionalProperties": false,
+        "properties": {
+          "cases": {
+            "items": {
+              "$ref": "#/components/schemas/CaseInfo"
+            },
+            "title": "Cases",
+            "type": "array"
+          },
+          "counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Counts",
+            "type": "object"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "string"
+          }
+        },
+        "required": [
+          "revision",
+          "cases",
+          "counts"
+        ],
+        "title": "CaseBank",
+        "type": "object"
+      },
+      "CaseInfo": {
+        "additionalProperties": false,
+        "properties": {
+          "critical": {
+            "title": "Critical",
+            "type": "boolean"
+          },
+          "digest": {
+            "title": "Digest",
+            "type": "string"
+          },
+          "family": {
+            "title": "Family",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "split": {
+            "enum": [
+              "train",
+              "development",
+              "test",
+              "meta"
+            ],
+            "title": "Split",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "family",
+          "split",
+          "kind",
+          "critical",
+          "digest"
+        ],
+        "title": "CaseInfo",
+        "type": "object"
+      },
+      "CaseRunBinding": {
+        "additionalProperties": false,
+        "properties": {
+          "case_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Case Id",
+            "type": "string"
+          },
+          "expected_version": {
+            "maximum": 65535.0,
+            "minimum": 0.0,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "run_id": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Run Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "case_id",
+          "run_id",
+          "expected_version"
+        ],
+        "title": "CaseRunBinding",
         "type": "object"
       },
       "CheckpointReference": {
@@ -994,6 +1730,74 @@
           "digest"
         ],
         "title": "CheckpointReference",
+        "type": "object"
+      },
+      "CompareCommand": {
+        "additionalProperties": false,
+        "properties": {
+          "baseline": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Baseline",
+            "type": "string"
+          },
+          "candidate": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Candidate",
+            "type": "string"
+          }
+        },
+        "required": [
+          "baseline",
+          "candidate"
+        ],
+        "title": "CompareCommand",
+        "type": "object"
+      },
+      "Comparison": {
+        "additionalProperties": false,
+        "properties": {
+          "baseline": {
+            "title": "Baseline",
+            "type": "string"
+          },
+          "candidate": {
+            "title": "Candidate",
+            "type": "string"
+          },
+          "comparable": {
+            "title": "Comparable",
+            "type": "boolean"
+          },
+          "cost_delta_microusd": {
+            "title": "Cost Delta Microusd",
+            "type": "integer"
+          },
+          "outcome_changed": {
+            "title": "Outcome Changed",
+            "type": "boolean"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "token_delta": {
+            "title": "Token Delta",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "baseline",
+          "candidate",
+          "comparable",
+          "reasons",
+          "token_delta",
+          "cost_delta_microusd",
+          "outcome_changed"
+        ],
+        "title": "Comparison",
         "type": "object"
       },
       "ConstitutionConfig": {
@@ -1713,6 +2517,755 @@
         "title": "ErrorBody",
         "type": "object"
       },
+      "EvalCase-Input": {
+        "additionalProperties": false,
+        "properties": {
+          "critical": {
+            "default": false,
+            "title": "Critical",
+            "type": "boolean"
+          },
+          "data_domain": {
+            "default": "local-only",
+            "enum": [
+              "public",
+              "local-only"
+            ],
+            "title": "Data Domain",
+            "type": "string"
+          },
+          "domain": {
+            "default": "general",
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Domain",
+            "type": "string"
+          },
+          "evidence_text": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "maxProperties": 12,
+            "title": "Evidence Text",
+            "type": "object"
+          },
+          "expected_sha256": {
+            "anyOf": [
+              {
+                "pattern": "^[a-f0-9]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Sha256"
+          },
+          "family": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Family",
+            "type": "string"
+          },
+          "human_answer": {
+            "anyOf": [
+              {
+                "maxLength": 6000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Human Answer"
+          },
+          "human_verdict": {
+            "default": "unknown",
+            "enum": [
+              "pass",
+              "fail",
+              "unknown"
+            ],
+            "title": "Human Verdict",
+            "type": "string"
+          },
+          "id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "file",
+              "research"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "origin_group": {
+            "pattern": "^[a-zA-Z0-9_-]{1,100}$",
+            "title": "Origin Group",
+            "type": "string"
+          },
+          "prompt": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Prompt",
+            "type": "string"
+          },
+          "source": {
+            "enum": [
+              "human_seed",
+              "benchmark",
+              "episode",
+              "test_fixture"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "split": {
+            "enum": [
+              "train",
+              "development",
+              "test",
+              "meta"
+            ],
+            "title": "Split",
+            "type": "string"
+          },
+          "tags": {
+            "default": [],
+            "items": {
+              "maxLength": 64,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 8,
+            "title": "Tags",
+            "type": "array"
+          },
+          "target_path": {
+            "anyOf": [
+              {
+                "maxLength": 400,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Path"
+          }
+        },
+        "required": [
+          "id",
+          "family",
+          "origin_group",
+          "split",
+          "prompt",
+          "kind",
+          "source"
+        ],
+        "title": "EvalCase",
+        "type": "object"
+      },
+      "EvalCase-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "critical": {
+            "default": false,
+            "title": "Critical",
+            "type": "boolean"
+          },
+          "data_domain": {
+            "default": "local-only",
+            "enum": [
+              "public",
+              "local-only"
+            ],
+            "title": "Data Domain",
+            "type": "string"
+          },
+          "domain": {
+            "default": "general",
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Domain",
+            "type": "string"
+          },
+          "evidence_text": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "maxProperties": 12,
+            "title": "Evidence Text",
+            "type": "object"
+          },
+          "expected_sha256": {
+            "anyOf": [
+              {
+                "pattern": "^[a-f0-9]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Sha256"
+          },
+          "family": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Family",
+            "type": "string"
+          },
+          "human_answer": {
+            "anyOf": [
+              {
+                "maxLength": 6000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Human Answer"
+          },
+          "human_verdict": {
+            "default": "unknown",
+            "enum": [
+              "pass",
+              "fail",
+              "unknown"
+            ],
+            "title": "Human Verdict",
+            "type": "string"
+          },
+          "id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "file",
+              "research"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "origin_group": {
+            "pattern": "^[a-zA-Z0-9_-]{1,100}$",
+            "title": "Origin Group",
+            "type": "string"
+          },
+          "prompt": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Prompt",
+            "type": "string"
+          },
+          "source": {
+            "enum": [
+              "human_seed",
+              "benchmark",
+              "episode",
+              "test_fixture"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "split": {
+            "enum": [
+              "train",
+              "development",
+              "test",
+              "meta"
+            ],
+            "title": "Split",
+            "type": "string"
+          },
+          "tags": {
+            "default": [],
+            "items": {
+              "maxLength": 64,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 8,
+            "title": "Tags",
+            "type": "array"
+          },
+          "target_path": {
+            "anyOf": [
+              {
+                "maxLength": 400,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Path"
+          }
+        },
+        "required": [
+          "id",
+          "family",
+          "domain",
+          "tags",
+          "origin_group",
+          "split",
+          "prompt",
+          "kind",
+          "expected_sha256",
+          "target_path",
+          "critical",
+          "data_domain",
+          "source",
+          "human_verdict",
+          "human_answer",
+          "evidence_text"
+        ],
+        "title": "EvalCase",
+        "type": "object"
+      },
+      "EvalJob": {
+        "additionalProperties": false,
+        "properties": {
+          "command": {
+            "$ref": "#/components/schemas/EvaluateCommand-Output"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "report": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvalReport"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "enum": [
+              "running",
+              "complete",
+              "blocked"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "command",
+          "status",
+          "reason",
+          "report"
+        ],
+        "title": "EvalJob",
+        "type": "object"
+      },
+      "EvalReport": {
+        "additionalProperties": false,
+        "properties": {
+          "bank_revision": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bank Revision"
+          },
+          "candidate_revision": {
+            "title": "Candidate Revision",
+            "type": "string"
+          },
+          "case_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Case Id"
+          },
+          "checkpoint_digest": {
+            "title": "Checkpoint Digest",
+            "type": "string"
+          },
+          "checkpoint_event_id": {
+            "title": "Checkpoint Event Id",
+            "type": "string"
+          },
+          "checkpoint_version": {
+            "title": "Checkpoint Version",
+            "type": "integer"
+          },
+          "conditions_digest": {
+            "title": "Conditions Digest",
+            "type": "string"
+          },
+          "config_digest": {
+            "title": "Config Digest",
+            "type": "string"
+          },
+          "environment_verified": {
+            "default": false,
+            "title": "Environment Verified",
+            "type": "boolean"
+          },
+          "evaluation_cost_microusd": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evaluation Cost Microusd"
+          },
+          "evaluation_unknown_calls": {
+            "title": "Evaluation Unknown Calls",
+            "type": "integer"
+          },
+          "family": {
+            "title": "Family",
+            "type": "string"
+          },
+          "goal_revision": {
+            "title": "Goal Revision",
+            "type": "integer"
+          },
+          "groups": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Groups",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "judges": {
+            "items": {
+              "$ref": "#/components/schemas/JudgeObservation"
+            },
+            "title": "Judges",
+            "type": "array"
+          },
+          "metrics": {
+            "$ref": "#/components/schemas/Metrics"
+          },
+          "outcome": {
+            "enum": [
+              "pass",
+              "fail",
+              "unknown",
+              "environment_error",
+              "incomplete"
+            ],
+            "title": "Outcome",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "quality_release_eligible": {
+            "default": false,
+            "title": "Quality Release Eligible",
+            "type": "boolean"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "request_id": {
+            "title": "Request Id",
+            "type": "string"
+          },
+          "rubric_revision": {
+            "title": "Rubric Revision",
+            "type": "string"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          },
+          "semantic_verdict": {
+            "enum": [
+              "pass",
+              "fail",
+              "unknown"
+            ],
+            "title": "Semantic Verdict",
+            "type": "string"
+          },
+          "signals": {
+            "items": {
+              "$ref": "#/components/schemas/Signal"
+            },
+            "title": "Signals",
+            "type": "array"
+          },
+          "source": {
+            "enum": [
+              "runtime",
+              "test"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "split": {
+            "enum": [
+              "operational",
+              "train",
+              "development",
+              "test",
+              "meta"
+            ],
+            "title": "Split",
+            "type": "string"
+          },
+          "split_digest": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Split Digest"
+          },
+          "status": {
+            "enum": [
+              "complete",
+              "blocked"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "request_id",
+          "project_id",
+          "run_id",
+          "checkpoint_event_id",
+          "checkpoint_digest",
+          "checkpoint_version",
+          "goal_revision",
+          "config_digest",
+          "rubric_revision",
+          "case_id",
+          "bank_revision",
+          "split",
+          "family",
+          "groups",
+          "split_digest",
+          "source",
+          "status",
+          "outcome",
+          "semantic_verdict",
+          "signals",
+          "judges",
+          "metrics",
+          "candidate_revision",
+          "evaluation_cost_microusd",
+          "evaluation_unknown_calls",
+          "conditions_digest",
+          "environment_verified",
+          "quality_release_eligible",
+          "reasons"
+        ],
+        "title": "EvalReport",
+        "type": "object"
+      },
+      "EvaluateCommand-Input": {
+        "additionalProperties": false,
+        "properties": {
+          "bank_revision": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bank Revision"
+          },
+          "case_id": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Case Id"
+          },
+          "expected_version": {
+            "maximum": 65535.0,
+            "minimum": 0.0,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "project_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "repeats": {
+            "default": 1,
+            "maximum": 3.0,
+            "minimum": 1.0,
+            "title": "Repeats",
+            "type": "integer"
+          },
+          "request_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,100}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "run_id": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Run Id",
+            "type": "string"
+          },
+          "semantic": {
+            "default": false,
+            "title": "Semantic",
+            "type": "boolean"
+          },
+          "window_id": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Window Id"
+          }
+        },
+        "required": [
+          "request_id",
+          "project_id",
+          "run_id",
+          "expected_version"
+        ],
+        "title": "EvaluateCommand",
+        "type": "object"
+      },
+      "EvaluateCommand-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "bank_revision": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bank Revision"
+          },
+          "case_id": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Case Id"
+          },
+          "expected_version": {
+            "maximum": 65535.0,
+            "minimum": 0.0,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "project_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "repeats": {
+            "default": 1,
+            "maximum": 3.0,
+            "minimum": 1.0,
+            "title": "Repeats",
+            "type": "integer"
+          },
+          "request_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,100}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "run_id": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Run Id",
+            "type": "string"
+          },
+          "semantic": {
+            "default": false,
+            "title": "Semantic",
+            "type": "boolean"
+          },
+          "window_id": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Window Id"
+          }
+        },
+        "required": [
+          "request_id",
+          "project_id",
+          "run_id",
+          "expected_version",
+          "case_id",
+          "bank_revision",
+          "window_id",
+          "semantic",
+          "repeats"
+        ],
+        "title": "EvaluateCommand",
+        "type": "object"
+      },
       "Evidence": {
         "additionalProperties": false,
         "properties": {
@@ -1868,6 +3421,52 @@
         "title": "FeedbackReceipt",
         "type": "object"
       },
+      "GroupCalibration": {
+        "additionalProperties": false,
+        "properties": {
+          "correct": {
+            "title": "Correct",
+            "type": "integer"
+          },
+          "families": {
+            "title": "Families",
+            "type": "integer"
+          },
+          "known": {
+            "title": "Known",
+            "type": "integer"
+          },
+          "qualified": {
+            "title": "Qualified",
+            "type": "boolean"
+          },
+          "samples": {
+            "title": "Samples",
+            "type": "integer"
+          },
+          "wilson_lower": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wilson Lower"
+          }
+        },
+        "required": [
+          "samples",
+          "families",
+          "known",
+          "correct",
+          "wilson_lower",
+          "qualified"
+        ],
+        "title": "GroupCalibration",
+        "type": "object"
+      },
       "HealthResponse": {
         "properties": {
           "profile": {
@@ -1919,7 +3518,174 @@
         "title": "IdentityInfo",
         "type": "object"
       },
+      "ImportCases": {
+        "additionalProperties": false,
+        "properties": {
+          "cases": {
+            "items": {
+              "$ref": "#/components/schemas/EvalCase-Input"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "title": "Cases",
+            "type": "array"
+          },
+          "expected_revision": {
+            "title": "Expected Revision",
+            "type": "string"
+          },
+          "request_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,100}$",
+            "title": "Request Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "expected_revision",
+          "cases"
+        ],
+        "title": "ImportCases",
+        "type": "object"
+      },
       "JsonValue": {},
+      "JudgeObservation": {
+        "additionalProperties": false,
+        "properties": {
+          "configuration_digest": {
+            "title": "Configuration Digest",
+            "type": "string"
+          },
+          "cost_microusd": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": 0,
+            "title": "Cost Microusd"
+          },
+          "dispatch_outcome": {
+            "default": "not_dispatched",
+            "enum": [
+              "not_dispatched",
+              "confirmed",
+              "unknown"
+            ],
+            "title": "Dispatch Outcome",
+            "type": "string"
+          },
+          "evidence": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Evidence",
+            "type": "array"
+          },
+          "fingerprint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fingerprint"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "reported_confidence": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reported Confidence"
+          },
+          "reported_model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reported Model"
+          },
+          "request_id": {
+            "title": "Request Id",
+            "type": "string"
+          },
+          "rubric_revision": {
+            "title": "Rubric Revision",
+            "type": "string"
+          },
+          "self_eval_bias": {
+            "default": false,
+            "title": "Self Eval Bias",
+            "type": "boolean"
+          },
+          "source": {
+            "enum": [
+              "remote",
+              "test",
+              "unavailable"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": 0,
+            "title": "Tokens"
+          },
+          "verdict": {
+            "enum": [
+              "pass",
+              "fail",
+              "unknown"
+            ],
+            "title": "Verdict",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "rubric_revision",
+          "configuration_digest",
+          "verdict",
+          "reason",
+          "evidence",
+          "reported_model",
+          "fingerprint",
+          "source",
+          "self_eval_bias",
+          "tokens",
+          "cost_microusd",
+          "dispatch_outcome",
+          "reported_confidence"
+        ],
+        "title": "JudgeObservation",
+        "type": "object"
+      },
       "JudgmentInfo": {
         "additionalProperties": false,
         "properties": {
@@ -2113,6 +3879,72 @@
           "content"
         ],
         "title": "Message",
+        "type": "object"
+      },
+      "Metrics": {
+        "additionalProperties": false,
+        "properties": {
+          "confirmed_model_calls": {
+            "title": "Confirmed Model Calls",
+            "type": "integer"
+          },
+          "cost_microusd": {
+            "title": "Cost Microusd",
+            "type": "integer"
+          },
+          "extra_model_calls": {
+            "title": "Extra Model Calls",
+            "type": "integer"
+          },
+          "failed_tools": {
+            "title": "Failed Tools",
+            "type": "integer"
+          },
+          "model_latency_ms": {
+            "title": "Model Latency Ms",
+            "type": "integer"
+          },
+          "scope": {
+            "const": "run-lifetime",
+            "default": "run-lifetime",
+            "title": "Scope",
+            "type": "string"
+          },
+          "tokens": {
+            "title": "Tokens",
+            "type": "integer"
+          },
+          "tool_attempts": {
+            "title": "Tool Attempts",
+            "type": "integer"
+          },
+          "unconfirmed_model_calls": {
+            "title": "Unconfirmed Model Calls",
+            "type": "integer"
+          },
+          "unknown_tools": {
+            "title": "Unknown Tools",
+            "type": "integer"
+          },
+          "usage_complete": {
+            "title": "Usage Complete",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "scope",
+          "confirmed_model_calls",
+          "unconfirmed_model_calls",
+          "tokens",
+          "cost_microusd",
+          "tool_attempts",
+          "failed_tools",
+          "unknown_tools",
+          "extra_model_calls",
+          "usage_complete",
+          "model_latency_ms"
+        ],
+        "title": "Metrics",
         "type": "object"
       },
       "ModelInfo": {
@@ -3201,6 +5033,26 @@
         "title": "RunSnapshot",
         "type": "object"
       },
+      "SeedCommand": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_revision": {
+            "title": "Expected Revision",
+            "type": "string"
+          },
+          "request_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,100}$",
+            "title": "Request Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "expected_revision"
+        ],
+        "title": "SeedCommand",
+        "type": "object"
+      },
       "SendMessage": {
         "additionalProperties": false,
         "properties": {
@@ -3397,6 +5249,61 @@
           "payload"
         ],
         "title": "SessionEvent",
+        "type": "object"
+      },
+      "Signal": {
+        "additionalProperties": false,
+        "properties": {
+          "critical": {
+            "default": false,
+            "title": "Critical",
+            "type": "boolean"
+          },
+          "evidence": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Evidence",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "source": {
+            "enum": [
+              "deterministic",
+              "model-judge",
+              "human",
+              "unverified-self-report"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "verdict": {
+            "enum": [
+              "pass",
+              "fail",
+              "unknown"
+            ],
+            "title": "Verdict",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "source",
+          "verdict",
+          "evidence",
+          "reason",
+          "critical"
+        ],
+        "title": "Signal",
         "type": "object"
       },
       "Snapshot": {
@@ -4509,6 +6416,29 @@
           "digest"
         ],
         "title": "VersionInfo",
+        "type": "object"
+      },
+      "WindowView": {
+        "additionalProperties": false,
+        "properties": {
+          "current": {
+            "title": "Current",
+            "type": "boolean"
+          },
+          "used": {
+            "title": "Used",
+            "type": "integer"
+          },
+          "window": {
+            "$ref": "#/components/schemas/BlindWindow"
+          }
+        },
+        "required": [
+          "window",
+          "used",
+          "current"
+        ],
+        "title": "WindowView",
         "type": "object"
       },
       "WorkspaceView": {
@@ -5631,6 +7561,2018 @@
           }
         },
         "summary": "Run Snapshot"
+      }
+    },
+    "/api/v1/assessment/aggregate": {
+      "get": {
+        "operationId": "assessment_aggregate_api_v1_assessment_aggregate_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Aggregate"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Assessment Aggregate"
+      }
+    },
+    "/api/v1/assessment/bank": {
+      "get": {
+        "operationId": "assessment_bank_api_v1_assessment_bank_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseBank"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Assessment Bank"
+      },
+      "post": {
+        "operationId": "import_assessment_cases_api_v1_assessment_bank_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImportCases"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseBank"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Import Assessment Cases"
+      }
+    },
+    "/api/v1/assessment/batches": {
+      "post": {
+        "operationId": "assessment_batch_api_v1_assessment_batches_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchEvaluation"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Assessment Batch"
+      }
+    },
+    "/api/v1/assessment/calibrations": {
+      "get": {
+        "operationId": "assessment_calibrations_api_v1_assessment_calibrations_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CalibrationReport"
+                  },
+                  "title": "Response Assessment Calibrations Api V1 Assessment Calibrations Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Assessment Calibrations"
+      },
+      "post": {
+        "operationId": "calibrate_judge_api_v1_assessment_calibrations_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CalibrationCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalibrationReport"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Calibrate Judge"
+      }
+    },
+    "/api/v1/assessment/compare": {
+      "post": {
+        "operationId": "compare_assessment_api_v1_assessment_compare_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompareCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Comparison"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Compare Assessment"
+      }
+    },
+    "/api/v1/assessment/jobs": {
+      "post": {
+        "operationId": "evaluate_run_api_v1_assessment_jobs_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EvaluateCommand-Input"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvalJob"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Evaluate Run"
+      }
+    },
+    "/api/v1/assessment/jobs/{job_id}": {
+      "get": {
+        "operationId": "assessment_job_api_v1_assessment_jobs__job_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvalJob"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Assessment Job"
+      }
+    },
+    "/api/v1/assessment/reports": {
+      "get": {
+        "operationId": "assessment_reports_api_v1_assessment_reports_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/EvalReport"
+                  },
+                  "title": "Response Assessment Reports Api V1 Assessment Reports Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Assessment Reports"
+      }
+    },
+    "/api/v1/assessment/reports/{report_id}": {
+      "get": {
+        "operationId": "assessment_report_api_v1_assessment_reports__report_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "report_id",
+            "required": true,
+            "schema": {
+              "title": "Report Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvalReport"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Assessment Report"
+      }
+    },
+    "/api/v1/assessment/seed": {
+      "post": {
+        "operationId": "seed_assessment_cases_api_v1_assessment_seed_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SeedCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseBank"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Seed Assessment Cases"
+      }
+    },
+    "/api/v1/assessment/status": {
+      "get": {
+        "operationId": "assessment_status_api_v1_assessment_status_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessmentStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Assessment Status"
+      }
+    },
+    "/api/v1/assessment/train-cases": {
+      "get": {
+        "operationId": "assessment_training_cases_api_v1_assessment_train_cases_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/EvalCase-Output"
+                  },
+                  "title": "Response Assessment Training Cases Api V1 Assessment Train Cases Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Assessment Training Cases"
+      }
+    },
+    "/api/v1/assessment/windows": {
+      "get": {
+        "operationId": "assessment_windows_api_v1_assessment_windows_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/WindowView"
+                  },
+                  "title": "Response Assessment Windows Api V1 Assessment Windows Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Assessment Windows"
+      },
+      "post": {
+        "operationId": "assessment_window_api_v1_assessment_windows_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BlindWindowCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BlindWindow"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Assessment Window"
       }
     },
     "/api/v1/bootstrap": {

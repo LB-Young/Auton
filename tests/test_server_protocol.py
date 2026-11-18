@@ -324,6 +324,7 @@ def test_persistent_http_identity_and_upload_survive_application_restart(
     from fastapi.testclient import TestClient
 
     from auton.agent.contracts import AgentConfig
+    from auton.assess.contracts import AssessConfig
     from auton.bootstrap.app import ApplicationFactory
     from auton.bootstrap.config import ApplicationConfig
     from auton.experience.contracts import ExperienceConfig
@@ -334,6 +335,7 @@ def test_persistent_http_identity_and_upload_survive_application_restart(
     from auton.tools.config import ToolConfig
 
     config = ApplicationConfig(
+        assess=AssessConfig(directory=tmp_path / "assess"),
         profile="test",
         kernel=KernelConfig(data_directory=tmp_path / "events"),
         server=ServerSettings(directory=tmp_path / "server"),

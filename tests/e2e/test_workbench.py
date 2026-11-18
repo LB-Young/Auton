@@ -603,3 +603,102 @@ def test_workbench_history_pagination_search_and_late_snapshot(page: Page) -> No
     page.goto(BASE + "?view=agent&project=not-owned&run=" + first_id)
     expect(page.get_by_role("alert")).to_contain_text("项目不可访问")
     expect(page.get_by_label("真实任务执行记录")).to_have_count(0)
+
+
+def test_assessment_checkpoint_evidence_unknown_gate_comparison_and_mobile(page: Page) -> None:
+    import hashlib
+    import time
+
+    identity = "assessment-browser"
+    seed_workbench(page, identity)
+    headers = {"X-Auton-Client": "web", "Origin": BASE}
+    created = page.request.post(
+        BASE + "/api/v1/agent/runs",
+        headers=headers,
+        data={
+            "request_id": "assessment-browser-file",
+            "project_id": identity,
+            "workspace_id": identity,
+            "model_id": "fixture-model",
+            "goal": "Create a precise UTF-8 text file.",
+            "allowed_tools": ["file.write"],
+            "acceptance": {
+                "kind": "file",
+                "path": "notes.md",
+                "sha256": hashlib.sha256(b"hello\n").hexdigest(),
+            },
+        },
+    )
+    assert created.ok
+    run_id = created.json()["id"]
+
+    def await_run(status: str) -> dict[str, object]:
+        deadline = time.monotonic() + 20
+        while time.monotonic() < deadline:
+            value = page.request.get(BASE + f"/api/v1/agent/runs/{run_id}").json()
+            if value["status"] == status:
+                return value  # type: ignore[no-any-return]
+            time.sleep(0.03)
+        raise AssertionError(f"Run did not reach {status}: {value['status']}")
+
+    paused = await_run("waiting_approval")
+    assert page.request.post(
+        BASE + f"/api/v1/agent/runs/{run_id}/commands",
+        headers=headers,
+        data={
+            "request_id": "assessment-browser-approve",
+            "expected_goal_revision": paused["goal_revision"],
+            "action": "approve",
+        },
+    ).ok
+    await_run("succeeded")
+    page.goto(BASE + "?view=assess")
+    expect(page.get_by_role("heading", name="评测", exact=True)).to_be_visible()
+    expect(page.get_by_text("尚无人工元评测校准，语义可信门禁关闭。", exact=True)).to_be_visible()
+    page.get_by_label("评测项目", exact=True).select_option(identity)
+    expect(page.get_by_label("评测运行", exact=True)).to_be_enabled()
+    page.get_by_label("评测运行", exact=True).select_option(run_id)
+    expect(page.get_by_role("button", name="评测当前检查点")).to_be_enabled()
+    page.get_by_role("button", name="评测当前检查点").click()
+    evidence = page.get_by_label("评测证据", exact=True)
+    expect(evidence.get_by_role("heading", name="通过 · operational")).to_be_visible()
+    expect(evidence).to_contain_text("独立检查")
+    expect(evidence).to_contain_text("发布候选行：不符合")
+    expect(page.get_by_label("评测统计")).to_contain_text("已知分母 1")
+    page.get_by_role("checkbox", name=re.compile("调用语义裁判")).check()
+    page.get_by_role("button", name="评测当前检查点").click()
+    expect(evidence.get_by_role("heading", name="未知 · operational")).to_be_visible()
+    expect(page.get_by_label("评测统计")).to_contain_text("未知 1")
+    reports = page.request.get(BASE + f"/api/v1/assessment/reports?project_id={identity}").json()
+    assert len(reports) == 2 and all(not r["quality_release_eligible"] for r in reports)
+    page.get_by_label("基线报告", exact=True).select_option(reports[0]["id"])
+    page.get_by_label("候选报告", exact=True).select_option(reports[1]["id"])
+    page.get_by_role("button", name="比较候选", exact=True).click()
+    expect(page.get_by_text("不可作为改进证据", exact=True)).to_be_visible()
+    page.get_by_role("button", name="添加训练种子").click()
+    expect(
+        page.get_by_text("train 2 · development 0 · test 0 · meta 0", exact=True)
+    ).to_be_visible()
+    page.get_by_role("heading", name="评测", exact=True).scroll_into_view_if_needed()
+    screenshot(page, "M13-assessment-desktop.png")
+    page.set_viewport_size({"width": 390, "height": 844})
+    assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+    page.get_by_role("heading", name="评测", exact=True).scroll_into_view_if_needed()
+    screenshot(page, "M13-assessment-mobile.png")
+    page.reload()
+    expect(page.get_by_role("heading", name="评测", exact=True)).to_be_visible()
+    expect(page.get_by_text("尚无人工元评测校准，语义可信门禁关闭。", exact=True)).to_be_visible()
+
+
+def test_assessment_unavailable_error_is_explicit(page: Page) -> None:
+    page.route(
+        "**/api/v1/assessment/status",
+        lambda route: route.fulfill(
+            status=403,
+            content_type="application/json",
+            body='{"code":"assessment_forbidden","message":"当前身份不能读取评测"}',
+        ),
+    )
+    page.goto(BASE + "?view=assess")
+    expect(page.get_by_role("alert")).to_have_text("当前身份不能读取评测")
+    expect(page.get_by_role("button", name="评测当前检查点")).to_be_disabled()

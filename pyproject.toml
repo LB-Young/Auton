@@ -67,7 +67,7 @@ root_package = "auton"
 name = "Kernel is independent"
 type = "forbidden"
 source_modules = ["auton.kernel"]
-forbidden_modules = ["auton.bootstrap", "auton.demo", "auton.server", "auton.constitution", "auton.model", "auton.judgment", "auton.tools", "auton.genome", "auton.context", "auton.agent", "auton.experience"]
+forbidden_modules = ["auton.bootstrap", "auton.demo", "auton.server", "auton.constitution", "auton.model", "auton.judgment", "auton.tools", "auton.genome", "auton.context", "auton.agent", "auton.experience", "auton.assess"]
 
 [[tool.importlinter.contracts]]
 name = "Demo never imports transport or composition"
@@ -174,3 +174,16 @@ name = "Transport uses public experience contracts"
 type = "forbidden"
 source_modules = ["auton.server"]
 forbidden_modules = ["auton.experience.service", "auton.experience.projection", "auton.experience.repository", "auton.experience.factory"]
+
+
+[[tool.importlinter.contracts]]
+name = "Assessment only depends on public runtime ports"
+type = "forbidden"
+source_modules = ["auton.assess"]
+forbidden_modules = ["auton.bootstrap", "auton.server", "auton.agent.service", "auton.agent.repository", "auton.context.service", "auton.model.gateway", "auton.model.provider", "auton.tools.service", "auton.constitution.control"]
+
+[[tool.importlinter.contracts]]
+name = "Transport cannot access evaluator storage or implementations"
+type = "forbidden"
+source_modules = ["auton.server"]
+forbidden_modules = ["auton.assess.service", "auton.assess.store", "auton.assess.judge", "auton.assess.checkers", "auton.assess.factory"]

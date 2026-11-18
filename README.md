@@ -1,6 +1,6 @@
 # Auton
 
-个人 Agent 工作台。当前完成 **M01 项目框架、M02 持久事件内核、M03 固定控制策略、M04 执行模型网关、M05 本地判断接入、M06 受控工具、M07 版本资产、M08 上下文引擎、M09 单 Agent 执行闭环、M10 轨迹恢复、M11 服务协议与 M12 真实工作台**：模块工厂、显式依赖组装、FastAPI API、React 对话界面与合成 Demo；M13–M21 尚未实现。
+个人 Agent 工作台。当前完成 **M01 项目框架、M02 持久事件内核、M03 固定控制策略、M04 执行模型网关、M05 本地判断接入、M06 受控工具、M07 版本资产、M08 上下文引擎、M09 单 Agent 执行闭环、M10 轨迹恢复、M11 服务协议、M12 真实工作台与 M13 独立评测工程**：模块工厂、显式依赖组装、FastAPI API、React 对话界面与合成 Demo；M14–M21 尚未实现；M13 尚缺真实人工金标校准，语义可信门禁关闭。
 
 后端和开发/验收辅助工具优先使用 Python。仅浏览器界面及其必要构建配置使用 TypeScript/React；Makefile 是 Python 命令入口。
 
@@ -216,3 +216,12 @@ M10 及更早版本的 Cookie 只有在原浏览器/CLI 私有文件仍保留时
 历史按创建顺序使用持久游标分页，支持大小写无关目标搜索；每页默认 10、最多 20 项。一次最多扫描 1000 条来源事件，可能出现空但仍可继续的页面；新分页接口不会触发旧整表接口的 100 项限制。消息区支持 Markdown、代码复制、手动回到底部和阅读位置保持；产物经授权接口只读预览/下载，HTML 不执行，面板宽度可用键盘调整。
 
 `make workbench-smoke` 显式使用本地 Laya 与真实 DeepSeek 运行公开文件任务，人工审批由验收脚本操作，再只重启本次创建的隔离后端核对恢复。`scripts/workbench_smoke.py --reuse-completed` 用忽略目录中的 0600 私有测试 Cookie 检查已有任务，不新增模型调用。脚本不会停止其他服务或上传用户数据，结果在 `test-results/workbench-native.json`。见 [M12 验收](docs/milestones/evidence/M12.md)。
+
+
+## 独立评测（M13）
+
+评测页可选择真实运行的确切检查点，独立核验文件摘要/工具协议，查看四类证据、未知样本、分组、候选对照与盲测窗口。`semantic` 默认关闭，显式开启才调用强裁判并产生费用；人工偏好与模型自信不能作为gold。
+
+题库区分train/development/test/meta，默认种子只生成train；人工金标需单独审核导入。裁判原始输入/答案保存于私有`assess.directory/judge-journal`，不进入训练轨迹。校准不足/漂移/自评/重复分歧保持未知，评测不会自动上线模型。参见[M13证据与接口配置](./docs/milestones/evidence/M13.md)。
+
+真实验收可运行`.venv/bin/python scripts/workbench_smoke.py --assess`（公开合成数据，会调用Laya、DeepSeek执行模型及两次强裁判）；`--reuse-completed --assess`复用同一已完成任务/报告验证恢复，不重复付费。
