@@ -1373,3 +1373,41 @@ svg {
   margin-top: 24px;
   padding-top: 16px;
 }
+
+.context-page details {
+  margin: 16px 0;
+}
+.context-page summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.context-page details p,
+.context-hash {
+  overflow-wrap: anywhere;
+}
+.context-page select {
+  max-width: 100%;
+}
+
+.context-page .judgment-input {
+  display: block;
+  margin-top: 10px;
+}
+.context-page h3 {
+  font-size: 14px;
+  margin-top: 24px;
+}
+.context-page dd {
+  overflow-wrap: anywhere;
+  min-width: 0;
+  display: block;
+}
+@media (max-width: 600px) {
+  .context-page .settings-card dl > div {
+    flex-direction: column;
+    gap: 6px;
+  }
+  .context-page .settings-card dd {
+    text-align: left;
+  }
+}

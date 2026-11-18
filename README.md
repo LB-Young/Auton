@@ -1,6 +1,6 @@
 # Auton
 
-个人 Agent 工作台。当前完成 **M01 项目框架、M02 持久事件内核、M03 固定控制策略、M04 执行模型网关、M05 本地判断接入、M06 受控工具与 M07 版本资产**：模块工厂、显式依赖组装、FastAPI API、React 对话界面与合成 Demo；M08–M21 尚未实现。
+个人 Agent 工作台。当前完成 **M01 项目框架、M02 持久事件内核、M03 固定控制策略、M04 执行模型网关、M05 本地判断接入、M06 受控工具、M07 版本资产与 M08 上下文引擎**：模块工厂、显式依赖组装、FastAPI API、React 对话界面与合成 Demo；M09–M21 尚未实现。
 
 后端和开发/验收辅助工具优先使用 Python。仅浏览器界面及其必要构建配置使用 TypeScript/React；Makefile 是 Python 命令入口。
 
@@ -125,3 +125,18 @@ M03 设置页展示权限、外发边界和单目标预算，并提供不实际�
 资产页可创建项目说明，管理 Skill/Prompt/角色/知识/资料/记忆候选。候选进入本地 Git learning 分支；人工晋升才更新正式 main。可查看历史、差异、回退和固定使用快照。
 
 撤回会传播到派生引用并阻止旧快照再次读取；过期记录不参与解析。Git 审计历史仍保留，逻辑撤回不等于物理擦除。默认本地目录 `.auton_local/genome` 被忽略，资料不随代码推送 GitHub。见 [M07 验收](docs/milestones/evidence/M07.md)。
+
+
+## 上下文装配（M08）
+
+先在资产页创建项目并审核资料，再在上下文页选择项目/执行模型，输入目标、必留边界和可选旧轮次。页面仅装配和保存输入，不调用模型；主对话仍为 Demo。远程模型准入需明确声明此次输入与项目资料均可公开。
+
+```sh
+make context-setup   # 下载并校验两套固定 tokenizer，约 13 MB，不下载执行模型权重
+make context-smoke   # 本地真实 tokenizer：中英文、工具定义与调用/响应历史
+.venv/bin/python scripts/context_smoke.py --hosted  # 显式调用两个真实 DeepSeek 短请求
+```
+
+缺少 tokenizer 时明确阻塞，不用字符近似或测试替身降级。检索使用词项/中文 bigram 基线，显示来源、内容 SHA256 和字符区间；不可信资料不授予权限。预算不足时先移除低优先级证据，再移除完整旧轮次，目标、边界、未决操作 receipt 和最新修订始终保留，仍放不下则阻塞。原始轨迹和 checkpoint 不被覆盖。
+
+界面分别显示本地 token 数与保守准入预算；服务端实际 usage 用于结算。配置 `[context]` 支持 `tokenizer_directory`、`max_evidence`、`chunk_characters`、`hosted_overhead_tokens`。见 [M08 验收与限制](docs/milestones/evidence/M08.md)。

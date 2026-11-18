@@ -1,5 +1,6 @@
 import asyncio
 import hashlib
+import re
 from secrets import token_urlsafe
 from urllib.parse import quote
 
@@ -8,7 +9,7 @@ from fastapi import FastAPI, Request, Response, WebSocket, WebSocketDisconnect
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, ConfigDict, Field, JsonValue
+from pydantic import BaseModel, ConfigDict, Field, JsonValue, model_validator
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from auton.constitution.config import (
@@ -18,6 +19,7 @@ from auton.constitution.config import (
     Principal,
     PublicPolicy,
 )
+from auton.context.contracts import ContextRequest, ContextSnapshot, TaskState
 from auton.demo.ports import (
     ConversationPort,
     CreateSession,
@@ -42,6 +44,23 @@ from auton.tools.contracts import (
     ToolReceipt,
     ToolRequest,
 )
+
+
+class ContextPreviewCommand(BaseModel):
+    model_config = ConfigDict(extra="forbid", hide_input_in_errors=True)
+    request_id: str = Field(min_length=1, max_length=100)
+    model_id: str = Field(min_length=1, max_length=100)
+    state: TaskState
+    history: tuple[ModelMessage, ...] = Field(default=(), max_length=300)
+    public: bool = False
+
+    @model_validator(mode="after")
+    def bounded_history(self) -> "ContextPreviewCommand":
+        if any(m.role == "system" for m in self.history):
+            raise ValueError("System messages are host-only")
+        if len(self.model_dump_json().encode()) > 1000000:
+            raise ValueError("Preview input too large")
+        return self
 
 
 class PolicyRevision(BaseModel):
@@ -264,6 +283,36 @@ class ServerFactory:
         ) -> str:
             return await deps.genome.diff(
                 Principal(owner=owner(request)), project_id, asset_id, revision
+            )
+
+        @app.post("/api/v1/projects/{project_id}/context")
+        async def prepare_context(
+            request: Request, project_id: str, command: ContextPreviewCommand
+        ) -> ContextSnapshot:
+            if not re.fullmatch(r"[a-zA-Z0-9_-]{1,80}", project_id):
+                raise ApplicationError(422, "invalid_project", "Invalid project identifier")
+            principal = Principal(owner=owner(request), role="runtime")
+            return await deps.context.prepare(
+                ContextRequest(
+                    request_id=command.request_id,
+                    principal=principal,
+                    project_id=project_id,
+                    goal_id=hashlib.sha256(
+                        (principal.owner + "context-preview" + project_id).encode()
+                    ).hexdigest(),
+                    model_id=command.model_id,
+                    state=command.state,
+                    history=command.history,
+                    data_domain="public" if command.public else "local-only",
+                )
+            )
+
+        @app.get("/api/v1/projects/{project_id}/context/{snapshot_id}")
+        async def get_context(
+            request: Request, project_id: str, snapshot_id: str
+        ) -> ContextSnapshot:
+            return await deps.context.snapshot(
+                Principal(owner=owner(request), role="runtime"), project_id, snapshot_id
             )
 
         @app.post("/api/v1/projects/{project_id}/snapshots")

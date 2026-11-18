@@ -4,7 +4,7 @@ PROJECT_ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 PYTHON ?= python3
 DEV_PYTHON ?= $(PROJECT_ROOT).venv/bin/python
 
-.PHONY: help setup dev api web check contracts judgment-setup judgment-smoke browser-install e2e clean clean-preview clean-cache clean-build clean-empty
+.PHONY: help setup dev api web check contracts context-setup context-smoke judgment-setup judgment-smoke browser-install e2e clean clean-preview clean-cache clean-build clean-empty
 
 help:
 	@printf '%s\n' \
@@ -13,6 +13,7 @@ help:
 	  'make api / web      单独启动后端 / 前端' \
 	  'make check          运行代码、类型、契约、边界和构建检查' \
 	  'make contracts      重新导出 API 与前端类型' \
+	  'make context-setup / context-smoke 下载固定 tokenizer / 本地计数验收' \
 	  'make browser-install 安装浏览器验收所需 Chromium' \
 	  'make e2e            启动临时服务并运行 Python 浏览器验收' \
 	  'make clean          清除缓存、临时编译产物和所有空目录' \
@@ -66,3 +67,9 @@ judgment-setup:
 
 judgment-smoke:
 	@"$(DEV_PYTHON)" "$(PROJECT_ROOT)scripts/judgment_smoke.py"
+
+context-setup:
+	@"$(DEV_PYTHON)" "$(PROJECT_ROOT)scripts/download_context_tokenizers.py"
+
+context-smoke:
+	@"$(DEV_PYTHON)" "$(PROJECT_ROOT)scripts/context_smoke.py"

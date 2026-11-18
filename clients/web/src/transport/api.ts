@@ -1,4 +1,5 @@
 import type {
+  ContextSnapshot,
   ActionRequest,
   PolicyDecision,
   JudgmentInfo,
@@ -51,6 +52,12 @@ export class ApiClientFactory {
       return (await response.json()) as T;
     }
     return {
+      prepareContext: (project, command) =>
+        request<ContextSnapshot>(`/projects/${encodeURIComponent(project)}/context`, command),
+      contextSnapshot: (project, id) =>
+        request<ContextSnapshot>(
+          `/projects/${encodeURIComponent(project)}/context/${encodeURIComponent(id)}`,
+        ),
       judgment: () => request<JudgmentInfo>('/judgment'),
       previewJudgment: (state, isPublic, request_id) =>
         request<JudgmentResult>('/judgment/preview', { state, public: isPublic, request_id }),

@@ -328,6 +328,40 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/projects/{project_id}/context': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Prepare Context */
+    post: operations['prepare_context_api_v1_projects__project_id__context_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/projects/{project_id}/context/{snapshot_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Context */
+    get: operations['get_context_api_v1_projects__project_id__context__snapshot_id__get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/projects/{project_id}/snapshots': {
     parameters: {
       query?: never;
@@ -849,6 +883,116 @@ export interface components {
        */
       remote_providers: ('deepseek' | 'typesafe')[];
     };
+    /** ContextPreviewCommand */
+    ContextPreviewCommand: {
+      /**
+       * History
+       * @default []
+       */
+      history: components['schemas']['ModelMessage-Input'][];
+      /** Model Id */
+      model_id: string;
+      /**
+       * Public
+       * @default false
+       */
+      public: boolean;
+      /** Request Id */
+      request_id: string;
+      state: components['schemas']['TaskState'];
+    };
+    /** ContextSnapshot */
+    ContextSnapshot: {
+      /** Admission Tokens */
+      admission_tokens: number | null;
+      /** Asset Snapshot Id */
+      asset_snapshot_id: string;
+      /**
+       * Checkpoint Modified
+       * @default false
+       * @constant
+       */
+      checkpoint_modified: false;
+      /**
+       * Compression Revision
+       * @default whole-turn-retention-v1
+       * @constant
+       */
+      compression_revision: 'whole-turn-retention-v1';
+      /** Configuration Digest */
+      configuration_digest: string;
+      /** Context Limit */
+      context_limit: number;
+      /**
+       * Counter Source
+       * @enum {string}
+       */
+      counter_source: 'official-local' | 'test-fixture' | 'unavailable';
+      /**
+       * Data Domain
+       * @enum {string}
+       */
+      data_domain: 'public' | 'local-only';
+      /** Declared Model Revision */
+      declared_model_revision: string;
+      /** Dropped History Groups */
+      dropped_history_groups: number;
+      /** Evidence */
+      evidence: components['schemas']['Evidence'][];
+      /** Excluded Evidence */
+      excluded_evidence: string[];
+      /** Goal Id */
+      goal_id: string;
+      /** Goal Revision */
+      goal_revision: number;
+      /** Id */
+      id: string;
+      /** Input Tokens */
+      input_tokens: number | null;
+      /**
+       * Instructions Revision
+       * @default context-system-v1
+       * @constant
+       */
+      instructions_revision: 'context-system-v1';
+      /** Messages */
+      messages: components['schemas']['ModelMessage-Output'][];
+      /** Model Id */
+      model_id: string;
+      /** Output Reserved */
+      output_reserved: number;
+      /** Policy Version */
+      policy_version: string;
+      /** Project Id */
+      project_id: string;
+      /** Reasons */
+      reasons: string[];
+      /** Receipt Digests */
+      receipt_digests: {
+        [key: string]: string;
+      };
+      /** Remaining Tokens */
+      remaining_tokens: number | null;
+      /** Request Digest */
+      request_digest: string;
+      /**
+       * Retrieval Revision
+       * @default lexical-bigram-v1
+       * @constant
+       */
+      retrieval_revision: 'lexical-bigram-v1';
+      /** State Cutoff */
+      state_cutoff: number;
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: 'ready' | 'blocked';
+      /** Tokenizer Revision */
+      tokenizer_revision: string;
+      /** Tools */
+      tools: components['schemas']['ToolSpec'][];
+    };
     /** CreateSession */
     CreateSession: {
       /** Request Id */
@@ -885,6 +1029,31 @@ export interface components {
       code: string;
       /** Message */
       message: string;
+    };
+    /** Evidence */
+    Evidence: {
+      /** Asset Ids */
+      asset_ids: string[];
+      /** Content Digest */
+      content_digest: string;
+      /** End Character */
+      end_character: number;
+      /** Locations */
+      locations: components['schemas']['SourceLocation'][];
+      /** Score */
+      score: number;
+      /** Source References */
+      source_references: string[];
+      /** Start Character */
+      start_character: number;
+      /** Text */
+      text: string;
+      /**
+       * Trust
+       * @default untrusted
+       * @constant
+       */
+      trust: 'untrusted';
     };
     /** HealthResponse */
     HealthResponse: {
@@ -1033,6 +1202,40 @@ export interface components {
       /** Template Revision */
       template_revision: string | null;
     };
+    /** ModelMessage */
+    'ModelMessage-Input': {
+      /** Content */
+      content?: string | null;
+      /**
+       * Role
+       * @enum {string}
+       */
+      role: 'system' | 'user' | 'assistant' | 'tool';
+      /** Tool Call Id */
+      tool_call_id?: string | null;
+      /**
+       * Tool Calls
+       * @default []
+       */
+      tool_calls: components['schemas']['ToolCall'][];
+    };
+    /** ModelMessage */
+    'ModelMessage-Output': {
+      /** Content */
+      content: string | null;
+      /**
+       * Role
+       * @enum {string}
+       */
+      role: 'system' | 'user' | 'assistant' | 'tool';
+      /** Tool Call Id */
+      tool_call_id: string | null;
+      /**
+       * Tool Calls
+       * @default []
+       */
+      tool_calls: components['schemas']['ToolCall'][];
+    };
     /** ModelProbe */
     ModelProbe: {
       /** Request Id */
@@ -1125,6 +1328,18 @@ export interface components {
        * @default 1
        */
       version: string;
+    };
+    /** PendingOperation */
+    PendingOperation: {
+      /** Operation Id */
+      operation_id: string;
+      /** Receipt Digest */
+      receipt_digest?: string | null;
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: 'unknown' | 'awaiting_approval' | 'completed' | 'failed';
     };
     /** PolicyDecision */
     PolicyDecision: {
@@ -1351,6 +1566,17 @@ export interface components {
        */
       untrusted: true;
     };
+    /** SourceLocation */
+    SourceLocation: {
+      /** Asset Id */
+      asset_id: string;
+      /** End Character */
+      end_character: number;
+      /** Source */
+      source: string;
+      /** Start Character */
+      start_character: number;
+    };
     /** StopRun */
     StopRun: {
       /** Request Id */
@@ -1377,6 +1603,21 @@ export interface components {
       sqlite_version?: string | null;
       /** Synchronous */
       synchronous: string;
+    };
+    /** TaskState */
+    TaskState: {
+      /**
+       * Boundaries
+       * @default []
+       */
+      boundaries: string[];
+      /** Goal */
+      goal: string;
+      /**
+       * Pending
+       * @default []
+       */
+      pending: components['schemas']['PendingOperation'][];
     };
     /** ToolApproval */
     ToolApproval: {
@@ -1536,6 +1777,20 @@ export interface components {
       untrusted: true;
       /** Workspace Id */
       workspace_id: string;
+    };
+    /** ToolSpec */
+    ToolSpec: {
+      /**
+       * Description
+       * @default
+       */
+      description: string;
+      /** Name */
+      name: string;
+      /** Parameters */
+      parameters: {
+        [key: string]: components['schemas']['JsonValue'];
+      };
     };
     /** ToolWorkspaceCommand */
     ToolWorkspaceCommand: {
@@ -3427,6 +3682,199 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['Revision'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  prepare_context_api_v1_projects__project_id__context_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        project_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ContextPreviewCommand'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ContextSnapshot'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  get_context_api_v1_projects__project_id__context__snapshot_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        project_id: string;
+        snapshot_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ContextSnapshot'];
         };
       };
       /** @description Unauthorized */

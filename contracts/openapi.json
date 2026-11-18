@@ -642,6 +642,271 @@
         "title": "ConstitutionConfig",
         "type": "object"
       },
+      "ContextPreviewCommand": {
+        "additionalProperties": false,
+        "properties": {
+          "history": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/ModelMessage-Input"
+            },
+            "maxItems": 300,
+            "title": "History",
+            "type": "array"
+          },
+          "model_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Model Id",
+            "type": "string"
+          },
+          "public": {
+            "default": false,
+            "title": "Public",
+            "type": "boolean"
+          },
+          "request_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Request Id",
+            "type": "string"
+          },
+          "state": {
+            "$ref": "#/components/schemas/TaskState"
+          }
+        },
+        "required": [
+          "request_id",
+          "model_id",
+          "state"
+        ],
+        "title": "ContextPreviewCommand",
+        "type": "object"
+      },
+      "ContextSnapshot": {
+        "additionalProperties": false,
+        "properties": {
+          "admission_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Admission Tokens"
+          },
+          "asset_snapshot_id": {
+            "title": "Asset Snapshot Id",
+            "type": "string"
+          },
+          "checkpoint_modified": {
+            "const": false,
+            "default": false,
+            "title": "Checkpoint Modified",
+            "type": "boolean"
+          },
+          "compression_revision": {
+            "const": "whole-turn-retention-v1",
+            "default": "whole-turn-retention-v1",
+            "title": "Compression Revision",
+            "type": "string"
+          },
+          "configuration_digest": {
+            "title": "Configuration Digest",
+            "type": "string"
+          },
+          "context_limit": {
+            "title": "Context Limit",
+            "type": "integer"
+          },
+          "counter_source": {
+            "enum": [
+              "official-local",
+              "test-fixture",
+              "unavailable"
+            ],
+            "title": "Counter Source",
+            "type": "string"
+          },
+          "data_domain": {
+            "enum": [
+              "public",
+              "local-only"
+            ],
+            "title": "Data Domain",
+            "type": "string"
+          },
+          "declared_model_revision": {
+            "title": "Declared Model Revision",
+            "type": "string"
+          },
+          "dropped_history_groups": {
+            "title": "Dropped History Groups",
+            "type": "integer"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/Evidence"
+            },
+            "title": "Evidence",
+            "type": "array"
+          },
+          "excluded_evidence": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Excluded Evidence",
+            "type": "array"
+          },
+          "goal_id": {
+            "title": "Goal Id",
+            "type": "string"
+          },
+          "goal_revision": {
+            "title": "Goal Revision",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "input_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input Tokens"
+          },
+          "instructions_revision": {
+            "const": "context-system-v1",
+            "default": "context-system-v1",
+            "title": "Instructions Revision",
+            "type": "string"
+          },
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/ModelMessage-Output"
+            },
+            "title": "Messages",
+            "type": "array"
+          },
+          "model_id": {
+            "title": "Model Id",
+            "type": "string"
+          },
+          "output_reserved": {
+            "title": "Output Reserved",
+            "type": "integer"
+          },
+          "policy_version": {
+            "title": "Policy Version",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "receipt_digests": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Receipt Digests",
+            "type": "object"
+          },
+          "remaining_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Remaining Tokens"
+          },
+          "request_digest": {
+            "title": "Request Digest",
+            "type": "string"
+          },
+          "retrieval_revision": {
+            "const": "lexical-bigram-v1",
+            "default": "lexical-bigram-v1",
+            "title": "Retrieval Revision",
+            "type": "string"
+          },
+          "state_cutoff": {
+            "title": "State Cutoff",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "ready",
+              "blocked"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "tokenizer_revision": {
+            "title": "Tokenizer Revision",
+            "type": "string"
+          },
+          "tools": {
+            "items": {
+              "$ref": "#/components/schemas/ToolSpec"
+            },
+            "title": "Tools",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "request_digest",
+          "configuration_digest",
+          "receipt_digests",
+          "project_id",
+          "goal_id",
+          "goal_revision",
+          "state_cutoff",
+          "model_id",
+          "declared_model_revision",
+          "data_domain",
+          "policy_version",
+          "asset_snapshot_id",
+          "status",
+          "reasons",
+          "tokenizer_revision",
+          "counter_source",
+          "input_tokens",
+          "admission_tokens",
+          "context_limit",
+          "output_reserved",
+          "remaining_tokens",
+          "messages",
+          "tools",
+          "evidence",
+          "excluded_evidence",
+          "dropped_history_groups",
+          "instructions_revision",
+          "retrieval_revision",
+          "compression_revision",
+          "checkpoint_modified"
+        ],
+        "title": "ContextSnapshot",
+        "type": "object"
+      },
       "CreateSession": {
         "additionalProperties": false,
         "properties": {
@@ -732,6 +997,71 @@
           "message"
         ],
         "title": "ErrorBody",
+        "type": "object"
+      },
+      "Evidence": {
+        "additionalProperties": false,
+        "properties": {
+          "asset_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Asset Ids",
+            "type": "array"
+          },
+          "content_digest": {
+            "title": "Content Digest",
+            "type": "string"
+          },
+          "end_character": {
+            "title": "End Character",
+            "type": "integer"
+          },
+          "locations": {
+            "items": {
+              "$ref": "#/components/schemas/SourceLocation"
+            },
+            "title": "Locations",
+            "type": "array"
+          },
+          "score": {
+            "title": "Score",
+            "type": "number"
+          },
+          "source_references": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Source References",
+            "type": "array"
+          },
+          "start_character": {
+            "title": "Start Character",
+            "type": "integer"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          },
+          "trust": {
+            "const": "untrusted",
+            "default": "untrusted",
+            "title": "Trust",
+            "type": "string"
+          }
+        },
+        "required": [
+          "locations",
+          "asset_ids",
+          "source_references",
+          "start_character",
+          "end_character",
+          "content_digest",
+          "text",
+          "score",
+          "trust"
+        ],
+        "title": "Evidence",
         "type": "object"
       },
       "HealthResponse": {
@@ -1101,6 +1431,111 @@
         "title": "ModelInfo",
         "type": "object"
       },
+      "ModelMessage-Input": {
+        "additionalProperties": false,
+        "properties": {
+          "content": {
+            "anyOf": [
+              {
+                "maxLength": 16000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content"
+          },
+          "role": {
+            "enum": [
+              "system",
+              "user",
+              "assistant",
+              "tool"
+            ],
+            "title": "Role",
+            "type": "string"
+          },
+          "tool_call_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tool Call Id"
+          },
+          "tool_calls": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/ToolCall"
+            },
+            "title": "Tool Calls",
+            "type": "array"
+          }
+        },
+        "required": [
+          "role"
+        ],
+        "title": "ModelMessage",
+        "type": "object"
+      },
+      "ModelMessage-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "content": {
+            "anyOf": [
+              {
+                "maxLength": 16000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content"
+          },
+          "role": {
+            "enum": [
+              "system",
+              "user",
+              "assistant",
+              "tool"
+            ],
+            "title": "Role",
+            "type": "string"
+          },
+          "tool_call_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tool Call Id"
+          },
+          "tool_calls": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/ToolCall"
+            },
+            "title": "Tool Calls",
+            "type": "array"
+          }
+        },
+        "required": [
+          "role",
+          "content",
+          "tool_call_id",
+          "tool_calls"
+        ],
+        "title": "ModelMessage",
+        "type": "object"
+      },
       "ModelProbe": {
         "additionalProperties": false,
         "properties": {
@@ -1315,6 +1750,45 @@
           "status"
         ],
         "title": "ModuleDescriptor",
+        "type": "object"
+      },
+      "PendingOperation": {
+        "additionalProperties": false,
+        "properties": {
+          "operation_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Operation Id",
+            "type": "string"
+          },
+          "receipt_digest": {
+            "anyOf": [
+              {
+                "pattern": "^[a-f0-9]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Receipt Digest"
+          },
+          "status": {
+            "enum": [
+              "unknown",
+              "awaiting_approval",
+              "completed",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "operation_id",
+          "status"
+        ],
+        "title": "PendingOperation",
         "type": "object"
       },
       "PolicyDecision": {
@@ -1888,6 +2362,35 @@
         "title": "Snapshot",
         "type": "object"
       },
+      "SourceLocation": {
+        "additionalProperties": false,
+        "properties": {
+          "asset_id": {
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "end_character": {
+            "title": "End Character",
+            "type": "integer"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "start_character": {
+            "title": "Start Character",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "asset_id",
+          "source",
+          "start_character",
+          "end_character"
+        ],
+        "title": "SourceLocation",
+        "type": "object"
+      },
       "StopRun": {
         "additionalProperties": false,
         "properties": {
@@ -1960,6 +2463,41 @@
           "synchronous"
         ],
         "title": "StorageInfo",
+        "type": "object"
+      },
+      "TaskState": {
+        "additionalProperties": false,
+        "properties": {
+          "boundaries": {
+            "default": [],
+            "items": {
+              "maxLength": 300,
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Boundaries",
+            "type": "array"
+          },
+          "goal": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Goal",
+            "type": "string"
+          },
+          "pending": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/PendingOperation"
+            },
+            "maxItems": 30,
+            "title": "Pending",
+            "type": "array"
+          }
+        },
+        "required": [
+          "goal"
+        ],
+        "title": "TaskState",
         "type": "object"
       },
       "ToolApproval": {
@@ -2330,6 +2868,36 @@
           "source"
         ],
         "title": "ToolReceipt",
+        "type": "object"
+      },
+      "ToolSpec": {
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "default": "",
+            "maxLength": 1000,
+            "title": "Description",
+            "type": "string"
+          },
+          "name": {
+            "pattern": "^[a-zA-Z0-9_-]{1,64}$",
+            "title": "Name",
+            "type": "string"
+          },
+          "parameters": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonValue"
+            },
+            "title": "Parameters",
+            "type": "object"
+          }
+        },
+        "required": [
+          "name",
+          "description",
+          "parameters"
+        ],
+        "title": "ToolSpec",
         "type": "object"
       },
       "ToolWorkspaceCommand": {
@@ -4662,6 +5230,243 @@
           }
         },
         "summary": "Propose Asset"
+      }
+    },
+    "/api/v1/projects/{project_id}/context": {
+      "post": {
+        "operationId": "prepare_context_api_v1_projects__project_id__context_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContextPreviewCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContextSnapshot"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Prepare Context"
+      }
+    },
+    "/api/v1/projects/{project_id}/context/{snapshot_id}": {
+      "get": {
+        "operationId": "get_context_api_v1_projects__project_id__context__snapshot_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "snapshot_id",
+            "required": true,
+            "schema": {
+              "title": "Snapshot Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContextSnapshot"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Get Context"
       }
     },
     "/api/v1/projects/{project_id}/snapshots": {

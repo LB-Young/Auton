@@ -9,6 +9,7 @@ from pydantic import BaseModel
 
 from auton.constitution.config import PublicPolicy
 from auton.constitution.ports import PolicyControlPort
+from auton.context.ports import ContextEnginePort
 from auton.demo.ports import ConversationPort
 from auton.genome.ports import GenomePort
 from auton.judgment.ports import JudgmentPort
@@ -41,6 +42,7 @@ class ServerDependencies:
     lifespan: Callable[[FastAPI], AbstractAsyncContextManager[None]]
     is_ready: Callable[[], bool]
     storage: Callable[[], StorageInfo]
+    context: ContextEnginePort
     genome: GenomePort
     tools: ToolHostPort
     judgment: JudgmentPort

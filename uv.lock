@@ -75,6 +75,7 @@ dependencies = [
     { name = "jsonschema" },
     { name = "pydantic" },
     { name = "python-dotenv" },
+    { name = "tokenizers" },
     { name = "uvicorn", extra = ["standard"] },
 ]
 
@@ -106,6 +107,7 @@ requires-dist = [
     { name = "laya", marker = "extra == 'judgment'", specifier = "==0.3.20" },
     { name = "pydantic", specifier = ">=2.10,<3" },
     { name = "python-dotenv", specifier = ">=1.0,<2" },
+    { name = "tokenizers", specifier = ">=0.22,<0.23" },
     { name = "transformers", marker = "extra == 'judgment'", specifier = ">=4.48,<5" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.34,<1" },
 ]

@@ -32,3 +32,6 @@ export type Project = components['schemas']['Project-Output'];
 export type AssetRevision = components['schemas']['Revision'];
 export type Snapshot = components['schemas']['Snapshot'];
 export type VersionInfo = components['schemas']['VersionInfo'];
+
+export type ContextSnapshot = components['schemas']['ContextSnapshot'];
+export type ContextPreviewCommand = components['schemas']['ContextPreviewCommand'];

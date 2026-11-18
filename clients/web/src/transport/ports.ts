@@ -1,4 +1,6 @@
 import type {
+  ContextSnapshot,
+  ContextPreviewCommand,
   JudgmentInfo,
   JudgmentResult,
   ToolDescriptor,
@@ -22,6 +24,8 @@ import type {
 } from '../shared/contracts';
 
 export interface ApiClient {
+  prepareContext(project: string, command: ContextPreviewCommand): Promise<ContextSnapshot>;
+  contextSnapshot(project: string, id: string): Promise<ContextSnapshot>;
   judgment(): Promise<JudgmentInfo>;
   previewJudgment(state: string, isPublic: boolean, requestId: string): Promise<JudgmentResult>;
   tools(): Promise<ToolDescriptor[]>;

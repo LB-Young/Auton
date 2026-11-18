@@ -37,11 +37,13 @@ import type { Application } from './composition';
 import type { Artifact, PolicyDecision } from '../shared/contracts';
 import { Judgment } from '../features/judgment/Judgment';
 import { Tools } from '../features/tools/Tools';
+import { Context } from '../features/context/Context';
 import { Genome } from '../features/genome/Genome';
 import { Models } from '../features/models/Models';
 import { Markdown } from '../shared/Markdown';
 
 const workspaces = [
+  { id: 'context', label: '上下文', icon: BookOpen, description: '查看来源、保留状态与输入预算。' },
   { id: 'tools', label: '工具', icon: Wrench, description: '受控文件、审批与执行凭据。' },
   { id: 'agent', label: '任务', icon: Workflow, description: '查看任务进展、审批与执行记录。' },
   { id: 'genome', label: '资产', icon: Layers, description: '管理技能、项目知识与长期记忆。' },
@@ -658,6 +660,8 @@ export function App({ application }: { application: Application }) {
                   </div>
                 </div>
               </>
+            ) : view === 'context' ? (
+              <Context feature={application.context} />
             ) : view === 'genome' ? (
               <Genome feature={application.genome} />
             ) : view === 'tools' ? (
