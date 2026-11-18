@@ -54,6 +54,16 @@ export class ApiClientFactory {
       return (await response.json()) as T;
     }
     return {
+      delegation: {
+        status: () => request('/delegation/status'),
+        list: (project) => request(`/delegation?project_id=${encodeURIComponent(project)}`),
+        get: (id) => request(`/delegation/${encodeURIComponent(id)}`),
+        create: (command) => request('/delegation', command),
+        command: (id, command) =>
+          request(`/delegation/${encodeURIComponent(id)}/commands`, command),
+        contrast: (id, command) =>
+          request(`/delegation/${encodeURIComponent(id)}/contrast`, command),
+      },
       assessment: {
         status: () => request('/assessment/status'),
         bank: () => request('/assessment/bank'),

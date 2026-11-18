@@ -526,11 +526,15 @@ class Assessment:
             outcome = "unknown"
         model_results = {result.request_id: result for result in run.model_results}
         usage_complete = (
-            not run.model_request_id and len(model_results) == run.steps and not unknown_tools
+            not run.model_request_id
+            and len(model_results) + len(run.undispatched_model_request_ids) == run.steps
+            and not unknown_tools
         )
         metrics = Metrics(
             confirmed_model_calls=len(model_results),
-            unconfirmed_model_calls=max(0, run.steps - len(model_results)),
+            unconfirmed_model_calls=max(
+                0, run.steps - len(model_results) - len(run.undispatched_model_request_ids)
+            ),
             tokens=sum(
                 r.usage.input_tokens + r.usage.output_tokens for r in model_results.values()
             ),

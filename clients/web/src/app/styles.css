@@ -1568,3 +1568,30 @@ svg {
 .assessment-page textarea {
   max-width: 100%;
 }
+
+.delegation-page code,
+.delegation-page p {
+  overflow-wrap: anywhere;
+}
+.delegation-page pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 25rem;
+  overflow: auto;
+}
+.delegation-page textarea,
+.delegation-page select,
+.delegation-page input {
+  max-width: 100%;
+}
+.delegation-dag {
+  padding-left: 1.2rem;
+}
+.delegation-node {
+  border-left: 2px solid var(--border);
+  padding: 0.3rem 0 1rem 1rem;
+}
+.delegation-node a {
+  display: block;
+  margin-block: 0.75rem;
+}

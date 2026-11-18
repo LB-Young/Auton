@@ -1,6 +1,6 @@
 # Auton
 
-个人 Agent 工作台。当前完成 **M01 项目框架、M02 持久事件内核、M03 固定控制策略、M04 执行模型网关、M05 本地判断接入、M06 受控工具、M07 版本资产、M08 上下文引擎、M09 单 Agent 执行闭环、M10 轨迹恢复、M11 服务协议、M12 真实工作台与 M13 独立评测工程**：模块工厂、显式依赖组装、FastAPI API、React 对话界面与合成 Demo；M14–M21 尚未实现；M13 尚缺真实人工金标校准，语义可信门禁关闭。
+个人 Agent 工作台。当前完成 **M01 项目框架、M02 持久事件内核、M03 固定控制策略、M04 执行模型网关、M05 本地判断接入、M06 受控工具、M07 版本资产、M08 上下文引擎、M09 单 Agent 执行闭环、M10 轨迹恢复、M11 服务协议、M12 真实工作台、M13 独立评测工程与 M14 受控多 Agent**：模块工厂、显式依赖组装、FastAPI API、React 对话界面与合成 Demo；M15–M21 尚未实现；M13 尚缺真实人工金标校准，语义可信门禁关闭。
 
 后端和开发/验收辅助工具优先使用 Python。仅浏览器界面及其必要构建配置使用 TypeScript/React；Makefile 是 Python 命令入口。
 
@@ -225,3 +225,12 @@ M10 及更早版本的 Cookie 只有在原浏览器/CLI 私有文件仍保留时
 题库区分train/development/test/meta，默认种子只生成train；人工金标需单独审核导入。裁判原始输入/答案保存于私有`assess.directory/judge-journal`，不进入训练轨迹。校准不足/漂移/自评/重复分歧保持未知，评测不会自动上线模型。参见[M13证据与接口配置](./docs/milestones/evidence/M13.md)。
 
 真实验收可运行`.venv/bin/python scripts/workbench_smoke.py --assess`（公开合成数据，会调用Laya、DeepSeek执行模型及两次强裁判）；`--reuse-completed --assess`复用同一已完成任务/报告验证恢复，不重复付费。
+
+
+## 多 Agent 委派（M14）
+
+`多 Agent`页提供用户明确的父目标、文件worker DAG、固定资料快照与总预算。子任务使用私有工作区、独立审批与独立评测；父文件先核验合并摘要，再单独批准写入。取消停止后继并传播到子任务，未知结果保留租约等待对账，重启不会自动重复执行。
+
+初期只支持受控文件worker与固定顺序拼接，不开放递归分工或未校准的语义子任务。单、多Agent对照记录实际用量，更多调用不会自动得到“改进”标签。参见[M14验收、API、预算与限制](./docs/milestones/evidence/M14.md)。
+
+`make delegation-smoke`显式运行真实Laya/DeepSeek公开合成任务及单Agent基线（使用API额度）；`.venv/bin/python scripts/delegation_smoke.py --reuse-completed`复用本机已完成结果验证进程恢复，不重复模型调用。

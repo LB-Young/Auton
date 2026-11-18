@@ -92,3 +92,15 @@ export type BatchEvaluation = components['schemas']['BatchEvaluation'];
 export type BatchResult = components['schemas']['BatchResult'];
 
 export type EvaluateCommand = components['schemas']['EvaluateCommand-Input'];
+
+export type DelegationView = components['schemas']['DelegationView'];
+
+export type DelegationCommand = components['schemas']['DelegationCommand'];
+
+export type DelegationStatus = components['schemas']['DelegationStatus'];
+
+export type ContrastCommand = components['schemas']['ContrastCommand'];
+
+export type SingleMultiContrast = components['schemas']['SingleMultiContrast'];
+
+export type DelegationCreate = components['schemas']['DelegationCreate-Input'];

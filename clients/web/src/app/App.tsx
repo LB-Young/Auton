@@ -39,6 +39,7 @@ import { Judgment } from '../features/judgment/Judgment';
 import { Tools } from '../features/tools/Tools';
 import { Trajectory } from '../features/experience/Trajectory';
 import { Agent } from '../features/agent/Agent';
+import { Delegation } from '../features/delegation/Delegation';
 import { Assessment } from '../features/assessment/Assessment';
 import { Context } from '../features/context/Context';
 import { Genome } from '../features/genome/Genome';
@@ -49,6 +50,12 @@ const workspaces = [
   { id: 'context', label: '上下文', icon: BookOpen, description: '查看来源、保留状态与输入预算。' },
   { id: 'tools', label: '工具', icon: Wrench, description: '受控文件、审批与执行凭据。' },
   { id: 'agent', label: '任务', icon: Workflow, description: '查看任务进展、审批与执行记录。' },
+  {
+    id: 'delegation',
+    label: '多 Agent',
+    icon: Workflow,
+    description: '查看受限委派、依赖和结果集成。',
+  },
   { id: 'genome', label: '资产', icon: Layers, description: '管理技能、项目知识与长期记忆。' },
   { id: 'model', label: '模型', icon: Cpu, description: '连接执行模型，查看能力与判断来源。' },
   {
@@ -776,6 +783,8 @@ export function App({ application }: { application: Application }) {
                   <Judgment feature={application.judgment} />
                 </div>
               </div>
+            ) : view === 'delegation' ? (
+              <Delegation feature={application.delegation} />
             ) : view === 'assess' ? (
               <Assessment feature={application.assessment} />
             ) : view === 'settings' ? (

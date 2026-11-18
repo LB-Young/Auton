@@ -399,6 +399,92 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/delegation': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Supervisors */
+    get: operations['list_supervisors_api_v1_delegation_get'];
+    put?: never;
+    /** Create Supervisor */
+    post: operations['create_supervisor_api_v1_delegation_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/delegation/status': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Supervisor Status */
+    get: operations['supervisor_status_api_v1_delegation_status_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/delegation/{parent_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Supervisor */
+    get: operations['get_supervisor_api_v1_delegation__parent_id__get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/delegation/{parent_id}/commands': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Control Supervisor */
+    post: operations['control_supervisor_api_v1_delegation__parent_id__commands_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/delegation/{parent_id}/contrast': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Contrast Supervisor */
+    post: operations['contrast_supervisor_api_v1_delegation__parent_id__contrast_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/health': {
     parameters: {
       query?: never;
@@ -1248,10 +1334,10 @@ export interface components {
       receipts: components['schemas']['ToolReceipt'][];
       /**
        * Runtime Revision
-       * @default single-agent-v2
+       * @default single-agent-v3
        * @enum {string}
        */
-      runtime_revision: 'single-agent-v1' | 'single-agent-v2';
+      runtime_revision: 'single-agent-v1' | 'single-agent-v2' | 'single-agent-v3';
       /**
        * Session Id
        * @default
@@ -1293,6 +1379,11 @@ export interface components {
        * @default 0
        */
       tokens_used: number;
+      /**
+       * Undispatched Model Request Ids
+       * @default []
+       */
+      undispatched_model_request_ids: string[];
       /**
        * Version
        * @default 0
@@ -1767,6 +1858,122 @@ export interface components {
       /** Version */
       version: number;
     };
+    /** ChildSpec */
+    'ChildSpec-Input': {
+      acceptance: components['schemas']['Acceptance-Input'];
+      /** Allowed Tools */
+      allowed_tools: ('file.read' | 'file.write' | 'mcp.sha256')[];
+      /**
+       * Depends On
+       * @default []
+       */
+      depends_on: string[];
+      /** Goal */
+      goal: string;
+      /** Id */
+      id: string;
+      limits: components['schemas']['RunLimits-Input'];
+      /** Model Id */
+      model_id: string;
+      /**
+       * Role
+       * @default worker
+       * @enum {string}
+       */
+      role: 'worker' | 'researcher';
+    };
+    /** ChildSpec */
+    'ChildSpec-Output': {
+      acceptance: components['schemas']['Acceptance-Output'];
+      /** Allowed Tools */
+      allowed_tools: ('file.read' | 'file.write' | 'mcp.sha256')[];
+      /**
+       * Depends On
+       * @default []
+       */
+      depends_on: string[];
+      /** Goal */
+      goal: string;
+      /** Id */
+      id: string;
+      limits: components['schemas']['RunLimits-Output'];
+      /** Model Id */
+      model_id: string;
+      /**
+       * Role
+       * @default worker
+       * @enum {string}
+       */
+      role: 'worker' | 'researcher';
+    };
+    /** ChildState */
+    ChildState: {
+      /** Approval Command Id */
+      approval_command_id: string | null;
+      command: components['schemas']['CreateRun-Output'] | null;
+      /**
+       * Cost Microusd
+       * @default 0
+       */
+      cost_microusd: number;
+      /** Id */
+      id: string;
+      /** Pending Operation Id */
+      pending_operation_id: string | null;
+      /** Pending Preview */
+      pending_preview: string | null;
+      /**
+       * Reason
+       * @default dependency_not_ready
+       */
+      reason: string;
+      /** Report Id */
+      report_id: string | null;
+      /** Run Id */
+      run_id: string | null;
+      /** Started At */
+      started_at: number | null;
+      /**
+       * Status
+       * @default pending
+       */
+      status:
+        | (
+            | 'queued'
+            | 'running'
+            | 'waiting_approval'
+            | 'blocked'
+            | 'pausing'
+            | 'paused'
+            | 'cancelling'
+            | 'cancelled'
+            | 'succeeded'
+            | 'failed'
+          )
+        | ('pending' | 'verified' | 'dispatch_intent');
+      /**
+       * Tokens
+       * @default 0
+       */
+      tokens: number;
+      /**
+       * Tool Calls
+       * @default 0
+       */
+      tool_calls: number;
+      /**
+       * Unknown Calls
+       * @default 0
+       */
+      unknown_calls: number;
+      /**
+       * Unknown Tools
+       * @default 0
+       */
+      unknown_tools: number;
+      /** Version */
+      version: number | null;
+    };
     /** CompareCommand */
     CompareCommand: {
       /** Baseline */
@@ -1977,6 +2184,15 @@ export interface components {
       /** Tools */
       tools: components['schemas']['ToolSpec'][];
     };
+    /** ContrastCommand */
+    ContrastCommand: {
+      /** Baseline Run Id */
+      baseline_run_id: string;
+      /** Expected Version */
+      expected_version: number;
+      /** Request Id */
+      request_id: string;
+    };
     /** CreateRun */
     'CreateRun-Input': {
       acceptance: components['schemas']['Acceptance-Input'];
@@ -1988,6 +2204,8 @@ export interface components {
        *     ]
        */
       allowed_tools: ('file.read' | 'file.write' | 'process.run' | 'mcp.sha256')[];
+      /** Asset Snapshot Id */
+      asset_snapshot_id?: string | null;
       /**
        * Boundaries
        * @default []
@@ -2001,6 +2219,7 @@ export interface components {
       data_domain: 'public' | 'local-only';
       /** Goal */
       goal: string;
+      limits?: components['schemas']['RunLimits-Input'] | null;
       /** Model Id */
       model_id: string;
       /** Project Id */
@@ -2021,6 +2240,8 @@ export interface components {
        *     ]
        */
       allowed_tools: ('file.read' | 'file.write' | 'process.run' | 'mcp.sha256')[];
+      /** Asset Snapshot Id */
+      asset_snapshot_id: string | null;
       /**
        * Boundaries
        * @default []
@@ -2034,6 +2255,7 @@ export interface components {
       data_domain: 'public' | 'local-only';
       /** Goal */
       goal: string;
+      limits: components['schemas']['RunLimits-Output'] | null;
       /** Model Id */
       model_id: string;
       /** Project Id */
@@ -2072,6 +2294,198 @@ export interface components {
       source: 'local' | 'test';
       /** Subfolder */
       subfolder: string;
+    };
+    /** DelegationCommand */
+    DelegationCommand: {
+      /**
+       * Action
+       * @enum {string}
+       */
+      action: 'start' | 'resume' | 'cancel' | 'approve_child' | 'approve_integration';
+      /** Child Id */
+      child_id?: string | null;
+      /** Expected Version */
+      expected_version: number;
+      /** Request Id */
+      request_id: string;
+    };
+    /** DelegationCreate */
+    'DelegationCreate-Input': {
+      acceptance: components['schemas']['Acceptance-Input'];
+      /**
+       * Boundaries
+       * @default []
+       */
+      boundaries: string[];
+      /** Children */
+      children: components['schemas']['ChildSpec-Input'][];
+      /** Expected Previous Sha256 */
+      expected_previous_sha256?: string | null;
+      /** Goal */
+      goal: string;
+      limits: components['schemas']['RunLimits-Input'];
+      /** Merge Order */
+      merge_order: string[];
+      /** Project Id */
+      project_id: string;
+      /**
+       * Public
+       * @default false
+       */
+      public: boolean;
+      /** Request Id */
+      request_id: string;
+      /**
+       * Separator
+       * @default
+       */
+      separator: string;
+      /** Workspace Id */
+      workspace_id: string;
+    };
+    /** DelegationCreate */
+    'DelegationCreate-Output': {
+      acceptance: components['schemas']['Acceptance-Output'];
+      /**
+       * Boundaries
+       * @default []
+       */
+      boundaries: string[];
+      /** Children */
+      children: components['schemas']['ChildSpec-Output'][];
+      /** Expected Previous Sha256 */
+      expected_previous_sha256: string | null;
+      /** Goal */
+      goal: string;
+      limits: components['schemas']['RunLimits-Output'];
+      /** Merge Order */
+      merge_order: string[];
+      /** Project Id */
+      project_id: string;
+      /**
+       * Public
+       * @default false
+       */
+      public: boolean;
+      /** Request Id */
+      request_id: string;
+      /**
+       * Separator
+       * @default
+       */
+      separator: string;
+      /** Workspace Id */
+      workspace_id: string;
+    };
+    /** DelegationStatus */
+    DelegationStatus: {
+      /** Child Timeout Seconds */
+      child_timeout_seconds: number;
+      host_limits: components['schemas']['RunLimits-Output'];
+      /** Max Children */
+      max_children: number;
+      /** Max Parallel */
+      max_parallel: number;
+      /**
+       * Mode
+       * @default user-authored-file-supervisor
+       * @constant
+       */
+      mode: 'user-authored-file-supervisor';
+    };
+    /** DelegationView */
+    DelegationView: {
+      /**
+       * Approved Integration
+       * @default false
+       */
+      approved_integration: boolean;
+      /**
+       * Attribution
+       * @default interaction-group-only
+       * @constant
+       */
+      attribution: 'interaction-group-only';
+      /**
+       * Benefit Claim
+       * @default not_established
+       * @constant
+       */
+      benefit_claim: 'not_established';
+      /** Children */
+      children: components['schemas']['ChildState'][];
+      command: components['schemas']['DelegationCreate-Output'];
+      /** Created At */
+      created_at: number;
+      /**
+       * Goal Revision
+       * @default 1
+       */
+      goal_revision: number;
+      /** Id */
+      id: string;
+      /** Input Snapshot Id */
+      input_snapshot_id: string;
+      integration: components['schemas']['ToolPlan'] | null;
+      integration_receipt: components['schemas']['ToolReceipt'] | null;
+      /** Interaction Group */
+      interaction_group: string[];
+      /**
+       * Reason
+       * @default user_authored_dag_ready
+       */
+      reason: string;
+      /**
+       * Source
+       * @enum {string}
+       */
+      source: 'runtime' | 'test';
+      /**
+       * Status
+       * @default draft
+       * @enum {string}
+       */
+      status:
+        | 'draft'
+        | 'running'
+        | 'waiting_approval'
+        | 'integrating'
+        | 'integrated'
+        | 'blocked'
+        | 'cancelling'
+        | 'cancelled';
+      /**
+       * Total Cost Microusd
+       * @default 0
+       */
+      total_cost_microusd: number;
+      /**
+       * Total Tokens
+       * @default 0
+       */
+      total_tokens: number;
+      /**
+       * Total Tool Calls
+       * @default 0
+       */
+      total_tool_calls: number;
+      /**
+       * Unknown Calls
+       * @default 0
+       */
+      unknown_calls: number;
+      /**
+       * Unknown Tools
+       * @default 0
+       */
+      unknown_tools: number;
+      /** Updated At */
+      updated_at: number;
+      /**
+       * Version
+       * @default 0
+       */
+      version: number;
     };
     /** EpisodeSummary */
     EpisodeSummary: {
@@ -3043,6 +3457,38 @@ export interface components {
       /** Version */
       version: number;
     };
+    /** RunLimits */
+    'RunLimits-Input': {
+      /** Max Cost Microusd */
+      max_cost_microusd: number;
+      /**
+       * Max Output Tokens
+       * @default 512
+       */
+      max_output_tokens: number;
+      /** Max Steps */
+      max_steps: number;
+      /** Max Tokens */
+      max_tokens: number;
+      /** Max Tool Calls */
+      max_tool_calls: number;
+    };
+    /** RunLimits */
+    'RunLimits-Output': {
+      /** Max Cost Microusd */
+      max_cost_microusd: number;
+      /**
+       * Max Output Tokens
+       * @default 512
+       */
+      max_output_tokens: number;
+      /** Max Steps */
+      max_steps: number;
+      /** Max Tokens */
+      max_tokens: number;
+      /** Max Tool Calls */
+      max_tool_calls: number;
+    };
     /** RunPage */
     RunPage: {
       /** Items */
@@ -3177,6 +3623,52 @@ export interface components {
        * @enum {string}
        */
       verdict: 'pass' | 'fail' | 'unknown';
+    };
+    /** SingleMultiContrast */
+    SingleMultiContrast: {
+      /** Baseline Calls */
+      baseline_calls: number;
+      /** Baseline Cost Microusd */
+      baseline_cost_microusd: number;
+      /** Baseline Outcome */
+      baseline_outcome: string;
+      /** Baseline Run Id */
+      baseline_run_id: string;
+      /** Baseline Tokens */
+      baseline_tokens: number;
+      /** Comparable */
+      comparable: boolean;
+      /** Cost Delta Microusd */
+      cost_delta_microusd: number;
+      /**
+       * Evidence Scope
+       * @default one-paired-workflow-only
+       * @constant
+       */
+      evidence_scope: 'one-paired-workflow-only';
+      /**
+       * Improvement Established
+       * @default false
+       * @constant
+       */
+      improvement_established: false;
+      /** Multi Outcome */
+      multi_outcome: string;
+      /** Reasons */
+      reasons: string[];
+      /**
+       * Source
+       * @enum {string}
+       */
+      source: 'runtime' | 'test';
+      /** Supervisor Id */
+      supervisor_id: string;
+      /** Worker Calls */
+      worker_calls: number;
+      /** Worker Cost Microusd */
+      worker_cost_microusd: number;
+      /** Worker Tokens */
+      worker_tokens: number;
     };
     /** Snapshot */
     Snapshot: {
@@ -6623,6 +7115,686 @@ export interface operations {
           'application/json': {
             [key: string]: unknown;
           };
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  list_supervisors_api_v1_delegation_get: {
+    parameters: {
+      query: {
+        project_id: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['DelegationView'][];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  create_supervisor_api_v1_delegation_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['DelegationCreate-Input'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['DelegationView'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  supervisor_status_api_v1_delegation_status_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['DelegationStatus'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  get_supervisor_api_v1_delegation__parent_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        parent_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['DelegationView'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  control_supervisor_api_v1_delegation__parent_id__commands_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        parent_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['DelegationCommand'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['DelegationView'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  contrast_supervisor_api_v1_delegation__parent_id__contrast_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        parent_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ContrastCommand'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['SingleMultiContrast'];
         };
       };
       /** @description Unauthorized */

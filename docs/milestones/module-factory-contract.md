@@ -94,7 +94,7 @@ class ModuleFactory(Protocol[ConfigT, DependenciesT, ServiceT]):
 | M11 | `src/auton/server` | handler 调应用 Port，不内嵌运行/训练业务 |
 | M12 | `clients/web/src/features` | 完善框架已建立的工作台 |
 | M13 | `src/auton/assess` | 独立评估与受保护评测服务 |
-| M14 | `src/auton/agent/delegation` | 委派、租约与结果集成 |
+| M14 | `src/auton/delegation` | 独立协调器，只通过公开 Agent Port 委派、租约与集成 |
 | M15 | `src/auton/evolve` | 诊断、候选、门禁；正式激活留发布子模块 |
 | M16 | `src/auton/learning/decision_review` | 证据复核与三态准入 |
 | M17 | `src/auton/learning/datasets`、`lineage`、`ingest` | 数据快照与导出，不能越权读取 holdout |

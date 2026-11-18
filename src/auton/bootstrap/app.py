@@ -3,6 +3,7 @@ from contextlib import AsyncExitStack, asynccontextmanager
 
 from fastapi import FastAPI
 
+from auton.agent.contracts import RunLimits
 from auton.agent.factory import AgentRuntimeFactory
 from auton.agent.service import AgentDependencies
 from auton.assess.factory import AssessFactory
@@ -13,6 +14,8 @@ from auton.constitution.factory import ConstitutionDependencies, ConstitutionFac
 from auton.constitution.secrets import LoggerFactory, Redactor, SecretStoreFactory
 from auton.context.factory import ContextEngineFactory
 from auton.context.service import ContextDependencies
+from auton.delegation.factory import DelegationFactory
+from auton.delegation.service import DelegationDependencies
 from auton.demo.config import DemoConfig
 from auton.demo.factory import DemoConversationFactory
 from auton.demo.ports import ConversationPort
@@ -107,6 +110,22 @@ class ApplicationFactory:
             config.assess,
             AssessDependencies(agent, tools, context, judge_models, kernel.events, deps, True),
         )
+        delegation = DelegationFactory().create(
+            config.delegation,
+            DelegationDependencies(
+                agent,
+                tools,
+                assess,
+                genome,
+                deps,
+                RunLimits.model_validate(
+                    config.agent.model_dump(include=set(RunLimits.model_fields))
+                ),
+                models,
+                config.models.backend == "mock",
+            ),
+            kernel.events,
+        )
         identity = IdentityFactory().create(config.server, deps)
         commands = CommandHandlerFactory().create(agent, experience)
         uploads = UploadFactory().create(config.server, genome, deps)
@@ -135,6 +154,7 @@ class ApplicationFactory:
                 judge_kernel,
                 judge_models,
                 assess,
+                delegation,
                 identity,
                 commands,
                 uploads,
@@ -154,6 +174,7 @@ class ApplicationFactory:
                 judge_kernel,
                 judge_models,
                 assess,
+                delegation,
                 identity,
                 commands,
                 uploads,
@@ -182,6 +203,7 @@ class ApplicationFactory:
                 agent=agent,
                 experience=experience,
                 assess=assess,
+                delegation=delegation,
                 identity=identity,
                 commands=commands,
                 feedback=FeedbackFactory().create(agent, kernel.events, deps),

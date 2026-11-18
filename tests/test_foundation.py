@@ -9,6 +9,7 @@ from pydantic import ValidationError
 from auton.assess.contracts import AssessConfig
 from auton.bootstrap.app import ApplicationFactory, ApplicationRuntime
 from auton.bootstrap.config import ApplicationConfig
+from auton.delegation.contracts import DelegationConfig
 from auton.demo.config import DemoConfig
 from auton.demo.factory import DemoConversationFactory
 from auton.demo.ports import ConversationPort
@@ -26,6 +27,7 @@ def test_factory_swap_has_identical_http_and_event_contract(
 ) -> None:
     app = ApplicationFactory().create(
         ApplicationConfig(
+            delegation=DelegationConfig(directory=tmp_path / "delegation"),
             assess=AssessConfig(directory=tmp_path / "assess"),
             kernel=KernelConfig(backend="memory"),
             server=ServerSettings(identity_backend="memory"),
@@ -93,6 +95,7 @@ def test_invalid_configuration_is_rejected(config: dict[str, object]) -> None:
 def test_real_profile_never_uses_demo(deps: RuntimeDependencies, tmp_path: Path) -> None:
     app = ApplicationFactory().create(
         ApplicationConfig(
+            delegation=DelegationConfig(directory=tmp_path / "delegation"),
             assess=AssessConfig(directory=tmp_path / "assess"),
             server=ServerSettings(directory=tmp_path / "server"),
             profile="production",

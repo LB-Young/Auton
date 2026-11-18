@@ -30,6 +30,7 @@ import type {
 
 export interface ApiClient {
   assessment: AssessmentApi;
+  delegation: DelegationApi;
   runHistory(
     project: string,
     after: number,
@@ -136,4 +137,21 @@ export interface AssessmentApi {
   batch(
     command: import('../shared/contracts').BatchEvaluation,
   ): Promise<import('../shared/contracts').BatchResult>;
+}
+
+export interface DelegationApi {
+  status(): Promise<import('../shared/contracts').DelegationStatus>;
+  list(project: string): Promise<import('../shared/contracts').DelegationView[]>;
+  get(id: string): Promise<import('../shared/contracts').DelegationView>;
+  create(
+    command: import('../shared/contracts').DelegationCreate,
+  ): Promise<import('../shared/contracts').DelegationView>;
+  command(
+    id: string,
+    command: import('../shared/contracts').DelegationCommand,
+  ): Promise<import('../shared/contracts').DelegationView>;
+  contrast(
+    id: string,
+    command: import('../shared/contracts').ContrastCommand,
+  ): Promise<import('../shared/contracts').SingleMultiContrast>;
 }

@@ -36,6 +36,7 @@ def main(reuse_completed: bool = False, assess: bool = False) -> None:
         ("agent", "agent"),
         ("experience", "experience"),
         ("assess", "assess"),
+        ("delegation", "delegation"),
     ]:
         field = "data_directory" if section == "kernel" else "directory"
         text += f"[{section}]\n{field} = {json.dumps(str(root / folder))}\n"

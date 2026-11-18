@@ -52,7 +52,7 @@ select = ["E", "F", "I", "UP", "B", "ASYNC"]
 [tool.mypy]
 python_version = "3.12"
 strict = true
-files = ["src", "tests", "scripts/export_contracts.py", "scripts/dev.py", "scripts/check_boundaries.py", "scripts/setup.py", "scripts/check_secrets.py", "scripts/model_smoke.py", "scripts/judgment_smoke.py", "scripts/download_laya.py", "scripts/download_context_tokenizers.py", "scripts/context_smoke.py", "scripts/agent_cli.py", "scripts/agent_smoke.py"]
+files = ["src", "tests", "scripts/export_contracts.py", "scripts/dev.py", "scripts/check_boundaries.py", "scripts/setup.py", "scripts/check_secrets.py", "scripts/model_smoke.py", "scripts/judgment_smoke.py", "scripts/download_laya.py", "scripts/download_context_tokenizers.py", "scripts/context_smoke.py", "scripts/agent_cli.py", "scripts/agent_smoke.py", "scripts/delegation_smoke.py"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -67,7 +67,7 @@ root_package = "auton"
 name = "Kernel is independent"
 type = "forbidden"
 source_modules = ["auton.kernel"]
-forbidden_modules = ["auton.bootstrap", "auton.demo", "auton.server", "auton.constitution", "auton.model", "auton.judgment", "auton.tools", "auton.genome", "auton.context", "auton.agent", "auton.experience", "auton.assess"]
+forbidden_modules = ["auton.bootstrap", "auton.demo", "auton.server", "auton.constitution", "auton.model", "auton.judgment", "auton.tools", "auton.genome", "auton.context", "auton.agent", "auton.experience", "auton.assess", "auton.delegation"]
 
 [[tool.importlinter.contracts]]
 name = "Demo never imports transport or composition"
@@ -187,3 +187,22 @@ name = "Transport cannot access evaluator storage or implementations"
 type = "forbidden"
 source_modules = ["auton.server"]
 forbidden_modules = ["auton.assess.service", "auton.assess.store", "auton.assess.judge", "auton.assess.checkers", "auton.assess.factory"]
+
+
+[[tool.importlinter.contracts]]
+name = "Delegation only uses public workers and independent assessment"
+type = "forbidden"
+source_modules = ["auton.delegation"]
+forbidden_modules = ["auton.bootstrap", "auton.server", "auton.agent.service", "auton.agent.repository", "auton.assess.service", "auton.assess.store", "auton.assess.judge", "auton.tools.service", "auton.genome.service", "auton.model.gateway", "auton.constitution.control"]
+
+[[tool.importlinter.contracts]]
+name = "Agent cannot grant delegation authority to itself"
+type = "forbidden"
+source_modules = ["auton.agent"]
+forbidden_modules = ["auton.delegation"]
+
+[[tool.importlinter.contracts]]
+name = "Transport uses only delegation contracts and ports"
+type = "forbidden"
+source_modules = ["auton.server"]
+forbidden_modules = ["auton.delegation.service", "auton.delegation.store", "auton.delegation.roles", "auton.delegation.integrator", "auton.delegation.factory"]

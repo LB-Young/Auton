@@ -45,6 +45,12 @@ async def conditions(
     if len(asset_snapshots) > 1:
         reasons.append("input_assets_changed_during_run")
     seed = await events.lookup(checkpoint_event_id(principal.owner, run.id, 0))
+    if (
+        seed
+        and AgentRun.model_validate(seed.event.payload["run"]).runtime_revision
+        != run.runtime_revision
+    ):
+        reasons.append("runtime_changed_since_initial_checkpoint")
     workspace_source = await events.lookup(
         workspace_event_id(principal.owner, run.command.workspace_id)
     )

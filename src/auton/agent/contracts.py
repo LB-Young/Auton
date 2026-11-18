@@ -9,6 +9,7 @@ from auton.tools.contracts import ToolName, ToolPlan, ToolReceipt
 
 
 class AgentConfig(Contract):
+    judgment_wait_seconds: float = Field(default=120, ge=1, le=180)
     max_steps: int = Field(default=8, ge=1, le=20)
     max_tokens: int = Field(default=16000, ge=512, le=100000)
     max_cost_microusd: int = Field(default=10000, ge=1, le=1000000)
@@ -16,6 +17,14 @@ class AgentConfig(Contract):
     max_active_runs: int = Field(default=2, ge=1, le=4)
     max_output_tokens: int = Field(default=512, ge=32, le=1024)
     directory: str = ".auton_local/agent"
+
+
+class RunLimits(Contract):
+    max_steps: int = Field(ge=1, le=20)
+    max_tokens: int = Field(ge=512, le=100000)
+    max_cost_microusd: int = Field(ge=1, le=1000000)
+    max_tool_calls: int = Field(ge=1, le=30)
+    max_output_tokens: int = Field(default=512, ge=32, le=1024)
 
 
 class Acceptance(Contract):
@@ -32,6 +41,8 @@ class Acceptance(Contract):
 
 
 class CreateRun(Contract):
+    limits: RunLimits | None = None
+    asset_snapshot_id: str | None = Field(default=None, max_length=100)
     request_id: str = Field(pattern=r"^[a-zA-Z0-9_-]{1,100}$")
     project_id: str = Field(pattern=r"^[a-zA-Z0-9_-]{1,80}$")
     workspace_id: str = Field(pattern=r"^[a-zA-Z0-9_-]{1,80}$")
@@ -56,7 +67,9 @@ class CreateRun(Contract):
 
     @property
     def digest(self) -> str:
-        return hashlib.sha256(self.model_dump_json().encode()).hexdigest()
+        # Preserve M09-M13 request digests when new optional fields are absent.
+        excluded = {name for name in ("limits", "asset_snapshot_id") if getattr(self, name) is None}
+        return hashlib.sha256(self.model_dump_json(exclude=excluded).encode()).hexdigest()
 
 
 RunStatus = Literal[
@@ -119,13 +132,16 @@ class AgentRun(Contract):
     judgments: tuple[JudgmentResult, ...] = ()
     input_cutoff_unit: Literal["run-checkpoint-version"] = "run-checkpoint-version"
     executor_selection: Literal["user-explicit"] = "user-explicit"
+    undispatched_model_request_ids: tuple[str, ...] = ()
     model_request_id: str | None = None
     pending_goal: str | None = None
     stop_requested: bool = False
     final_text: str = ""
     check: AcceptanceCheck | None = None
     source: Literal["runtime", "test"]
-    runtime_revision: Literal["single-agent-v1", "single-agent-v2"] = "single-agent-v2"
+    runtime_revision: Literal["single-agent-v1", "single-agent-v2", "single-agent-v3"] = (
+        "single-agent-v3"
+    )
 
 
 def checkpoint_event_id(owner: str, run_id: str, version: int) -> str:

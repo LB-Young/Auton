@@ -10,6 +10,7 @@ from auton.agent.contracts import AgentConfig
 from auton.assess.contracts import AssessConfig
 from auton.bootstrap.app import ApplicationFactory
 from auton.bootstrap.config import ApplicationConfig
+from auton.delegation.contracts import DelegationConfig
 from auton.experience.contracts import ExperienceConfig
 from auton.genome.contracts import GenomeConfig
 from auton.judgment.config import JudgmentConfig
@@ -29,6 +30,7 @@ def deps() -> RuntimeDependencies:
 def client(deps: RuntimeDependencies, tmp_path: Path) -> Iterator[TestClient]:
     app = ApplicationFactory().create(
         ApplicationConfig(
+            delegation=DelegationConfig(directory=tmp_path / "delegation"),
             assess=AssessConfig(directory=tmp_path / "assess"),
             kernel=KernelConfig(backend="memory"),
             tools=ToolConfig(directory=tmp_path / "tools"),

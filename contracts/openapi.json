@@ -401,10 +401,11 @@
             "type": "array"
           },
           "runtime_revision": {
-            "default": "single-agent-v2",
+            "default": "single-agent-v3",
             "enum": [
               "single-agent-v1",
-              "single-agent-v2"
+              "single-agent-v2",
+              "single-agent-v3"
             ],
             "title": "Runtime Revision",
             "type": "string"
@@ -454,6 +455,14 @@
             "title": "Tokens Used",
             "type": "integer"
           },
+          "undispatched_model_request_ids": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Undispatched Model Request Ids",
+            "type": "array"
+          },
           "version": {
             "default": 0,
             "title": "Version",
@@ -485,6 +494,7 @@
           "judgments",
           "input_cutoff_unit",
           "executor_selection",
+          "undispatched_model_request_ids",
           "model_request_id",
           "pending_goal",
           "stop_requested",
@@ -1732,6 +1742,321 @@
         "title": "CheckpointReference",
         "type": "object"
       },
+      "ChildSpec-Input": {
+        "additionalProperties": false,
+        "properties": {
+          "acceptance": {
+            "$ref": "#/components/schemas/Acceptance-Input"
+          },
+          "allowed_tools": {
+            "items": {
+              "enum": [
+                "file.read",
+                "file.write",
+                "mcp.sha256"
+              ],
+              "type": "string"
+            },
+            "title": "Allowed Tools",
+            "type": "array"
+          },
+          "depends_on": {
+            "default": [],
+            "items": {
+              "pattern": "^[a-zA-Z0-9_-]{1,64}$",
+              "type": "string"
+            },
+            "maxItems": 8,
+            "title": "Depends On",
+            "type": "array"
+          },
+          "goal": {
+            "maxLength": 3000,
+            "minLength": 1,
+            "title": "Goal",
+            "type": "string"
+          },
+          "id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,64}$",
+            "title": "Id",
+            "type": "string"
+          },
+          "limits": {
+            "$ref": "#/components/schemas/RunLimits-Input"
+          },
+          "model_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Model Id",
+            "type": "string"
+          },
+          "role": {
+            "default": "worker",
+            "enum": [
+              "worker",
+              "researcher"
+            ],
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "goal",
+          "model_id",
+          "limits",
+          "acceptance",
+          "allowed_tools"
+        ],
+        "title": "ChildSpec",
+        "type": "object"
+      },
+      "ChildSpec-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "acceptance": {
+            "$ref": "#/components/schemas/Acceptance-Output"
+          },
+          "allowed_tools": {
+            "items": {
+              "enum": [
+                "file.read",
+                "file.write",
+                "mcp.sha256"
+              ],
+              "type": "string"
+            },
+            "title": "Allowed Tools",
+            "type": "array"
+          },
+          "depends_on": {
+            "default": [],
+            "items": {
+              "pattern": "^[a-zA-Z0-9_-]{1,64}$",
+              "type": "string"
+            },
+            "maxItems": 8,
+            "title": "Depends On",
+            "type": "array"
+          },
+          "goal": {
+            "maxLength": 3000,
+            "minLength": 1,
+            "title": "Goal",
+            "type": "string"
+          },
+          "id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,64}$",
+            "title": "Id",
+            "type": "string"
+          },
+          "limits": {
+            "$ref": "#/components/schemas/RunLimits-Output"
+          },
+          "model_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Model Id",
+            "type": "string"
+          },
+          "role": {
+            "default": "worker",
+            "enum": [
+              "worker",
+              "researcher"
+            ],
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "role",
+          "goal",
+          "model_id",
+          "depends_on",
+          "limits",
+          "acceptance",
+          "allowed_tools"
+        ],
+        "title": "ChildSpec",
+        "type": "object"
+      },
+      "ChildState": {
+        "additionalProperties": false,
+        "properties": {
+          "approval_command_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approval Command Id"
+          },
+          "command": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CreateRun-Output"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cost_microusd": {
+            "default": 0,
+            "title": "Cost Microusd",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "pending_operation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pending Operation Id"
+          },
+          "pending_preview": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pending Preview"
+          },
+          "reason": {
+            "default": "dependency_not_ready",
+            "title": "Reason",
+            "type": "string"
+          },
+          "report_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Report Id"
+          },
+          "run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "enum": [
+                  "queued",
+                  "running",
+                  "waiting_approval",
+                  "blocked",
+                  "pausing",
+                  "paused",
+                  "cancelling",
+                  "cancelled",
+                  "succeeded",
+                  "failed"
+                ],
+                "type": "string"
+              },
+              {
+                "enum": [
+                  "pending",
+                  "verified",
+                  "dispatch_intent"
+                ],
+                "type": "string"
+              }
+            ],
+            "default": "pending",
+            "title": "Status"
+          },
+          "tokens": {
+            "default": 0,
+            "title": "Tokens",
+            "type": "integer"
+          },
+          "tool_calls": {
+            "default": 0,
+            "title": "Tool Calls",
+            "type": "integer"
+          },
+          "unknown_calls": {
+            "default": 0,
+            "title": "Unknown Calls",
+            "type": "integer"
+          },
+          "unknown_tools": {
+            "default": 0,
+            "title": "Unknown Tools",
+            "type": "integer"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
+          }
+        },
+        "required": [
+          "id",
+          "command",
+          "run_id",
+          "status",
+          "version",
+          "started_at",
+          "report_id",
+          "reason",
+          "tokens",
+          "cost_microusd",
+          "unknown_tools",
+          "unknown_calls",
+          "tool_calls",
+          "pending_operation_id",
+          "pending_preview",
+          "approval_command_id"
+        ],
+        "title": "ChildState",
+        "type": "object"
+      },
       "CompareCommand": {
         "additionalProperties": false,
         "properties": {
@@ -2168,6 +2493,33 @@
         "title": "ContextSnapshot",
         "type": "object"
       },
+      "ContrastCommand": {
+        "additionalProperties": false,
+        "properties": {
+          "baseline_run_id": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Baseline Run Id",
+            "type": "string"
+          },
+          "expected_version": {
+            "minimum": 0.0,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "request_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,64}$",
+            "title": "Request Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "baseline_run_id",
+          "expected_version"
+        ],
+        "title": "ContrastCommand",
+        "type": "object"
+      },
       "CreateRun-Input": {
         "additionalProperties": false,
         "properties": {
@@ -2191,6 +2543,18 @@
             "maxItems": 4,
             "title": "Allowed Tools",
             "type": "array"
+          },
+          "asset_snapshot_id": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Asset Snapshot Id"
           },
           "boundaries": {
             "default": [],
@@ -2216,6 +2580,16 @@
             "minLength": 1,
             "title": "Goal",
             "type": "string"
+          },
+          "limits": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RunLimits-Input"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "model_id": {
             "maxLength": 100,
@@ -2274,6 +2648,18 @@
             "title": "Allowed Tools",
             "type": "array"
           },
+          "asset_snapshot_id": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Asset Snapshot Id"
+          },
           "boundaries": {
             "default": [],
             "items": {
@@ -2299,6 +2685,16 @@
             "title": "Goal",
             "type": "string"
           },
+          "limits": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RunLimits-Output"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "model_id": {
             "maxLength": 100,
             "minLength": 1,
@@ -2322,6 +2718,8 @@
           }
         },
         "required": [
+          "limits",
+          "asset_snapshot_id",
           "request_id",
           "project_id",
           "workspace_id",
@@ -2406,6 +2804,446 @@
           "source"
         ],
         "title": "DecisionSource",
+        "type": "object"
+      },
+      "DelegationCommand": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "enum": [
+              "start",
+              "resume",
+              "cancel",
+              "approve_child",
+              "approve_integration"
+            ],
+            "title": "Action",
+            "type": "string"
+          },
+          "child_id": {
+            "anyOf": [
+              {
+                "pattern": "^[a-zA-Z0-9_-]{1,64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Child Id"
+          },
+          "expected_version": {
+            "minimum": 0.0,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "request_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,64}$",
+            "title": "Request Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "expected_version",
+          "action"
+        ],
+        "title": "DelegationCommand",
+        "type": "object"
+      },
+      "DelegationCreate-Input": {
+        "additionalProperties": false,
+        "properties": {
+          "acceptance": {
+            "$ref": "#/components/schemas/Acceptance-Input"
+          },
+          "boundaries": {
+            "default": [],
+            "items": {
+              "maxLength": 250,
+              "type": "string"
+            },
+            "maxItems": 12,
+            "title": "Boundaries",
+            "type": "array"
+          },
+          "children": {
+            "items": {
+              "$ref": "#/components/schemas/ChildSpec-Input"
+            },
+            "maxItems": 8,
+            "minItems": 1,
+            "title": "Children",
+            "type": "array"
+          },
+          "expected_previous_sha256": {
+            "anyOf": [
+              {
+                "pattern": "^[a-f0-9]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Previous Sha256"
+          },
+          "goal": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Goal",
+            "type": "string"
+          },
+          "limits": {
+            "$ref": "#/components/schemas/RunLimits-Input"
+          },
+          "merge_order": {
+            "items": {
+              "pattern": "^[a-zA-Z0-9_-]{1,64}$",
+              "type": "string"
+            },
+            "maxItems": 8,
+            "minItems": 1,
+            "title": "Merge Order",
+            "type": "array"
+          },
+          "project_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,64}$",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "public": {
+            "default": false,
+            "title": "Public",
+            "type": "boolean"
+          },
+          "request_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,64}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "separator": {
+            "default": "",
+            "maxLength": 200,
+            "title": "Separator",
+            "type": "string"
+          },
+          "workspace_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,64}$",
+            "title": "Workspace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "project_id",
+          "workspace_id",
+          "goal",
+          "limits",
+          "children",
+          "merge_order",
+          "acceptance"
+        ],
+        "title": "DelegationCreate",
+        "type": "object"
+      },
+      "DelegationCreate-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "acceptance": {
+            "$ref": "#/components/schemas/Acceptance-Output"
+          },
+          "boundaries": {
+            "default": [],
+            "items": {
+              "maxLength": 250,
+              "type": "string"
+            },
+            "maxItems": 12,
+            "title": "Boundaries",
+            "type": "array"
+          },
+          "children": {
+            "items": {
+              "$ref": "#/components/schemas/ChildSpec-Output"
+            },
+            "maxItems": 8,
+            "minItems": 1,
+            "title": "Children",
+            "type": "array"
+          },
+          "expected_previous_sha256": {
+            "anyOf": [
+              {
+                "pattern": "^[a-f0-9]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Previous Sha256"
+          },
+          "goal": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Goal",
+            "type": "string"
+          },
+          "limits": {
+            "$ref": "#/components/schemas/RunLimits-Output"
+          },
+          "merge_order": {
+            "items": {
+              "pattern": "^[a-zA-Z0-9_-]{1,64}$",
+              "type": "string"
+            },
+            "maxItems": 8,
+            "minItems": 1,
+            "title": "Merge Order",
+            "type": "array"
+          },
+          "project_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,64}$",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "public": {
+            "default": false,
+            "title": "Public",
+            "type": "boolean"
+          },
+          "request_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,64}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "separator": {
+            "default": "",
+            "maxLength": 200,
+            "title": "Separator",
+            "type": "string"
+          },
+          "workspace_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,64}$",
+            "title": "Workspace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "project_id",
+          "workspace_id",
+          "goal",
+          "boundaries",
+          "public",
+          "limits",
+          "children",
+          "merge_order",
+          "separator",
+          "acceptance",
+          "expected_previous_sha256"
+        ],
+        "title": "DelegationCreate",
+        "type": "object"
+      },
+      "DelegationStatus": {
+        "additionalProperties": false,
+        "properties": {
+          "child_timeout_seconds": {
+            "title": "Child Timeout Seconds",
+            "type": "number"
+          },
+          "host_limits": {
+            "$ref": "#/components/schemas/RunLimits-Output"
+          },
+          "max_children": {
+            "title": "Max Children",
+            "type": "integer"
+          },
+          "max_parallel": {
+            "title": "Max Parallel",
+            "type": "integer"
+          },
+          "mode": {
+            "const": "user-authored-file-supervisor",
+            "default": "user-authored-file-supervisor",
+            "title": "Mode",
+            "type": "string"
+          }
+        },
+        "required": [
+          "mode",
+          "host_limits",
+          "max_children",
+          "max_parallel",
+          "child_timeout_seconds"
+        ],
+        "title": "DelegationStatus",
+        "type": "object"
+      },
+      "DelegationView": {
+        "additionalProperties": false,
+        "properties": {
+          "approved_integration": {
+            "default": false,
+            "title": "Approved Integration",
+            "type": "boolean"
+          },
+          "attribution": {
+            "const": "interaction-group-only",
+            "default": "interaction-group-only",
+            "title": "Attribution",
+            "type": "string"
+          },
+          "benefit_claim": {
+            "const": "not_established",
+            "default": "not_established",
+            "title": "Benefit Claim",
+            "type": "string"
+          },
+          "children": {
+            "items": {
+              "$ref": "#/components/schemas/ChildState"
+            },
+            "title": "Children",
+            "type": "array"
+          },
+          "command": {
+            "$ref": "#/components/schemas/DelegationCreate-Output"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "number"
+          },
+          "goal_revision": {
+            "default": 1,
+            "title": "Goal Revision",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "input_snapshot_id": {
+            "title": "Input Snapshot Id",
+            "type": "string"
+          },
+          "integration": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ToolPlan"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "integration_receipt": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ToolReceipt"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "interaction_group": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Interaction Group",
+            "type": "array"
+          },
+          "reason": {
+            "default": "user_authored_dag_ready",
+            "title": "Reason",
+            "type": "string"
+          },
+          "source": {
+            "enum": [
+              "runtime",
+              "test"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "status": {
+            "default": "draft",
+            "enum": [
+              "draft",
+              "running",
+              "waiting_approval",
+              "integrating",
+              "integrated",
+              "blocked",
+              "cancelling",
+              "cancelled"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "total_cost_microusd": {
+            "default": 0,
+            "title": "Total Cost Microusd",
+            "type": "integer"
+          },
+          "total_tokens": {
+            "default": 0,
+            "title": "Total Tokens",
+            "type": "integer"
+          },
+          "total_tool_calls": {
+            "default": 0,
+            "title": "Total Tool Calls",
+            "type": "integer"
+          },
+          "unknown_calls": {
+            "default": 0,
+            "title": "Unknown Calls",
+            "type": "integer"
+          },
+          "unknown_tools": {
+            "default": 0,
+            "title": "Unknown Tools",
+            "type": "integer"
+          },
+          "updated_at": {
+            "title": "Updated At",
+            "type": "number"
+          },
+          "version": {
+            "default": 0,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "goal_revision",
+          "command",
+          "input_snapshot_id",
+          "children",
+          "status",
+          "reason",
+          "integration",
+          "integration_receipt",
+          "approved_integration",
+          "attribution",
+          "interaction_group",
+          "total_tokens",
+          "total_cost_microusd",
+          "total_tool_calls",
+          "unknown_tools",
+          "unknown_calls",
+          "benefit_claim",
+          "created_at",
+          "updated_at",
+          "source"
+        ],
+        "title": "DelegationView",
         "type": "object"
       },
       "EpisodeSummary": {
@@ -4970,6 +5808,95 @@
         "title": "RunFrame",
         "type": "object"
       },
+      "RunLimits-Input": {
+        "additionalProperties": false,
+        "properties": {
+          "max_cost_microusd": {
+            "maximum": 1000000.0,
+            "minimum": 1.0,
+            "title": "Max Cost Microusd",
+            "type": "integer"
+          },
+          "max_output_tokens": {
+            "default": 512,
+            "maximum": 1024.0,
+            "minimum": 32.0,
+            "title": "Max Output Tokens",
+            "type": "integer"
+          },
+          "max_steps": {
+            "maximum": 20.0,
+            "minimum": 1.0,
+            "title": "Max Steps",
+            "type": "integer"
+          },
+          "max_tokens": {
+            "maximum": 100000.0,
+            "minimum": 512.0,
+            "title": "Max Tokens",
+            "type": "integer"
+          },
+          "max_tool_calls": {
+            "maximum": 30.0,
+            "minimum": 1.0,
+            "title": "Max Tool Calls",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "max_steps",
+          "max_tokens",
+          "max_cost_microusd",
+          "max_tool_calls"
+        ],
+        "title": "RunLimits",
+        "type": "object"
+      },
+      "RunLimits-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "max_cost_microusd": {
+            "maximum": 1000000.0,
+            "minimum": 1.0,
+            "title": "Max Cost Microusd",
+            "type": "integer"
+          },
+          "max_output_tokens": {
+            "default": 512,
+            "maximum": 1024.0,
+            "minimum": 32.0,
+            "title": "Max Output Tokens",
+            "type": "integer"
+          },
+          "max_steps": {
+            "maximum": 20.0,
+            "minimum": 1.0,
+            "title": "Max Steps",
+            "type": "integer"
+          },
+          "max_tokens": {
+            "maximum": 100000.0,
+            "minimum": 512.0,
+            "title": "Max Tokens",
+            "type": "integer"
+          },
+          "max_tool_calls": {
+            "maximum": 30.0,
+            "minimum": 1.0,
+            "title": "Max Tool Calls",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "max_steps",
+          "max_tokens",
+          "max_cost_microusd",
+          "max_tool_calls",
+          "max_output_tokens"
+        ],
+        "title": "RunLimits",
+        "type": "object"
+      },
       "RunPage": {
         "additionalProperties": false,
         "properties": {
@@ -5304,6 +6231,106 @@
           "critical"
         ],
         "title": "Signal",
+        "type": "object"
+      },
+      "SingleMultiContrast": {
+        "additionalProperties": false,
+        "properties": {
+          "baseline_calls": {
+            "title": "Baseline Calls",
+            "type": "integer"
+          },
+          "baseline_cost_microusd": {
+            "title": "Baseline Cost Microusd",
+            "type": "integer"
+          },
+          "baseline_outcome": {
+            "title": "Baseline Outcome",
+            "type": "string"
+          },
+          "baseline_run_id": {
+            "title": "Baseline Run Id",
+            "type": "string"
+          },
+          "baseline_tokens": {
+            "title": "Baseline Tokens",
+            "type": "integer"
+          },
+          "comparable": {
+            "title": "Comparable",
+            "type": "boolean"
+          },
+          "cost_delta_microusd": {
+            "title": "Cost Delta Microusd",
+            "type": "integer"
+          },
+          "evidence_scope": {
+            "const": "one-paired-workflow-only",
+            "default": "one-paired-workflow-only",
+            "title": "Evidence Scope",
+            "type": "string"
+          },
+          "improvement_established": {
+            "const": false,
+            "default": false,
+            "title": "Improvement Established",
+            "type": "boolean"
+          },
+          "multi_outcome": {
+            "title": "Multi Outcome",
+            "type": "string"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "source": {
+            "enum": [
+              "runtime",
+              "test"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "supervisor_id": {
+            "title": "Supervisor Id",
+            "type": "string"
+          },
+          "worker_calls": {
+            "title": "Worker Calls",
+            "type": "integer"
+          },
+          "worker_cost_microusd": {
+            "title": "Worker Cost Microusd",
+            "type": "integer"
+          },
+          "worker_tokens": {
+            "title": "Worker Tokens",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "supervisor_id",
+          "baseline_run_id",
+          "comparable",
+          "reasons",
+          "baseline_outcome",
+          "multi_outcome",
+          "baseline_calls",
+          "worker_calls",
+          "baseline_tokens",
+          "worker_tokens",
+          "baseline_cost_microusd",
+          "worker_cost_microusd",
+          "cost_delta_microusd",
+          "source",
+          "evidence_scope",
+          "improvement_established"
+        ],
+        "title": "SingleMultiContrast",
         "type": "object"
       },
       "Snapshot": {
@@ -9934,6 +10961,790 @@
           }
         },
         "summary": "Event Contract"
+      }
+    },
+    "/api/v1/delegation": {
+      "get": {
+        "operationId": "list_supervisors_api_v1_delegation_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DelegationView"
+                  },
+                  "title": "Response List Supervisors Api V1 Delegation Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "List Supervisors"
+      },
+      "post": {
+        "operationId": "create_supervisor_api_v1_delegation_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DelegationCreate-Input"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DelegationView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Create Supervisor"
+      }
+    },
+    "/api/v1/delegation/status": {
+      "get": {
+        "operationId": "supervisor_status_api_v1_delegation_status_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DelegationStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Supervisor Status"
+      }
+    },
+    "/api/v1/delegation/{parent_id}": {
+      "get": {
+        "operationId": "get_supervisor_api_v1_delegation__parent_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "parent_id",
+            "required": true,
+            "schema": {
+              "title": "Parent Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DelegationView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Get Supervisor"
+      }
+    },
+    "/api/v1/delegation/{parent_id}/commands": {
+      "post": {
+        "operationId": "control_supervisor_api_v1_delegation__parent_id__commands_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "parent_id",
+            "required": true,
+            "schema": {
+              "title": "Parent Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DelegationCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DelegationView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Control Supervisor"
+      }
+    },
+    "/api/v1/delegation/{parent_id}/contrast": {
+      "post": {
+        "operationId": "contrast_supervisor_api_v1_delegation__parent_id__contrast_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "parent_id",
+            "required": true,
+            "schema": {
+              "title": "Parent Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContrastCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SingleMultiContrast"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Contrast Supervisor"
       }
     },
     "/api/v1/health": {

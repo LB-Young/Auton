@@ -3,6 +3,7 @@ import fcntl
 import hashlib
 import os
 import re
+import time
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -159,6 +160,13 @@ class AgentRuntime:
             )
         return await self.repo.save(principal.owner, new)
 
+    def limit(self, run: AgentRun, field: str) -> int:
+        # Legacy runs have no frozen limits; current config remains their upper bound.
+        return min(
+            run.budget_limits.get(field, int(getattr(self.config, field))),
+            int(getattr(self.config, field)),
+        )
+
     def _launch(self, principal: Principal, identity: str) -> None:
         if not self.ready:
             return
@@ -186,7 +194,17 @@ class AgentRuntime:
                 return await self.repo.load(principal.owner, found)
             if len(self._pending) >= 100:
                 raise ApplicationError(429, "agent_queue_full", "Agent queue is full")
-            await self.deps.assets.resolve(runtime, command.project_id)
+            if command.limits and any(
+                value > getattr(self.config, field)
+                for field, value in command.limits.model_dump().items()
+            ):
+                raise ApplicationError(403, "run_limit_escalation", "Run limits exceed host grant")
+            if command.asset_snapshot_id:
+                await self.deps.assets.snapshot(
+                    runtime, command.project_id, command.asset_snapshot_id
+                )
+            else:
+                await self.deps.assets.resolve(runtime, command.project_id)
             workspace = await self.deps.tools.workspace(runtime, command.workspace_id)
             if workspace.read_only and any(
                 t in {"file.write", "process.run"} for t in command.allowed_tools
@@ -207,7 +225,9 @@ class AgentRuntime:
                 update={
                     "session_id": self.sessions.create(principal.owner, command.project_id),
                     "executor_spec": model.model_dump(mode="json"),
-                    "budget_limits": self.config.model_dump(
+                    "budget_limits": command.limits.model_dump()
+                    if command.limits
+                    else self.config.model_dump(
                         include={
                             "max_steps",
                             "max_tokens",
@@ -221,6 +241,15 @@ class AgentRuntime:
             await self.repo.save(principal.owner, run, command.request_id, command.digest)
             self._launch(runtime, run.id)
             return run
+
+    async def find_creation(self, principal: Principal, command: CreateRun) -> AgentRun | None:
+        self._check_ready()
+        self.actor(principal)
+        async with self._lock:
+            found = await self.repo.command_seen(
+                principal.owner, command.request_id, command.digest
+            )
+            return await self.repo.load(principal.owner, found) if found else None
 
     async def get(self, principal: Principal, run_id: str) -> AgentRun:
         self._check_ready()
@@ -423,7 +452,7 @@ class AgentRuntime:
                 await self.deps.goals.synchronize_goal(
                     principal, "agent-goal-" + run_id, run.goal_revision
                 )
-                changes["runtime_revision"] = "single-agent-v2"
+                changes["runtime_revision"] = "single-agent-v3"
             candidate = AgentRun.model_validate(
                 {**run.model_dump(), **changes, "version": run.version + 1}
             )
@@ -532,7 +561,13 @@ class AgentRuntime:
                 run = await self.repo.load(principal.owner, identity)
                 if run.status != "queued":
                     return
-                run = await self._save(principal, run, status="running", reason="worker_started")
+                run = await self._save(
+                    principal,
+                    run,
+                    status="running",
+                    reason="worker_started",
+                    runtime_revision="single-agent-v3",
+                )
                 run = await self._boundary(principal, run)
             while self.ready and run.status == "running":
                 if run.pending_calls:
@@ -541,7 +576,7 @@ class AgentRuntime:
                     run = await self._model_step(principal, identity, True)
                 elif run.final_text:
                     run = await self._accept(principal, identity)
-                elif run.steps >= self.config.max_steps:
+                elif run.steps >= self.limit(run, "max_steps"):
                     async with self._lock:
                         run = await self._save(
                             principal,
@@ -591,18 +626,31 @@ class AgentRuntime:
                     phase="judgment",
                     reason="local_judgment_advisory",
                 )
-            judgment = await self.deps.judgment.decide(
-                JudgmentRequest(
-                    request_id=judgment_id,
-                    principal=principal,
-                    goal_id="agent-goal-" + identity,
-                    goal_revision=run.goal_revision,
-                    state_cutoff=run.version,
-                    state=run.command.goal,
-                    questions=JudgmentQuestionsFactory().create(),
-                    data_domain=run.command.data_domain,
-                )
+            judgment_request = JudgmentRequest(
+                request_id=judgment_id,
+                principal=principal,
+                goal_id="agent-goal-" + identity,
+                goal_revision=run.goal_revision,
+                state_cutoff=run.version,
+                state=run.command.goal,
+                questions=JudgmentQuestionsFactory().create(),
+                data_domain=run.command.data_domain,
             )
+            deadline = time.monotonic() + self.config.judgment_wait_seconds
+            while True:
+                try:
+                    judgment = await self.deps.judgment.decide(judgment_request)
+                    break
+                except ApplicationError as error:
+                    # Only this explicit pre-dispatch capacity refusal is safe to wait for.
+                    if error.code != "judgment_busy" or time.monotonic() >= deadline:
+                        raise
+                    await asyncio.sleep(0.1)
+                    async with self._lock:
+                        current = await self.repo.load(principal.owner, identity)
+                        current = await self._boundary(principal, current)
+                        if not self.ready or current.status != "running":
+                            return current
             async with self._lock:
                 run = await self.repo.load(principal.owner, identity)
                 run = await self._save(
@@ -641,6 +689,7 @@ class AgentRuntime:
                     goal_id="agent-goal-" + identity,
                     goal_revision=run.goal_revision,
                     state_cutoff=run.version,
+                    asset_snapshot_id=run.command.asset_snapshot_id,
                     model_id=run.command.model_id,
                     state=TaskState(
                         goal=run.command.goal,
@@ -661,7 +710,7 @@ class AgentRuntime:
                     history=run.history,
                     tools=self._specs(run),
                     data_domain=run.command.data_domain,
-                    max_output_tokens=self.config.max_output_tokens,
+                    max_output_tokens=self.limit(run, "max_output_tokens"),
                 )
             )
             async with self._lock:
@@ -681,16 +730,14 @@ class AgentRuntime:
                 spec = next(m for m in self.deps.models.catalog() if m.id == run.command.model_id)
                 estimated_cost = (
                     (snapshot.admission_tokens or 0) * spec.input_microusd_per_million
-                    + self.config.max_output_tokens * spec.output_microusd_per_million
+                    + self.limit(run, "max_output_tokens") * spec.output_microusd_per_million
                     + 999999
                 ) // 1000000
-                if (
-                    run.tokens_used
-                    + (snapshot.admission_tokens or 0)
-                    + self.config.max_output_tokens
-                    > self.config.max_tokens
-                    or run.cost_microusd + estimated_cost > self.config.max_cost_microusd
-                ):
+                if run.tokens_used + (snapshot.admission_tokens or 0) + self.limit(
+                    run, "max_output_tokens"
+                ) > self.limit(
+                    run, "max_tokens"
+                ) or run.cost_microusd + estimated_cost > self.limit(run, "max_cost_microusd"):
                     return await self._save(
                         principal, run, status="blocked", phase="idle", reason="run_budget_limit"
                     )
@@ -711,6 +758,23 @@ class AgentRuntime:
         async with self._lock:
             current = await self.repo.load(principal.owner, identity)
             if current.status != "running":
+                # This live stack has not entered the gateway. A replay/recovery stack
+                # cannot make that claim and must retain the unresolved intent.
+                if (
+                    not recovering
+                    and current.model_request_id == run.model_request_id
+                    and run.model_request_id
+                ):
+                    current = await self._save(
+                        principal,
+                        current,
+                        model_request_id=None,
+                        undispatched_model_request_ids=(
+                            *current.undispatched_model_request_ids,
+                            run.model_request_id,
+                        ),
+                        reason="model_intent_proven_not_dispatched",
+                    )
                 return await self._boundary(principal, current)
         assert run.model_request_id
         request = ModelRequest(
@@ -721,7 +785,7 @@ class AgentRuntime:
             goal_revision=run.goal_revision,
             messages=snapshot.messages,
             tools=snapshot.tools,
-            max_output_tokens=self.config.max_output_tokens,
+            max_output_tokens=self.limit(run, "max_output_tokens"),
             data_domain=run.command.data_domain,
         )
         result = None
@@ -765,6 +829,10 @@ class AgentRuntime:
             )
             if run.status != "running":
                 return await self._boundary(principal, run)
+            if run.tokens_used > self.limit(run, "max_tokens") or run.cost_microusd > self.limit(
+                run, "max_cost_microusd"
+            ):
+                return await self._save(principal, run, status="blocked", reason="run_budget_limit")
             if result.finish_reason == "length":
                 return await self._save(
                     principal, run, status="blocked", reason="model_output_incomplete"
@@ -814,7 +882,7 @@ class AgentRuntime:
                 return await self._save(
                     principal, run, status="blocked", reason="unregistered_or_disallowed_tool"
                 )
-            if len(run.receipts) >= self.config.max_tool_calls:
+            if len(run.receipts) >= self.limit(run, "max_tool_calls"):
                 return await self._save(principal, run, status="blocked", reason="run_tool_limit")
             repeats = sum(
                 1

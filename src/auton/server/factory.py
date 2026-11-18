@@ -41,6 +41,14 @@ from auton.constitution.config import (
     PublicPolicy,
 )
 from auton.context.contracts import ContextRequest, ContextSnapshot, TaskState
+from auton.delegation.contracts import (
+    ContrastCommand,
+    DelegationCommand,
+    DelegationCreate,
+    DelegationStatus,
+    DelegationView,
+    SingleMultiContrast,
+)
 from auton.demo.ports import (
     ConversationPort,
     CreateSession,
@@ -422,6 +430,45 @@ class ServerFactory:
         ) -> AgentRun:
             return await deps.commands.recover(
                 Principal(owner=owner(request), role="user"), project_id, run_id, command
+            )
+
+        @app.get("/api/v1/delegation/status")
+        async def supervisor_status(request: Request) -> DelegationStatus:
+            owner(request)
+            return deps.delegation.status()
+
+        @app.post("/api/v1/delegation/{parent_id}/contrast")
+        async def contrast_supervisor(
+            request: Request, parent_id: str, command: ContrastCommand
+        ) -> SingleMultiContrast:
+            return await deps.delegation.contrast(
+                Principal(owner=owner(request), role="user"), parent_id, command
+            )
+
+        @app.post("/api/v1/delegation", status_code=201)
+        async def create_supervisor(request: Request, command: DelegationCreate) -> DelegationView:
+            return await deps.delegation.create(
+                Principal(owner=owner(request), role="user"), command
+            )
+
+        @app.get("/api/v1/delegation")
+        async def list_supervisors(request: Request, project_id: str) -> tuple[DelegationView, ...]:
+            return await deps.delegation.list(
+                Principal(owner=owner(request), role="user"), project_id
+            )
+
+        @app.get("/api/v1/delegation/{parent_id}")
+        async def get_supervisor(request: Request, parent_id: str) -> DelegationView:
+            return await deps.delegation.get(
+                Principal(owner=owner(request), role="user"), parent_id
+            )
+
+        @app.post("/api/v1/delegation/{parent_id}/commands")
+        async def control_supervisor(
+            request: Request, parent_id: str, command: DelegationCommand
+        ) -> DelegationView:
+            return await deps.delegation.command(
+                Principal(owner=owner(request), role="user"), parent_id, command
             )
 
         @app.get("/api/v1/assessment/status")

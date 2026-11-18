@@ -702,3 +702,71 @@ def test_assessment_unavailable_error_is_explicit(page: Page) -> None:
     page.goto(BASE + "?view=assess")
     expect(page.get_by_role("alert")).to_have_text("当前身份不能读取评测")
     expect(page.get_by_role("button", name="评测当前检查点")).to_be_disabled()
+
+
+def test_delegation_private_dag_approvals_conflict_and_mobile(page: Page) -> None:
+    import json
+
+    identity = "delegation-browser"
+    seed_workbench(page, identity)
+    page.goto(BASE + "?view=delegation")
+    expect(page.get_by_role("heading", name="多 Agent", exact=True)).to_be_visible()
+    page.get_by_label("委派项目", exact=True).select_option(identity)
+    page.get_by_text("新建任务契约", exact=True).click()
+    page.get_by_role("button", name="填入公开合成示例（不自动运行）", exact=True).click()
+    command = json.loads(page.get_by_label("委派契约 JSON", exact=True).input_value())
+    assert command["public"] is False and command["children"][0]["limits"]["max_tokens"] == 8000
+    page.get_by_role("button", name="创建父任务", exact=True).click()
+    state = page.get_by_label("父任务状态", exact=True)
+    expect(state.get_by_role("heading", name="待启动", exact=True)).to_be_visible()
+    headers = {"X-Auton-Client": "web", "Origin": BASE}
+    conflicting = page.request.post(
+        BASE + "/api/v1/delegation",
+        headers=headers,
+        data={**command, "request_id": "same-output-conflict"},
+    )
+    assert conflicting.status == 409 and conflicting.json()["code"] == "delegation_write_conflict"
+    forged = page.request.post(
+        BASE + "/api/v1/delegation", headers=headers, data={**command, "role": "runtime"}
+    )
+    assert forged.status == 422
+    page.get_by_role("button", name="启动委派", exact=True).click()
+    expect(page.get_by_label("alpha 待审批差异", exact=True)).to_contain_text(
+        "+hello", timeout=20000
+    )
+    expect(page.get_by_label("beta 待审批差异", exact=True)).to_contain_text(
+        "+hello", timeout=20000
+    )
+    screenshot(page, "M14-worker-approvals.png")
+    page.get_by_role("button", name="批准子任务 alpha 本次操作", exact=True).click()
+    expect(page.get_by_role("heading", name="alpha · 独立验收通过", exact=True)).to_be_visible(
+        timeout=20000
+    )
+    page.get_by_role("button", name="批准子任务 beta 本次操作", exact=True).click()
+    expect(state.get_by_role("heading", name="等待审批", exact=True)).to_be_visible(timeout=20000)
+    merge = page.get_by_label("集成差异", exact=True)
+    expect(merge).to_contain_text("+hello")
+    expect(state).to_contain_text("工具调用 2 / 8")
+    screenshot(page, "M14-integration-approval.png")
+    page.get_by_role("button", name="批准最终合并", exact=True).click()
+    expect(state.get_by_role("heading", name="父目标验收通过", exact=True)).to_be_visible(
+        timeout=20000
+    )
+    expect(state).to_contain_text("工具调用 3 / 8")
+    link = page.get_by_role("link", name="下载父任务交付", exact=True)
+    artifact_url = link.get_attribute("href")
+    assert artifact_url
+    artifact = page.request.get(BASE + artifact_url)
+    assert artifact.ok and artifact.body() == b"hello\nhello\n"
+    page.reload()
+    expect(state.get_by_role("heading", name="父目标验收通过", exact=True)).to_be_visible()
+    page.get_by_role("heading", name="多 Agent", exact=True).scroll_into_view_if_needed()
+    screenshot(page, "M14-delegation-desktop.png")
+    page.set_viewport_size({"width": 390, "height": 844})
+    page.get_by_role("heading", name="多 Agent", exact=True).scroll_into_view_if_needed()
+    assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+    screenshot(page, "M14-delegation-mobile.png")
+    parent_id = page.request.get(BASE + f"/api/v1/delegation?project_id={identity}").json()[0]["id"]
+    page.context.clear_cookies()
+    page.request.get(BASE + "/api/v1/bootstrap")
+    assert page.request.get(BASE + f"/api/v1/delegation/{parent_id}").status == 404

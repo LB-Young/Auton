@@ -844,6 +844,7 @@ async def test_http_protected_gold_and_judge_prompts_only_reach_private_journal(
     from auton.assess.rubric import RUBRIC
     from auton.bootstrap.app import ApplicationFactory
     from auton.bootstrap.config import ApplicationConfig
+    from auton.delegation.contracts import DelegationConfig
     from auton.experience.contracts import ExperienceConfig
     from auton.genome.contracts import GenomeConfig
     from auton.judgment.config import JudgmentConfig
@@ -861,6 +862,7 @@ async def test_http_protected_gold_and_judge_prompts_only_reach_private_journal(
         experience=ExperienceConfig(directory=tmp_path / "experience"),
         models=ModelConfig(backend="mock", fixture_scenario="agent_acceptance"),
         judgment=JudgmentConfig(backend="mock"),
+        delegation=DelegationConfig(directory=tmp_path / "delegation"),
         assess=AssessConfig(directory=tmp_path / "assess", judge_model="fixture-model"),
         allowed_origins=("http://testserver",),
     )

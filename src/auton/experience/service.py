@@ -242,7 +242,9 @@ class ExperienceService:
         elif not await self.checkpoints.valid(principal, project, reference):
             reasons.append("checkpoint_reference_invalid")
         if incompatible or (
-            reference and reference.runtime_revision not in {"single-agent-v1", "single-agent-v2"}
+            reference
+            and reference.runtime_revision
+            not in {"single-agent-v1", "single-agent-v2", "single-agent-v3"}
         ):
             reasons.append("checkpoint_schema_incompatible")
         if not caught_up or (reference and run and reference.version != run.version):

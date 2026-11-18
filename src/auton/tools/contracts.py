@@ -47,7 +47,15 @@ class FileRead(Contract):
 
 class FileWrite(FileRead):
     content: str = Field(max_length=131072)
-    expected_sha256: str | None = Field(default=None, pattern=r"^[a-f0-9]{64}$")
+    expected_sha256: str | None = Field(
+        default=None,
+        pattern=r"^[a-f0-9]{64}$",
+        description=(
+            "SHA256 of the EXISTING file BEFORE this write (compare-and-swap). "
+            "Omit or use null when creating a new file. "
+            "This is never the intended/new output or delivery SHA256."
+        ),
+    )
 
 
 class ProcessRun(Contract):
