@@ -4,6 +4,23 @@
  */
 
 export interface paths {
+  '/api/v1/agent/history': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Run History */
+    get: operations['run_history_api_v1_agent_history_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/agent/runs': {
     parameters: {
       query?: never;
@@ -50,6 +67,23 @@ export interface paths {
     put?: never;
     /** Agent Command */
     post: operations['agent_command_api_v1_agent_runs__run_id__commands_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/agent/runs/{run_id}/feedback': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Run Feedback */
+    post: operations['run_feedback_api_v1_agent_runs__run_id__feedback_post'];
     delete?: never;
     options?: never;
     head?: never;
@@ -1569,6 +1603,52 @@ export interface components {
        */
       trust: 'untrusted';
     };
+    /** FeedbackCommand */
+    FeedbackCommand: {
+      /**
+       * Category
+       * @default delivery
+       * @enum {string}
+       */
+      category: 'delivery' | 'approval';
+      /** Checkpoint Version */
+      checkpoint_version: number;
+      /** Expected Goal Revision */
+      expected_goal_revision: number;
+      /**
+       * Note
+       * @default
+       */
+      note: string;
+      /**
+       * Rating
+       * @enum {string}
+       */
+      rating: 'helpful' | 'unhelpful';
+      /** Request Id */
+      request_id: string;
+    };
+    /** FeedbackReceipt */
+    FeedbackReceipt: {
+      /** Checkpoint Event Id */
+      checkpoint_event_id: string;
+      /** Event Id */
+      event_id: string;
+      /**
+       * Label Source
+       * @default human-feedback
+       * @constant
+       */
+      label_source: 'human-feedback';
+      /** Run Id */
+      run_id: string;
+      /**
+       * Verified Quality
+       * @default false
+       * @constant
+       */
+      verified_quality: false;
+    };
     /** HealthResponse */
     HealthResponse: {
       /** Profile */
@@ -2048,6 +2128,13 @@ export interface components {
       schema_version: 1;
       /** Version */
       version: number;
+    };
+    /** RunPage */
+    RunPage: {
+      /** Items */
+      items: components['schemas']['AgentRun'][];
+      /** Next Cursor */
+      next_cursor: number | null;
     };
     /** RunSnapshot */
     RunSnapshot: {
@@ -2635,6 +2722,121 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+  run_history_api_v1_agent_history_get: {
+    parameters: {
+      query: {
+        project_id: string;
+        after?: number;
+        limit?: number;
+        search?: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['RunPage'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
   agent_runs_api_v1_agent_runs_get: {
     parameters: {
       query: {
@@ -2995,6 +3197,122 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['AgentRun'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  run_feedback_api_v1_agent_runs__run_id__feedback_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        run_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['FeedbackCommand'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['FeedbackReceipt'];
         };
       };
       /** @description Unauthorized */

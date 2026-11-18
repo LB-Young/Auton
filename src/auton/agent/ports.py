@@ -1,6 +1,6 @@
 from typing import Protocol
 
-from auton.agent.contracts import AgentRun, CreateRun, RunCommand, TransientProgress
+from auton.agent.contracts import AgentRun, CreateRun, RunCommand, RunPage, TransientProgress
 from auton.constitution.config import Principal
 from auton.kernel.ports import LifecycleHandle
 
@@ -9,6 +9,9 @@ class AgentRuntimePort(LifecycleHandle, Protocol):
     async def create(self, principal: Principal, command: CreateRun) -> AgentRun: ...
     async def get(self, principal: Principal, run_id: str) -> AgentRun: ...
     async def list(self, principal: Principal, project_id: str) -> list[AgentRun]: ...
+    async def page(
+        self, principal: Principal, project_id: str, after: int, limit: int, search: str
+    ) -> RunPage: ...
     async def command(self, principal: Principal, run_id: str, command: RunCommand) -> AgentRun: ...
     async def command_result(
         self, principal: Principal, run_id: str, command: RunCommand

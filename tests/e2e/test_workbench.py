@@ -28,7 +28,7 @@ def page(browser: Browser) -> Iterator[Page]:
     page = context.new_page()
     errors: list[str] = []
     page.on("pageerror", lambda error: errors.append(str(error)))
-    page.goto(BASE)
+    page.goto(BASE + "?view=chat")
     expect(page.get_by_role("textbox", name="任务输入")).to_be_enabled()
     yield page
     context.close()
@@ -390,3 +390,216 @@ def test_server_upload_candidate_and_identity(page: Page) -> None:
     page.get_by_role("button", name=re.compile("^设置")).click()
     expect(page.get_by_text("本机身份：", exact=False)).to_be_visible()
     screenshot(page, "M11-identity.png")
+
+
+def seed_workbench(page: Page, identity: str) -> None:
+    headers = {"X-Auton-Client": "web", "Origin": BASE}
+    project = page.request.post(
+        BASE + "/api/v1/projects", headers=headers, data={"id": identity, "title": identity}
+    )
+    assert project.ok
+    assert page.request.post(
+        BASE + "/api/v1/tools/workspaces",
+        headers=headers,
+        data={"id": identity, "title": identity, "read_only": False},
+    ).ok
+    candidate = page.request.post(
+        BASE + f"/api/v1/projects/{identity}/candidates",
+        headers=headers,
+        data={
+            "expected": None,
+            "asset": {
+                "id": "notes",
+                "name": "Notes",
+                "kind": "document",
+                "origin": "user_explicit",
+                "source": "browser fixture",
+                "content": "Context retrieval preserves provenance and project boundaries.",
+            },
+        },
+    ).json()
+    assert page.request.post(
+        BASE + f"/api/v1/projects/{identity}/assets/notes/promote",
+        headers=headers,
+        data={
+            "expected": candidate["revision"],
+            "candidates_revision": candidate["candidates_revision"],
+        },
+    ).ok
+
+
+def create_workbench_run(page: Page, project: str, goal: str, request: str) -> dict[str, object]:
+    response = page.request.post(
+        BASE + "/api/v1/agent/runs",
+        headers={"X-Auton-Client": "web", "Origin": BASE},
+        data={
+            "request_id": request,
+            "project_id": project,
+            "workspace_id": project,
+            "model_id": "fixture-model",
+            "goal": goal,
+            "allowed_tools": ["file.read"],
+            "acceptance": {"kind": "research"},
+        },
+    )
+    assert response.ok
+    return response.json()  # type: ignore[no-any-return]
+
+
+def test_workbench_default_ime_retry_artifact_feedback_and_url(page: Page) -> None:
+    seed_workbench(page, "main-workbench")
+    page.goto(BASE)
+    expect(page.get_by_role("heading", name="开始一件值得完成的事")).to_be_visible()
+    expect(page.get_by_label("任务项目")).to_have_value("main-workbench")
+    expect(page.get_by_text("正在加载任务连接…", exact=True)).to_have_count(0)
+    screenshot(page, "M12-home.png")
+    text = page.get_by_label("真实任务目标")
+    text.fill("Research provenance for this project.")
+    text.dispatch_event(
+        "keydown", {"key": "Enter", "code": "Enter", "isComposing": True, "keyCode": 229}
+    )
+    expect(page.get_by_label("真实任务执行记录")).to_have_count(0)
+    calls: list[str] = []
+
+    def once(route: object) -> None:
+        from playwright.sync_api import Route
+
+        assert isinstance(route, Route)
+        body = route.request.post_data_json
+        assert isinstance(body, dict)
+        calls.append(str(body["request_id"]))
+        if len(calls) == 1:
+            route.abort()
+        else:
+            route.continue_()
+
+    page.route("**/api/v1/agent/runs", once)
+    page.get_by_role("button", name="启动真实任务").click()
+    expect(page.get_by_role("alert")).to_contain_text("连接中断")
+    expect(text).to_have_value("Research provenance for this project.")
+    page.get_by_role("button", name="启动真实任务").click()
+    record = page.get_by_label("真实任务执行记录")
+    expect(record.get_by_role("status")).to_contain_text("验收通过", timeout=15000)
+    assert len(calls) == 2 and calls[0] == calls[1]
+    page.unroute("**/api/v1/agent/runs", once)
+    url = page.url
+    assert "run=" in url and "project=main-workbench" in url
+    record.get_by_label("任务反馈说明").fill("Useful structure; verify claims independently.")
+    record.get_by_role("button", name="有帮助", exact=True).click()
+    expect(record).to_contain_text("反馈已保存 · 用户标签")
+    record.get_by_role("button", name="预览任务报告").click()
+    expect(page.get_by_label("真实产物预览")).to_contain_text("[asset:notes]")
+    panel = page.get_by_label("真实产物预览")
+    before = panel.bounding_box()
+    assert before is not None
+    page.get_by_label("产物面板宽度").focus()
+    page.keyboard.press("ArrowRight")
+    after = panel.bounding_box()
+    assert after is not None and after["width"] > before["width"]
+    screenshot(page, "M12-workbench-report.png")
+    page.keyboard.press("Escape")
+    expect(page.get_by_label("真实产物预览")).to_have_count(0)
+    page.reload()
+    expect(record.get_by_role("status")).to_contain_text("验收通过", timeout=15000)
+    assert page.url == url
+    # A hostile response is still rendered as text/Markdown, never executable HTML.
+    page.route(
+        "**/api/v1/agent/runs/*/report",
+        lambda route: route.fulfill(
+            status=200,
+            body=(
+                "<script>window.autonInjected=true</script>\n"
+                '<img src=x onerror="window.autonInjected=true">\n\n'
+                '[unsafe](javascript:alert(1))\n\n```python\nprint("safe")\n```'
+            ),
+        ),
+    )
+    record.get_by_role("button", name="预览任务报告").click()
+    preview = page.get_by_label("真实产物预览")
+    expect(preview.get_by_role("button", name="复制代码")).to_be_visible()
+    assert not page.evaluate("Boolean(window.autonInjected)")
+    assert preview.locator('script,img,a[href^="javascript:"]').count() == 0
+    page.context.grant_permissions(["clipboard-read", "clipboard-write"])
+    preview.get_by_role("button", name="复制代码").click()
+    expect(preview.get_by_role("button", name="已复制")).to_be_visible()
+    page.keyboard.press("Escape")
+    page.set_viewport_size({"width": 390, "height": 844})
+    assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth")
+    record.get_by_role("heading", name="执行记录").scroll_into_view_if_needed()
+    screenshot(page, "M12-workbench-mobile.png")
+    page.set_viewport_size({"width": 1440, "height": 900})
+    page.unroute("**/api/v1/agent/runs/*/report")
+    page.get_by_label("任务验收类型").select_option("file")
+    page.get_by_label("真实任务目标").fill("Write an exact fixture file.")
+    page.get_by_label("任务期望内容").fill("hello\n")
+    page.get_by_role("button", name="启动真实任务").click()
+    expect(record.get_by_role("status")).to_contain_text("等待审批", timeout=15000)
+    run_id = page.evaluate('new URL(location.href).searchParams.get("run")')
+    old = page.request.get(BASE + f"/api/v1/agent/runs/{run_id}").json()
+    record.get_by_label("修订真实任务目标").fill(
+        "Write the exact same approved fixture only after review."
+    )
+    record.get_by_role("button", name="修订并安全暂停").click()
+    expect(record.get_by_role("status")).to_contain_text("已暂停", timeout=15000)
+    late = page.request.post(
+        BASE + f"/api/v1/agent/runs/{run_id}/commands",
+        headers={"X-Auton-Client": "web", "Origin": BASE},
+        data={
+            "request_id": "late-approval",
+            "expected_goal_revision": old["goal_revision"],
+            "expected_version": old["version"],
+            "action": "approve",
+        },
+    )
+    assert late.status == 409
+    record.get_by_role("button", name="恢复任务", exact=True).click()
+    expect(record.get_by_role("status")).to_contain_text("等待审批", timeout=15000)
+    record.get_by_label("审批拒绝原因").fill("Do not write this fixture.")
+    record.get_by_role("button", name="拒绝并停止任务").click()
+    expect(record.get_by_role("status")).to_contain_text("已停止", timeout=15000)
+    expect(record.get_by_role("link", name="下载任务文件 notes.md")).to_have_count(0)
+
+
+def test_workbench_history_pagination_search_and_late_snapshot(page: Page) -> None:
+    from playwright.sync_api import Route
+
+    seed_workbench(page, "history-workbench")
+    runs = [
+        create_workbench_run(
+            page, "history-workbench", f"History task {index:02} provenance", f"page-{index}"
+        )
+        for index in range(23)
+    ]
+    page.goto(BASE + "?view=agent&project=history-workbench")
+    history = page.get_by_role("article").filter(
+        has=page.get_by_role("heading", name="项目会话与任务")
+    )
+    expect(history.get_by_role("button", name=re.compile("^History task"))).to_have_count(10)
+    history.get_by_role("button", name="加载更多任务").click()
+    expect(history.get_by_role("button", name=re.compile("^History task"))).to_have_count(20)
+    history.get_by_role("button", name="加载更多任务").click()
+    expect(history.get_by_role("button", name=re.compile("^History task"))).to_have_count(23)
+    expect(history.get_by_role("button", name="加载更多任务")).to_have_count(0)
+    page.get_by_label("搜索项目任务", exact=True).fill("History task 22")
+    expect(history.get_by_role("button", name=re.compile("^History task"))).to_have_count(1)
+    page.get_by_label("搜索项目任务", exact=True).fill("History task 0")
+    expect(history.get_by_role("button", name=re.compile("^History task"))).to_have_count(10)
+    held: list[Route] = []
+    first_id = str(runs[0]["id"])
+    page.route(f"**/api/v1/agent/runs/{first_id}/snapshot", lambda route: held.append(route))
+    history.get_by_role("button", name=re.compile("^History task 00")).click()
+    page.wait_for_function('new URL(location.href).searchParams.has("run")')
+    page.wait_for_timeout(150)
+    assert held
+    history.get_by_role("button", name=re.compile("^History task 01")).click()
+    expect(page.get_by_label("真实任务执行记录")).to_contain_text("History task 01")
+    old = page.request.get(BASE + f"/api/v1/agent/runs/{first_id}/snapshot").text()
+    for route in held:
+        route.fulfill(status=200, content_type="application/json", body=old)
+    expect(page.get_by_label("真实任务执行记录")).to_contain_text("History task 01")
+    assert str(runs[1]["id"]) in page.url
+    screenshot(page, "M12-history.png")
+    # Cross-project or unavailable deep links do not silently show a different run.
+    page.goto(BASE + "?view=agent&project=not-owned&run=" + first_id)
+    expect(page.get_by_role("alert")).to_contain_text("项目不可访问")
+    expect(page.get_by_label("真实任务执行记录")).to_have_count(0)

@@ -52,3 +52,9 @@ export type UploadCommand = components['schemas']['UploadCommand'];
 export type UploadIntent = components['schemas']['UploadIntent'];
 
 export type UploadReceipt = components['schemas']['UploadReceipt'];
+
+export type RunPage = components['schemas']['RunPage'];
+
+export type FeedbackCommand = components['schemas']['FeedbackCommand'];
+
+export type FeedbackReceipt = components['schemas']['FeedbackReceipt'];

@@ -1,7 +1,23 @@
+import type { ProjectsPort } from '../projects/ports';
 import type { ApiClient, RunEventStream } from '../../transport/ports';
+import { createAgentController } from './controller';
 import type { CreateRun, RunCommand } from '../../shared/contracts';
 
-export function createAgentFeature(deps: { api: ApiClient; events: RunEventStream }) {
+export function createAgentFeature(deps: {
+  api: ApiClient;
+  events: RunEventStream;
+  projects: ProjectsPort;
+}) {
+  const draft = {
+    workspace: '',
+    model: '',
+    goal: '',
+    boundaries: '',
+    kind: 'research' as 'research' | 'file',
+    path: 'notes.md',
+    content: '',
+    isPublic: false,
+  };
   const pending = new Map<string, string>();
   async function stable<T extends { request_id: string }>(
     kind: string,
@@ -17,7 +33,16 @@ export function createAgentFeature(deps: { api: ApiClient; events: RunEventStrea
     pending.delete(key);
     return result;
   }
+  const command = (id: string, value: RunCommand) =>
+    stable(id, value, (body) => deps.api.agentCommand(id, body));
   return {
+    draft,
+    controller: createAgentController(deps.api, deps.events, command, deps.projects, () =>
+      Object.assign(draft, { goal: '', content: '' }),
+    ),
+    feedback: (run: string, command: import('../../shared/contracts').FeedbackCommand) =>
+      deps.api.feedback(run, command),
+    preview: (url: string) => deps.api.artifactText(url),
     id: 'agent',
     snapshot: (id: string) => deps.api.runSnapshot(id),
     subscribe: deps.events.connect,

@@ -29,6 +29,16 @@ import type {
 } from '../shared/contracts';
 
 export interface ApiClient {
+  runHistory(
+    project: string,
+    after: number,
+    search: string,
+  ): Promise<import('../shared/contracts').RunPage>;
+  feedback(
+    id: string,
+    command: import('../shared/contracts').FeedbackCommand,
+  ): Promise<import('../shared/contracts').FeedbackReceipt>;
+  artifactText(url: string): Promise<string>;
   adoptLegacy(project: string): Promise<unknown>;
   runSnapshot(id: string): Promise<import('../shared/contracts').RunSnapshot>;
   resetIdentity(): Promise<import('../shared/api.generated').components['schemas']['IdentityInfo']>;

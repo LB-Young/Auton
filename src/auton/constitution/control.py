@@ -193,6 +193,41 @@ class ConstitutionService:
                 },
             )
 
+    async def synchronize_goal(self, principal: Principal, goal_id: str, revision: int) -> None:
+        # Explicit user resume aligns an already persisted agent revision. Workers
+        # cannot grant themselves a new goal revision or reset charged usage.
+        async with self._lock:
+            self._check()
+            if principal.role != "user":
+                raise control_error("human_required")
+            if revision < 1 or not goal_id or len(goal_id) > 200:
+                raise ValueError("Invalid goal revision")
+            if goal_id not in self.state.goals:
+                await self._write(
+                    "goal",
+                    {
+                        "id": goal_id,
+                        "goal": Goal(owner=principal.owner, revision=revision).model_dump(
+                            mode="json"
+                        ),
+                    },
+                )
+                return
+            goal = self._goal(principal, goal_id)
+            if goal.revision == revision:
+                return
+            if goal.revision > revision:
+                raise control_error("stale_revision")
+            await self._write(
+                "revise",
+                {
+                    "id": goal_id,
+                    "goal": goal.model_copy(
+                        update={"revision": revision, "cancelled": False}
+                    ).model_dump(mode="json"),
+                },
+            )
+
     async def revise_goal(self, principal: Principal, goal_id: str, expected_revision: int) -> int:
         async with self._lock:
             if principal.role != "user":

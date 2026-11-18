@@ -5,14 +5,14 @@ from typing import Literal
 from urllib.parse import quote
 
 from anyio import CancelScope
-from fastapi import FastAPI, Request, Response, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, Query, Request, Response, WebSocket, WebSocketDisconnect
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field, JsonValue, model_validator
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
-from auton.agent.contracts import AgentRun, CreateRun, RunCommand
+from auton.agent.contracts import AgentRun, CreateRun, RunCommand, RunPage
 from auton.constitution.config import (
     ActionRequest,
     ConstitutionConfig,
@@ -37,6 +37,7 @@ from auton.judgment.questions import JudgmentQuestionsFactory
 from auton.kernel.ports import ApplicationError
 from auton.model.contracts import ModelInfo, ModelMessage, ModelRequest, ModelResult
 from auton.server.config import ServerConfig
+from auton.server.feedback import FeedbackCommand, FeedbackReceipt
 from auton.server.identity import IdentityInfo
 from auton.server.limits import RequestLimits
 from auton.server.ports import BootstrapResponse, HealthResponse, ServerDependencies
@@ -401,6 +402,26 @@ class ServerFactory:
         ) -> AgentRun:
             return await deps.commands.recover(
                 Principal(owner=owner(request), role="user"), project_id, run_id, command
+            )
+
+        @app.get("/api/v1/agent/history")
+        async def run_history(
+            request: Request,
+            project_id: str,
+            after: int = Query(default=0, ge=0, lt=2**63),
+            limit: int = Query(default=10, ge=1, le=20),
+            search: str = Query(default="", max_length=100),
+        ) -> RunPage:
+            return await deps.agent.page(
+                Principal(owner=owner(request), role="user"), project_id, after, limit, search
+            )
+
+        @app.post("/api/v1/agent/runs/{run_id}/feedback")
+        async def run_feedback(
+            request: Request, run_id: str, command: FeedbackCommand
+        ) -> FeedbackReceipt:
+            return await deps.feedback.submit(
+                Principal(owner=owner(request), role="user"), run_id, command
             )
 
         @app.get("/api/v1/agent/runs/{run_id}/snapshot")

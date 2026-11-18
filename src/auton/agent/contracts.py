@@ -138,3 +138,8 @@ class TransientProgress(Contract):
     sequence: int
     text: str
     persisted: Literal[False] = False
+
+
+class RunPage(Contract):
+    items: tuple[AgentRun, ...]
+    next_cursor: int | None

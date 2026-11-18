@@ -20,6 +20,7 @@ from auton.kernel.modules import ModuleDescriptor
 from auton.kernel.storage import EventLogPort
 from auton.model.ports import ModelGatewayPort
 from auton.server.commands import CommandHandlerPort
+from auton.server.feedback import FeedbackPort
 from auton.server.identity import IdentityInfo, IdentityPort
 from auton.server.uploads import UploadPort
 from auton.tools.ports import ToolHostPort
@@ -49,6 +50,7 @@ class ServerDependencies:
     lifespan: Callable[[FastAPI], AbstractAsyncContextManager[None]]
     is_ready: Callable[[], bool]
     storage: Callable[[], StorageInfo]
+    feedback: FeedbackPort
     uploads: UploadPort
     commands: CommandHandlerPort
     identity: IdentityPort

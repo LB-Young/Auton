@@ -25,6 +25,8 @@ class PolicyControlPort(Protocol):
 
 
 class ExecutionControlPort(Protocol):
+    async def synchronize_goal(self, principal: Principal, goal_id: str, revision: int) -> None: ...
+
     async def validate_action(self, request: ActionRequest) -> None: ...
 
     async def register_goal(

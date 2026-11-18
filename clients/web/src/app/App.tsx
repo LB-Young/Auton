@@ -110,7 +110,13 @@ export function App({ application }: { application: Application }) {
   const controller = application.chat.controller;
   const state = useSyncExternalStore(controller.subscribe, controller.getSnapshot);
   const session = state.sessions.find((item) => item.id === state.selected);
-  const [view, setView] = useState('chat');
+  const [view, setView] = useState(
+    () => new URL(window.location.href).searchParams.get('view') ?? 'agent',
+  );
+  const agentState = useSyncExternalStore(
+    application.agent.controller.subscribe,
+    application.agent.controller.getSnapshot,
+  );
   const [policyPreview, setPolicyPreview] = useState<PolicyDecision | null>(null);
   const [sidebar, setSidebar] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
@@ -174,15 +180,18 @@ export function App({ application }: { application: Application }) {
       }
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'n') {
         event.preventDefault();
-        setView('chat');
+        if (view === 'chat') void controller.newSession();
+        else {
+          application.agent.controller.newRun();
+          navigate('agent');
+        }
         setSidebar(false);
         setPanel(false);
-        void controller.newSession();
       }
     };
     document.addEventListener('keydown', key);
     return () => document.removeEventListener('keydown', key);
-  }, [controller]);
+  }, [controller, application, view]);
 
   useEffect(() => {
     if (input.current) {
@@ -204,12 +213,27 @@ export function App({ application }: { application: Application }) {
     }
   }
 
+  useEffect(() => {
+    const restore = () =>
+      setView(new URL(window.location.href).searchParams.get('view') ?? 'agent');
+    window.addEventListener('popstate', restore);
+    return () => window.removeEventListener('popstate', restore);
+  }, []);
+
   function navigate(id: string) {
     setView(id);
+    const url = new URL(window.location.href);
+    url.searchParams.set('view', id);
+    window.history.replaceState(null, '', url);
     setSidebar(false);
   }
 
   async function newChat() {
+    if (view !== 'chat') {
+      application.agent.controller.newRun();
+      navigate('agent');
+      return;
+    }
     setView('chat');
     setSidebar(false);
     setPanel(false);
@@ -250,7 +274,7 @@ export function App({ application }: { application: Application }) {
             href="#"
             onClick={(event) => {
               event.preventDefault();
-              navigate('chat');
+              navigate('agent');
             }}
           >
             <Brand />
@@ -273,68 +297,119 @@ export function App({ application }: { application: Application }) {
         <button
           className="new-chat"
           onClick={() => void newChat()}
-          disabled={state.loading || state.posting || !state.boot?.demo}
+          disabled={
+            state.loading ||
+            state.posting ||
+            agentState.busy ||
+            (view === 'chat' && !state.boot?.demo)
+          }
         >
           <Plus size={17} />
-          新对话<span>⌘ N</span>
+          {view === 'chat' ? '新对话' : '新任务'}
+          <span>⌘ N</span>
         </button>
         <button
           className="nav-item search-button"
           onClick={() => setSearch(search === null ? '' : null)}
         >
           <Search size={17} />
-          搜索对话
+          {view === 'chat' ? '搜索对话' : '搜索任务'}
         </button>
         {search !== null && (
           <input
             className="history-search"
             autoFocus
-            aria-label="搜索历史对话"
+            aria-label={view === 'chat' ? '搜索历史对话' : '导航搜索任务'}
             placeholder="输入对话标题…"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
+            value={view === 'chat' ? search : agentState.search}
+            onChange={(event) => {
+              if (view === 'chat') setSearch(event.target.value);
+              else void application.agent.controller.search(event.target.value);
+            }}
           />
         )}
-        <div className="nav-section-label">项目空间</div>
-        <button
-          className={`nav-item ${view === 'chat' ? 'selected' : ''}`}
-          onClick={() => navigate('chat')}
-        >
-          <Folder size={17} />
-          个人工作区
-          <ChevronDown size={14} className="nav-end" />
+        <button className="nav-item" onClick={() => navigate(view === 'chat' ? 'agent' : 'chat')}>
+          {view === 'chat' ? '返回真实任务' : '演示对话 · Demo'}
         </button>
-        <div className="history-list">
-          {state.sessions
-            .filter((item) => search === null || item.title.includes(search))
-            .slice(0, 12)
-            .map((item) => (
-              <button
-                key={item.id}
-                className={`history-item ${state.selected === item.id && view === 'chat' ? 'current' : ''}`}
-                onClick={() => {
-                  controller.select(item.id);
-                  shouldFollow.current = true;
-                  setPanel(false);
-                  navigate('chat');
-                }}
-              >
-                <MessageSquare size={14} />
-                <span>{item.title}</span>
-                {item.status === 'running' && <span className="running-dot" />}
-              </button>
-            ))}
-          {!state.sessions.length && (
-            <p className="history-empty">
-              想法、进展和对话
-              <br />
-              将在这里串联起来。
-            </p>
-          )}
-          {search && !state.sessions.some((item) => item.title.includes(search)) && (
-            <p className="history-empty">没有匹配的对话</p>
-          )}
-        </div>
+        {view === 'agent' && (
+          <div className="real-history-nav">
+            <p className="nav-section-label">当前项目</p>
+            <select
+              aria-label="导航项目"
+              value={agentState.project}
+              disabled={agentState.busy}
+              onChange={(event) => void application.agent.controller.project(event.target.value)}
+            >
+              {agentState.projects.map((project) => (
+                <option key={project.id} value={project.id}>
+                  {project.title}
+                </option>
+              ))}
+            </select>
+            {agentState.runs
+              .slice(-12)
+              .reverse()
+              .map((run) => (
+                <button
+                  className="history-item"
+                  disabled={agentState.busy}
+                  key={run.id}
+                  aria-label={`打开任务 ${run.command.goal.slice(0, 32)}`}
+                  onClick={() => {
+                    void application.agent.controller.select(run.id);
+                    setSidebar(false);
+                  }}
+                >
+                  <MessageSquare size={14} />
+                  <span>{run.command.goal.slice(0, 32)}</span>
+                </button>
+              ))}
+          </div>
+        )}
+        {view === 'chat' && (
+          <>
+            <div className="nav-section-label">演示会话</div>
+            <button
+              className={`nav-item ${view === 'chat' ? 'selected' : ''}`}
+              onClick={() => navigate('chat')}
+            >
+              <Folder size={17} />
+              个人工作区
+              <ChevronDown size={14} className="nav-end" />
+            </button>
+            <div className="history-list">
+              {state.sessions
+                .filter((item) => search === null || item.title.includes(search))
+                .slice(0, 12)
+                .map((item) => (
+                  <button
+                    key={item.id}
+                    className={`history-item ${state.selected === item.id && view === 'chat' ? 'current' : ''}`}
+                    onClick={() => {
+                      controller.select(item.id);
+                      shouldFollow.current = true;
+                      setPanel(false);
+                      navigate('chat');
+                    }}
+                  >
+                    <MessageSquare size={14} />
+                    <span>{item.title}</span>
+                    {item.status === 'running' && <span className="running-dot" />}
+                  </button>
+                ))}
+              {!state.sessions.length && (
+                <p className="history-empty">
+                  想法、进展和对话
+                  <br />
+                  将在这里串联起来。
+                </p>
+              )}
+              {search && !state.sessions.some((item) => item.title.includes(search)) && (
+                <p className="history-empty">没有匹配的对话</p>
+              )}
+            </div>
+          </>
+        )}
         <div className="nav-section-label workspace-label">
           工作区 <span>模块</span>
         </div>
@@ -427,14 +502,16 @@ export function App({ application }: { application: Application }) {
             >
               {theme === 'light' ? <Moon size={17} /> : <Sun size={17} />}
             </button>
-            <button
-              className={`icon-button ${panel ? 'pressed' : ''}`}
-              aria-label="切换产物面板"
-              aria-expanded={panel}
-              onClick={() => setPanel(!panel)}
-            >
-              <PanelRight size={18} />
-            </button>
+            {view === 'chat' && (
+              <button
+                className={`icon-button ${panel ? 'pressed' : ''}`}
+                aria-label="切换产物面板"
+                aria-expanded={panel}
+                onClick={() => setPanel(!panel)}
+              >
+                <PanelRight size={18} />
+              </button>
+            )}
           </div>
         </header>
         <div className="workspace-body">
@@ -666,9 +743,17 @@ export function App({ application }: { application: Application }) {
                   </div>
                 </div>
               </>
+            ) : view === 'agent' && !state.boot ? (
+              <section className="module-page">
+                <p role="status">{state.error ?? '正在连接你的工作空间…'}</p>
+                <button className="secondary-button" onClick={() => void controller.start()}>
+                  重试连接
+                </button>
+              </section>
             ) : view === 'agent' ? (
               <Agent
                 feature={application.agent}
+                renderArtifact={application.artifacts.renderText}
                 renderTrajectory={(run, onRecovered) => (
                   <Trajectory
                     feature={application.experience}
@@ -872,7 +957,7 @@ export function App({ application }: { application: Application }) {
               </section>
             )}
           </main>
-          {panel && (
+          {panel && view === 'chat' && (
             <>
               <div
                 className="resize-handle"

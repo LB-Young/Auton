@@ -47,6 +47,7 @@ async def agent(context: ContextEngine, tmp_path: Path) -> AsyncIterator[AgentRu
             context.deps.assets,
             context.deps.events,
             context.deps.runtime,
+            cast(ExecutionControlPort, context.deps.policy),
         ),
     )
     assert isinstance(service, AgentRuntime)

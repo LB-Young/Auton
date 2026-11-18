@@ -54,6 +54,30 @@ export class ApiClientFactory {
       return (await response.json()) as T;
     }
     return {
+      runHistory: (project_id, after, search) =>
+        request(
+          `/agent/history?${new URLSearchParams({ project_id, after: String(after), search })}`,
+        ),
+      feedback: (id, command) => request(`/agent/runs/${encodeURIComponent(id)}/feedback`, command),
+      artifactText: async (path) => {
+        if (
+          !/^\/api\/v1\/(agent\/runs\/[a-f0-9]+\/report|tools\/operations\/[a-zA-Z0-9_-]+\/artifact)$/.test(
+            path,
+          )
+        )
+          throw new ApiError('artifact_path', '无效产物引用');
+        const response = await fetch(path, { credentials: 'same-origin', cache: 'no-store' });
+        if (!response.ok) {
+          const error = (await response.json().catch(() => ({}))) as Partial<ErrorBody>;
+          throw new ApiError(error.code ?? 'artifact_unavailable', error.message ?? '产物不可读取');
+        }
+        if (Number(response.headers.get('Content-Length') ?? '0') > 1048576)
+          throw new ApiError('artifact_too_large', '产物过大，请使用授权下载');
+        const text = await response.text();
+        if (text.length > 1048576)
+          throw new ApiError('artifact_too_large', '产物过大，请使用授权下载');
+        return text;
+      },
       adoptLegacy: (project_id) => request('/identity/adopt-legacy', { project_id }),
       runSnapshot: (id) => request(`/agent/runs/${encodeURIComponent(id)}/snapshot`),
       resetIdentity: () => request('/identity/reset', { request_id: crypto.randomUUID() }),

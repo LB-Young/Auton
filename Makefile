@@ -4,12 +4,13 @@ PROJECT_ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 PYTHON ?= python3
 DEV_PYTHON ?= $(PROJECT_ROOT).venv/bin/python
 
-.PHONY: help setup dev api web check contracts agent-smoke context-setup context-smoke judgment-setup judgment-smoke browser-install e2e clean clean-preview clean-cache clean-build clean-empty
+.PHONY: help setup dev api web check contracts workbench-smoke agent-smoke context-setup context-smoke judgment-setup judgment-smoke browser-install e2e clean clean-preview clean-cache clean-build clean-empty
 
 help:
 	@printf '%s\n' \
 	  'make setup          安装锁定的 Python 与浏览器界面依赖' \
-	  'make dev            启动本机前后端 Demo 工作台' \
+	  'make dev            启动本机前后端任务工作台'
+	  'make workbench-smoke 显式运行真实浏览器任务与重启验收（使用 API 额度）' \
 	  'make api / web      单独启动后端 / 前端' \
 	  'make check          运行代码、类型、契约、边界和构建检查' \
 	  'make contracts      重新导出 API 与前端类型' \
@@ -77,3 +78,6 @@ context-smoke:
 
 agent-smoke:
 	@"$(DEV_PYTHON)" "$(PROJECT_ROOT)scripts/agent_smoke.py"
+
+workbench-smoke:
+	@"$(DEV_PYTHON)" "$(PROJECT_ROOT)scripts/workbench_smoke.py"

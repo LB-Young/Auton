@@ -1,3 +1,4 @@
+import { createProjectsFeature } from '../features/projects/factory';
 import { createArtifactFeature } from '../features/artifacts/factory';
 import { createJudgmentFeature } from '../features/judgment/factory';
 import { createToolsFeature } from '../features/tools/factory';
@@ -13,14 +14,16 @@ import { EventStreamFactory, RunEventStreamFactory } from '../transport/events';
 
 export function createApplication() {
   const api = new ApiClientFactory().create();
+  const projects = createProjectsFeature({ api });
   const events = new EventStreamFactory().create();
   return {
+    projects,
     chat: createChatFeature({ api, events }),
     judgment: createJudgmentFeature({ api }),
     tools: createToolsFeature({ api }),
     genome: createGenomeFeature({ api }),
     context: createContextFeature({ api }),
-    agent: createAgentFeature({ api, events: new RunEventStreamFactory().create() }),
+    agent: createAgentFeature({ api, projects, events: new RunEventStreamFactory().create() }),
     adoptLegacy: (project: string) => api.adoptLegacy(project),
     resetIdentity: () => api.resetIdentity(),
     experience: createExperienceFeature({ api }),
@@ -31,3 +34,9 @@ export function createApplication() {
 }
 
 export type Application = ReturnType<typeof createApplication>;
+
+export class WebAppFactory {
+  create(): Application {
+    return createApplication();
+  }
+}

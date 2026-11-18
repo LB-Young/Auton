@@ -14,11 +14,14 @@ from auton.agent.contracts import (
     AgentRun,
     CreateRun,
     RunCommand,
+    RunPage,
     TransientProgress,
+    checkpoint_event_id,
 )
 from auton.agent.ports import RunBuilderPort, SessionBuilderPort
 from auton.agent.repository import RunRepository
 from auton.constitution.config import Principal
+from auton.constitution.ports import ExecutionControlPort
 from auton.constitution.secrets import Redactor
 from auton.context.contracts import ContextRequest, PendingOperation, TaskState
 from auton.context.ports import ContextEnginePort
@@ -26,6 +29,7 @@ from auton.genome.ports import AssetReadPort
 from auton.judgment.contracts import JudgmentRequest
 from auton.judgment.ports import JudgmentPort
 from auton.judgment.questions import JudgmentQuestionsFactory
+from auton.kernel.events import EventScope
 from auton.kernel.ports import ApplicationError, RuntimeDependencies
 from auton.kernel.storage import EventLogPort
 from auton.model.contracts import ModelMessage, ModelRequest, ToolSpec
@@ -62,6 +66,7 @@ class AgentDependencies:
     assets: AssetReadPort
     events: EventLogPort
     runtime: RuntimeDependencies
+    goals: ExecutionControlPort
 
 
 class AgentRuntime:
@@ -234,6 +239,39 @@ class AgentRuntime:
             )
         ]
 
+    async def page(
+        self, principal: Principal, project_id: str, after: int, limit: int, search: str
+    ) -> RunPage:
+        self._check_ready()
+        await self.deps.assets.view(self.actor(principal), project_id)
+        if not 0 <= after < 2**63 or not 1 <= limit <= 20 or len(search) > 100:
+            raise ApplicationError(422, "invalid_history_page", "Invalid task history query")
+        scope = EventScope(
+            project_id=project_id, session_id=self.sessions.create(principal.owner, project_id)
+        )
+        cursor, scanned = after, 0
+        items: list[AgentRun] = []
+        while scanned < 1000 and len(items) < limit:
+            batch = await self.deps.events.read(after=cursor, limit=100, scope=scope)
+            if not batch:
+                return RunPage(items=tuple(items), next_cursor=None)
+            for record in batch:
+                cursor = record.cursor
+                scanned += 1
+                if record.event.kind != "agent.checkpoint" or record.event.scope.run_id is None:
+                    continue
+                run_id = str(record.event.scope.run_id)
+                if record.event.event_id != checkpoint_event_id(principal.owner, run_id, 0):
+                    continue
+                run = await self.get(principal, run_id)
+                if search.casefold() not in run.command.goal.casefold():
+                    continue
+                items.append(run)
+                if len(items) == limit:
+                    break
+        more = await self.deps.events.read(after=cursor, limit=1, scope=scope)
+        return RunPage(items=tuple(items), next_cursor=cursor if more else None)
+
     async def command_result(
         self, principal: Principal, run_id: str, command: RunCommand
     ) -> AgentRun | None:
@@ -370,6 +408,9 @@ class AgentRuntime:
             else:
                 raise ApplicationError(422, "agent_command_unknown", "Unsupported action")
             if command.action == "resume":
+                await self.deps.goals.synchronize_goal(
+                    principal, "agent-goal-" + run_id, run.goal_revision
+                )
                 changes["runtime_revision"] = "single-agent-v2"
             candidate = AgentRun.model_validate(
                 {**run.model_dump(), **changes, "version": run.version + 1}

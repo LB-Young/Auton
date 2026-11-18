@@ -1,7 +1,6 @@
 from auton.kernel.modules import ModuleDescriptor
 
 PLANNED = (
-    ("web", "完整工作台", "M12"),
     ("assess", "独立评估", "M13"),
     ("delegation", "多 Agent 委派", "M14"),
     ("evolve", "资产进化", "M15"),
@@ -124,6 +123,16 @@ def module_catalog(demo: bool) -> list[ModuleDescriptor]:
             requires=("agent", "experience", "assets", "event_log"),
             factory_entry="server.ServerFactory",
             config_schema="ServerSettings",
+        ),
+        ModuleDescriptor(
+            id="web",
+            title="真实任务工作台",
+            milestone="M12",
+            status="ready",
+            provides=("web_app",),
+            requires=("server_protocol", "agent", "assets"),
+            factory_entry="web.WebAppFactory",
+            config_schema="Generated API contracts",
         ),
         ModuleDescriptor(
             id="demo",

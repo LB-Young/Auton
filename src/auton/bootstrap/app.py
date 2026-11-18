@@ -28,6 +28,7 @@ from auton.model.gateway import GatewayDependencies
 from auton.server.commands import CommandHandlerFactory
 from auton.server.config import ServerConfig
 from auton.server.factory import ServerFactory
+from auton.server.feedback import FeedbackFactory
 from auton.server.identity import IdentityFactory
 from auton.server.ports import ServerDependencies
 from auton.server.uploads import UploadFactory
@@ -81,7 +82,9 @@ class ApplicationFactory:
         )
         agent = AgentRuntimeFactory().create(
             config.agent,
-            AgentDependencies(context, models, tools, judgment, genome, kernel.events, deps),
+            AgentDependencies(
+                context, models, tools, judgment, genome, kernel.events, deps, control
+            ),
         )
         experience = ExperienceFactory().create(
             config.experience, ExperienceDependencies(kernel.events, agent, genome, context, deps)
@@ -156,6 +159,7 @@ class ApplicationFactory:
                 experience=experience,
                 identity=identity,
                 commands=commands,
+                feedback=FeedbackFactory().create(agent, kernel.events, deps),
                 uploads=uploads,
                 events=kernel.events,
                 redact=redactor.text,

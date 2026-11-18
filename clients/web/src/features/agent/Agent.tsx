@@ -1,11 +1,12 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
-import type {
-  AgentRun,
-  ModelInfo,
-  Project,
-  RunCommand,
-  WorkspaceView,
-} from '../../shared/contracts';
+import {
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+  type CSSProperties,
+} from 'react';
+import type { AgentRun, RunCommand } from '../../shared/contracts';
 import { Markdown } from '../../shared/Markdown';
 import type { AgentFeature } from './factory';
 
@@ -26,151 +27,129 @@ const terminal = new Set(['succeeded', 'failed', 'cancelled']);
 export function Agent({
   feature,
   renderTrajectory,
+  renderArtifact,
 }: {
   feature: AgentFeature;
+  renderArtifact?: (text: string) => ReactNode;
   renderTrajectory?: (run: AgentRun, onRecovered: (run: AgentRun) => void) => ReactNode;
 }) {
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [workspaces, setWorkspaces] = useState<WorkspaceView[]>([]);
-  const [models, setModels] = useState<ModelInfo[]>([]);
-  const [project, setProject] = useState('');
-  const [workspace, setWorkspace] = useState('');
-  const [model, setModel] = useState('');
-  const [goal, setGoal] = useState('');
-  const [boundaries, setBoundaries] = useState('');
-  const [kind, setKind] = useState<'research' | 'file'>('research');
-  const [path, setPath] = useState('notes.md');
-  const [content, setContent] = useState('');
-  const [isPublic, setPublic] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
-  const [runs, setRuns] = useState<AgentRun[]>([]);
-  const [run, setRun] = useState<AgentRun | null>(null);
+  const controller = feature.controller;
+  const {
+    draftVersion,
+    projects,
+    workspaces,
+    models,
+    project,
+    runs,
+    run,
+    loading,
+    busy,
+    error,
+    connected,
+    progress,
+    next,
+    search,
+  } = useSyncExternalStore(controller.subscribe, controller.getSnapshot);
+  const [workspace, setWorkspace] = useState(feature.draft.workspace);
+  const [model, setModel] = useState(feature.draft.model);
+  const [goal, setGoal] = useState(feature.draft.goal);
+  const [boundaries, setBoundaries] = useState(feature.draft.boundaries);
+  const [kind, setKind] = useState<'research' | 'file'>(feature.draft.kind);
+  const [path, setPath] = useState(feature.draft.path);
+  const [content, setContent] = useState(feature.draft.content);
+  const [isPublic, setPublic] = useState(feature.draft.isPublic);
+  useEffect(() => {
+    Object.assign(feature.draft, {
+      workspace,
+      model,
+      goal,
+      boundaries,
+      kind,
+      path,
+      content,
+      isPublic,
+    });
+  }, [feature, workspace, model, goal, boundaries, kind, path, content, isPublic]);
+  const draftRevision = useRef(draftVersion);
+  useEffect(() => {
+    if (draftRevision.current !== draftVersion) {
+      draftRevision.current = draftVersion;
+      setGoal(feature.draft.goal);
+      setContent(feature.draft.content);
+    }
+  }, [draftVersion, feature]);
+  const [previewWidth, setPreviewWidth] = useState(460);
   const [revision, setRevision] = useState('');
-  const [connected, setConnected] = useState(false);
-  const [progress, setProgress] =
-    useState<import('../../shared/contracts').RunSnapshot['transient']>(null);
-  const scope = useRef(0);
+  const [feedbackNote, setFeedbackNote] = useState('');
+  const [feedbackMessage, setFeedbackMessage] = useState('');
+  const [preview, setPreview] = useState<{ title: string; text: string; url: string } | null>(null);
+  const [previewError, setPreviewError] = useState('');
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const previewScope = useRef(0);
+  const reading = useRef<HTMLDivElement>(null);
+  const follow = useRef(true);
+  const opener = useRef<HTMLElement | null>(null);
+  const previewPanel = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (preview) previewPanel.current?.focus();
+  }, [preview]);
+  useEffect(() => {
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        previewScope.current++;
+        setPreview(null);
+        setPreviewLoading(false);
+        setPreviewError('');
+        opener.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', escape);
+    return () => window.removeEventListener('keydown', escape);
+  }, []);
   const running = run && !terminal.has(run.status);
   useEffect(() => {
-    let live = true;
-    Promise.all([feature.projects(), feature.workspaces(), feature.models()])
-      .then(([p, w, m]) => {
-        if (!live) return;
-        setProjects(p);
-        setWorkspaces(w);
-        setModels(m);
-        setProject(p[0]?.id ?? '');
-        setWorkspace(w[0]?.id ?? '');
-        setModel(m[0]?.id ?? '');
-        setLoading(false);
-      })
-      .catch((e: Error) => {
-        if (live) {
-          setError(e.message);
-          setLoading(false);
-        }
-      });
-    return () => {
-      live = false;
-      scope.current++;
-    };
-  }, [feature]);
+    void controller.start();
+    return () => controller.dispose();
+  }, [controller]);
   useEffect(() => {
-    if (!project) return;
-    const current = ++scope.current;
-    setRun(null);
-    setRuns([]);
-    feature
-      .list(project)
-      .then((items) => {
-        if (current === scope.current) setRuns(items);
-      })
-      .catch((e: Error) => {
-        if (current === scope.current) setError(e.message);
-      });
-  }, [feature, project]);
-  const identity = run?.id;
+    const changed = () => {
+      void controller.start();
+    };
+    window.addEventListener('popstate', changed);
+    return () => window.removeEventListener('popstate', changed);
+  }, [controller]);
   useEffect(() => {
-    if (!identity) return;
-    let live = true;
-    let fetching = false;
-    let again = false;
-    const refresh = async () => {
-      if (fetching) {
-        again = true;
-        return;
-      }
-      fetching = true;
-      try {
-        const snapshot = await feature.snapshot(identity);
-        const value = snapshot.run;
-        if (live) {
-          setProgress((old) => {
-            const next = snapshot.transient;
-            if (
-              old &&
-              old.request_id === value.model_request_id &&
-              old.version === value.version &&
-              (!next || old.sequence > next.sequence)
-            )
-              return old;
-            return next;
-          });
-          setRun((old) => (old?.id === identity && old.version <= value.version ? value : old));
-          setRuns((old) =>
-            old.map((r) => (r.id === value.id && r.version <= value.version ? value : r)),
-          );
-        }
-      } catch (e) {
-        if (live) setError(e instanceof Error ? e.message : '任务状态读取失败');
-      } finally {
-        fetching = false;
-        if (live && again) {
-          again = false;
-          void refresh();
-        }
-      }
-    };
-    setProgress(null);
-    void refresh();
-    const unsubscribe = feature.subscribe(
-      identity,
-      (frame) => {
-        if (frame.kind === 'delta' && frame.progress) {
-          const next = frame.progress;
-          setProgress((old) =>
-            old && old.request_id === next.request_id && old.sequence > next.sequence ? old : next,
-          );
-        } else if (frame.kind !== 'heartbeat') void refresh();
-      },
-      (online) => {
-        setConnected(online);
-        if (online) void refresh();
-      },
-    );
-    return () => {
-      live = false;
-      unsubscribe();
-    };
-  }, [feature, identity]);
-  async function act(action: () => Promise<AgentRun>) {
-    const current = scope.current;
-    setBusy(true);
-    setError('');
+    if (!workspace && workspaces[0]) setWorkspace(workspaces[0].id);
+    if (!model && models[0]) setModel(models[0].id);
+  }, [workspace, model, workspaces, models]);
+  useEffect(() => {
+    previewScope.current++;
+    setPreview(null);
+    setPreviewError('');
+    setPreviewLoading(false);
+    setFeedbackMessage('');
+    follow.current = true;
+  }, [run?.id]);
+  useEffect(() => {
+    if (follow.current && reading.current) reading.current.scrollTop = reading.current.scrollHeight;
+  }, [run?.version, progress?.sequence]);
+  async function openPreview(title: string, url: string) {
+    opener.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const current = ++previewScope.current;
+    setPreview(null);
+    setPreviewError('');
+    setPreviewLoading(true);
     try {
-      const value = await action();
-      if (current === scope.current) {
-        setRun((old) => (old?.id === value.id && old.version > value.version ? old : value));
-        setRuns((old) => [value, ...old.filter((r) => r.id !== value.id)]);
-      }
-    } catch (e) {
-      if (current === scope.current) setError(e instanceof Error ? e.message : '任务操作失败');
+      const text = await feature.preview(url);
+      if (current === previewScope.current) setPreview({ title, text, url });
+    } catch (error) {
+      if (current === previewScope.current)
+        setPreviewError(error instanceof Error ? error.message : '产物不可用');
     } finally {
-      setBusy(false);
+      if (current === previewScope.current) setPreviewLoading(false);
     }
   }
+  const act = (action: () => Promise<AgentRun>) => controller.act(action);
   async function create() {
     await act(async () => {
       const sha =
@@ -212,15 +191,14 @@ export function Agent({
   }
   return (
     <section className="module-page tool-page context-page agent-page">
-      <p className="eyebrow">真实单 Agent · M09</p>
-      <h1>任务</h1>
+      <p className="eyebrow">项目与任务工作台</p>
+      <h1>开始一件值得完成的事</h1>
       <p className="module-description">
         从明确目标开始，通过模型和受控工具完成任务，由宿主核对交付。
       </p>
       <p className="module-note">
         Laya
-        提供建议，执行模型由你选择。文件任务需逐项批准写入；调研仅使用已有项目资料和只读工具。主对话保留
-        Demo。
+        提供建议，执行模型由你选择。文件任务需逐项批准写入；调研仅使用已有项目资料和只读工具。每次任务保留独立记录。
       </p>
       {loading && <p role="status">正在加载任务连接…</p>}
       {error && (
@@ -229,66 +207,68 @@ export function Agent({
         </p>
       )}
       {!loading && (!projects.length || !workspaces.length) && (
-        <p>请先在资产页创建项目，并在工具页创建合适的工作区。</p>
+        <p>请先在资产页创建项目并上传资料，在工具页创建工作区。权限和公开外发由你明确选择。</p>
       )}
       <article className="settings-card">
         <h2>创建任务</h2>
-        <label className="judgment-label">
-          项目
-          <select
-            aria-label="任务项目"
-            value={project}
-            disabled={busy}
-            onChange={(e) => setProject(e.target.value)}
-          >
-            {projects.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.title}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="judgment-label">
-          工作区
-          <select
-            aria-label="任务工作区"
-            value={workspace}
-            disabled={busy}
-            onChange={(e) => setWorkspace(e.target.value)}
-          >
-            {workspaces.map((w) => (
-              <option key={w.id} value={w.id}>
-                {w.title} {w.read_only ? '· 只读' : '· 可申请写入'}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="judgment-label">
-          执行模型
-          <select
-            aria-label="任务模型"
-            value={model}
-            disabled={busy}
-            onChange={(e) => setModel(e.target.value)}
-          >
-            {models.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.id}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="judgment-label">
-          验收类型
-          <select
-            aria-label="任务验收类型"
-            value={kind}
-            onChange={(e) => setKind(e.target.value as 'research' | 'file')}
-          >
-            <option value="research">只读资料调研 · 引用检查</option>
-            <option value="file">精确文件写入 · SHA256 检查</option>
-          </select>
-        </label>
+        <div className="run-config-grid">
+          <label className="judgment-label">
+            项目
+            <select
+              aria-label="任务项目"
+              value={project}
+              disabled={busy}
+              onChange={(e) => void controller.project(e.target.value)}
+            >
+              {projects.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.title}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="judgment-label">
+            工作区
+            <select
+              aria-label="任务工作区"
+              value={workspace}
+              disabled={busy}
+              onChange={(e) => setWorkspace(e.target.value)}
+            >
+              {workspaces.map((w) => (
+                <option key={w.id} value={w.id}>
+                  {w.title} {w.read_only ? '· 只读' : '· 可申请写入'}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="judgment-label">
+            执行模型
+            <select
+              aria-label="任务模型"
+              value={model}
+              disabled={busy}
+              onChange={(e) => setModel(e.target.value)}
+            >
+              {models.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.id}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="judgment-label">
+            验收类型
+            <select
+              aria-label="任务验收类型"
+              value={kind}
+              onChange={(e) => setKind(e.target.value as 'research' | 'file')}
+            >
+              <option value="research">只读资料调研 · 引用检查</option>
+              <option value="file">精确文件写入 · SHA256 检查</option>
+            </select>
+          </label>
+        </div>
         <label className="judgment-label">
           目标
           <textarea
@@ -298,18 +278,33 @@ export function Agent({
             maxLength={2000}
             value={goal}
             onChange={(e) => setGoal(e.target.value)}
+            onKeyDown={(event) => {
+              if (
+                event.key === 'Enter' &&
+                !event.shiftKey &&
+                !event.nativeEvent.isComposing &&
+                event.keyCode !== 229
+              ) {
+                event.preventDefault();
+                if (!busy && !loading && project && workspace && model && goal.trim())
+                  void create();
+              }
+            }}
           />
         </label>
-        <label className="judgment-label">
-          必留边界（每行一条）
-          <textarea
-            className="judgment-input"
-            aria-label="真实任务边界"
-            rows={2}
-            value={boundaries}
-            onChange={(e) => setBoundaries(e.target.value)}
-          />
-        </label>
+        <details>
+          <summary>任务边界（可选）</summary>
+          <label className="judgment-label">
+            必留边界（每行一条）
+            <textarea
+              className="judgment-input"
+              aria-label="真实任务边界"
+              rows={2}
+              value={boundaries}
+              onChange={(e) => setBoundaries(e.target.value)}
+            />
+          </label>
+        </details>
         {kind === 'file' && (
           <>
             <label className="judgment-label">
@@ -347,22 +342,101 @@ export function Agent({
         </button>
       </article>
       <article className="settings-card">
-        <h2>项目任务</h2>
-        {!runs.length && <p>当前没有任务</p>}
+        <h2>项目会话与任务</h2>
+        <label className="judgment-label">
+          搜索项目任务
+          <input
+            aria-label="搜索项目任务"
+            maxLength={100}
+            value={search}
+            onChange={(event) => void controller.search(event.target.value)}
+          />
+        </label>
+        <button
+          className="secondary-button"
+          disabled={busy}
+          onClick={() => {
+            controller.newRun();
+            setGoal('');
+            setContent('');
+          }}
+        >
+          新建任务会话
+        </button>
+        {!runs.length && (
+          <p>{next !== null ? '本页暂无匹配任务，可以继续加载。' : '当前没有匹配任务'}</p>
+        )}
         {runs.map((r) => (
           <button
             key={r.id}
             className="secondary-button"
             disabled={busy}
-            onClick={() => void act(() => feature.get(r.id))}
+            onClick={() => void controller.select(r.id)}
           >
             {r.command.goal.slice(0, 30)} · {statusLabels[r.status]}
           </button>
         ))}
+        {next !== null && (
+          <button
+            className="secondary-button"
+            disabled={loading}
+            onClick={() => void controller.more()}
+          >
+            加载更多任务
+          </button>
+        )}
       </article>
       {run && (
         <article className="settings-card agent-result" aria-label="真实任务执行记录">
           <h2>执行记录</h2>
+          <p>
+            任务会话 {run.id.slice(0, 12)} · {run.command.goal.slice(0, 100)}
+          </p>
+          <button className="secondary-button" onClick={() => void controller.select(run.id)}>
+            刷新任务状态
+          </button>
+          {previewLoading && <p role="status">正在读取授权产物…</p>}
+          {previewError && <p role="alert">{previewError}</p>}
+          {preview && (
+            <aside
+              ref={previewPanel}
+              tabIndex={-1}
+              style={{ '--run-panel-width': `${previewWidth}px` } as CSSProperties}
+              className="run-artifact-panel"
+              aria-label="真实产物预览"
+            >
+              <header>
+                <strong>{preview.title}</strong>
+                <button
+                  className="secondary-button"
+                  onClick={() => {
+                    previewScope.current++;
+                    setPreview(null);
+                    opener.current?.focus();
+                  }}
+                >
+                  关闭产物预览
+                </button>
+              </header>
+              <p>只读预览 · 来自授权接口</p>
+              <label className="judgment-label">
+                面板宽度
+                <input
+                  aria-label="产物面板宽度"
+                  type="range"
+                  min={320}
+                  max={720}
+                  step={20}
+                  value={previewWidth}
+                  onChange={(event) => setPreviewWidth(Number(event.target.value))}
+                />
+              </label>
+              {renderArtifact?.(preview.text) ?? <Markdown>{preview.text}</Markdown>}
+              <a href={preview.url} download>
+                下载此产物
+              </a>
+            </aside>
+          )}
           {!connected && <p role="note">事件连接正在恢复；服务端任务继续运行，重连只读取状态。</p>}
           {progress &&
             progress.version === run.version &&
@@ -426,6 +500,42 @@ export function Agent({
           {run.status === 'waiting_approval' && run.plans.at(-1) && (
             <div>
               <h3>待批准工具</h3>
+              <p>批准绑定当前目标与检查点；状态变化或审批到期后需重新核对。</p>
+              <label className="judgment-label">
+                拒绝原因（可选）
+                <textarea
+                  aria-label="审批拒绝原因"
+                  value={feedbackNote}
+                  maxLength={2000}
+                  onChange={(event) => setFeedbackNote(event.target.value)}
+                />
+              </label>
+              <button
+                className="secondary-button"
+                disabled={busy}
+                onClick={() => {
+                  const selected = run;
+                  void act(async () => {
+                    await feature.feedback(selected.id, {
+                      request_id: crypto.randomUUID(),
+                      expected_goal_revision: selected.goal_revision,
+                      checkpoint_version: selected.version,
+                      rating: 'unhelpful',
+                      category: 'approval',
+                      note: feedbackNote,
+                    });
+                    return feature.command(selected.id, {
+                      request_id: crypto.randomUUID(),
+                      expected_goal_revision: selected.goal_revision,
+                      expected_version: selected.version,
+                      action: 'cancel',
+                      goal: null,
+                    });
+                  });
+                }}
+              >
+                拒绝并停止任务
+              </button>
               <p>{run.plans.at(-1)?.title}</p>
               <pre className="tool-output">{run.plans.at(-1)?.preview}</pre>
               <button
@@ -467,14 +577,35 @@ export function Agent({
             </label>
           )}
           {run.pending_goal && <p>待安全应用的新目标：{run.pending_goal}</p>}
-          {run.history
-            .filter((m) => m.role !== 'tool')
-            .map((m, i) => (
-              <div className="agent-message" key={i}>
-                <strong>{m.role === 'user' ? '你' : 'Agent'}</strong>
-                <Markdown>{m.content ?? '请求受控工具'}</Markdown>
-              </div>
-            ))}
+          <div
+            className="run-reading"
+            ref={reading}
+            tabIndex={0}
+            aria-label="任务消息"
+            onScroll={() => {
+              const node = reading.current;
+              if (node)
+                follow.current = node.scrollHeight - node.scrollTop - node.clientHeight < 80;
+            }}
+          >
+            {run.history
+              .filter((m) => m.role !== 'tool')
+              .map((m, i) => (
+                <div className="agent-message" key={i}>
+                  <strong>{m.role === 'user' ? '你' : 'Agent'}</strong>
+                  <Markdown>{m.content ?? '请求受控工具'}</Markdown>
+                </div>
+              ))}
+          </div>
+          <button
+            className="secondary-button"
+            onClick={() => {
+              follow.current = true;
+              reading.current?.scrollTo({ top: reading.current.scrollHeight, behavior: 'smooth' });
+            }}
+          >
+            查看最新消息
+          </button>
           {run.receipts.map((r) => (
             <details key={r.operation_id}>
               <summary>
@@ -482,6 +613,19 @@ export function Agent({
               </summary>
               <pre className="tool-output">{r.output}</pre>
               <p>{r.evidence}</p>
+              {r.artifact && (
+                <button
+                  className="secondary-button"
+                  onClick={() =>
+                    void openPreview(
+                      r.artifact!.path,
+                      `/api/v1/tools/operations/${encodeURIComponent(r.operation_id)}/artifact`,
+                    )
+                  }
+                >
+                  预览任务文件 {r.artifact.path}
+                </button>
+              )}
               {r.artifact && (
                 <a
                   href={`/api/v1/tools/operations/${encodeURIComponent(r.operation_id)}/artifact`}
@@ -499,14 +643,66 @@ export function Agent({
             </p>
           )}
           {run.final_text && (
+            <button
+              className="secondary-button"
+              onClick={() =>
+                void openPreview(
+                  '任务报告',
+                  `/api/v1/agent/runs/${encodeURIComponent(run.id)}/report`,
+                )
+              }
+            >
+              预览任务报告
+            </button>
+          )}
+          {run.final_text && (
             <a href={`/api/v1/agent/runs/${encodeURIComponent(run.id)}/report`} download>
               下载任务报告
             </a>
           )}
-          {renderTrajectory?.(run, (value) => {
-            setRun(value);
-            setRuns((old) => old.map((r) => (r.id === value.id ? value : r)));
-          })}
+          {terminal.has(run.status) && (
+            <div className="feedback-card">
+              <label className="judgment-label">
+                交付反馈
+                <textarea
+                  aria-label="任务反馈说明"
+                  maxLength={2000}
+                  value={feedbackNote}
+                  onChange={(event) => setFeedbackNote(event.target.value)}
+                />
+              </label>
+              {(['helpful', 'unhelpful'] as const).map((rating) => (
+                <button
+                  className="secondary-button"
+                  key={rating}
+                  onClick={() => {
+                    const selected = run.id;
+                    void feature
+                      .feedback(run.id, {
+                        request_id: crypto.randomUUID(),
+                        expected_goal_revision: run.goal_revision,
+                        checkpoint_version: run.version,
+                        rating,
+                        category: 'delivery',
+                        note: feedbackNote,
+                      })
+                      .then(() => {
+                        if (controller.getSnapshot().run?.id === selected)
+                          setFeedbackMessage('反馈已保存 · 用户标签，尚未独立核验');
+                      })
+                      .catch((error: Error) => {
+                        if (controller.getSnapshot().run?.id === selected)
+                          setFeedbackMessage(error.message);
+                      });
+                  }}
+                >
+                  {rating === 'helpful' ? '有帮助' : '需要改进'}
+                </button>
+              ))}
+              {feedbackMessage && <p role="note">{feedbackMessage}</p>}
+            </div>
+          )}
+          {renderTrajectory?.(run, controller.accept)}
           <details>
             <summary>判断、上下文与模型来源</summary>
             <pre className="tool-output">

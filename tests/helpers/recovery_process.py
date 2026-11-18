@@ -67,7 +67,7 @@ async def main(root: Path, phase: str) -> None:
     )
     agent = AgentRuntimeFactory().create(
         AgentConfig(directory=str(root / "agent")),
-        AgentDependencies(context, models, tools, judgment, assets, events, clock),
+        AgentDependencies(context, models, tools, judgment, assets, events, clock, policy),
     )
     experience = ExperienceFactory().create(
         ExperienceConfig(directory=root / "experience"),

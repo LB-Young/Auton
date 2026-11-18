@@ -1449,3 +1449,98 @@ svg {
   font-size: 12px;
   line-height: 1.8;
 }
+
+.real-history-nav select {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--line);
+  background: var(--surface-soft);
+  color: var(--text);
+  padding: 10px;
+  border-radius: 8px;
+}
+.run-reading {
+  max-height: 520px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scroll-behavior: auto;
+  padding-right: 8px;
+}
+.code-block {
+  position: relative;
+  max-width: 100%;
+}
+.code-block pre {
+  padding-top: 40px;
+  overflow: auto;
+  white-space: pre;
+}
+.code-copy {
+  position: absolute;
+  right: 8px;
+  top: 6px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--surface-soft);
+  color: var(--text);
+  font-size: 11px;
+  padding: 4px 8px;
+}
+.run-artifact-panel {
+  position: fixed;
+  inset: 76px 20px 20px auto;
+  width: min(var(--run-panel-width, 460px), calc(100vw - 40px));
+  z-index: 30;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 16px 60px #0002;
+  overflow: auto;
+  overflow-wrap: anywhere;
+}
+.run-artifact-panel header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  justify-content: space-between;
+}
+.feedback-card {
+  border-top: 1px solid var(--line);
+  margin-top: 24px;
+  padding-top: 16px;
+}
+.feedback-card textarea {
+  width: 100%;
+  min-height: 70px;
+  resize: vertical;
+  box-sizing: border-box;
+}
+.agent-page input,
+.agent-page select,
+.agent-page textarea {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+@media (max-width: 600px) {
+  .run-artifact-panel {
+    inset: 64px 8px 8px;
+    width: auto;
+    padding: 18px;
+  }
+  .run-reading {
+    max-height: 420px;
+  }
+}
+
+.run-config-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0 20px;
+}
+@media (max-width: 600px) {
+  .run-config-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

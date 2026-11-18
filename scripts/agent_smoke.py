@@ -76,7 +76,7 @@ async def main(inspect_existing: bool = False) -> None:
     )
     agent = AgentRuntimeFactory().create(
         AgentConfig(directory=str(ROOT / ".auton_local/agent-smoke/runtime")),
-        AgentDependencies(context, models, tools, judgment, assets, events, deps),
+        AgentDependencies(context, models, tools, judgment, assets, events, deps, policy),
     )
     experience = ExperienceFactory().create(
         ExperienceConfig(directory=ROOT / ".auton_local/agent-smoke/experience"),
