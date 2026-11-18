@@ -90,6 +90,15 @@ def generate(
     callback: Callable[[ModelRequest], Awaitable[ModelResult]],
 ) -> None:
     monkeypatch.setattr(agent.deps.models, "generate", callback)
+    from collections.abc import AsyncGenerator
+
+    from auton.model.contracts import ModelChunk
+
+    async def stream(request: ModelRequest) -> AsyncGenerator[ModelChunk, None]:
+        value = await callback(request)
+        yield ModelChunk(kind="completed", result=value)
+
+    monkeypatch.setattr(agent.deps.models, "stream", stream)
 
 
 async def wait(agent: AgentRuntime, identity: str, statuses: set[str] | None = None) -> AgentRun:

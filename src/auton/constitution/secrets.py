@@ -90,3 +90,49 @@ class LoggerFactory:
         handler.setFormatter(RedactingFormatter(redactor))
         logger.addHandler(handler)
         return logger
+
+
+class StreamingRedactor:
+    """Keep an overlap so a credential split across chunks is never published."""
+
+    def __init__(self, redactor: Redactor, secrets: tuple[SecretStr, ...] = ()) -> None:
+        self.redactor = redactor
+        self.secrets = tuple(
+            value.get_secret_value() for value in secrets if value.get_secret_value()
+        )
+        self.overlap = max((len(value) - 1 for value in self.secrets), default=2)
+        self.overlap = max(2, self.overlap)
+        self.buffer = ""
+
+    def feed(self, value: str) -> str:
+        self.buffer += value
+        cut = len(self.buffer)
+        for secret in self.secrets:
+            for size in range(min(len(secret) - 1, len(self.buffer)), 0, -1):
+                if self.buffer.endswith(secret[:size]):
+                    cut = min(cut, len(self.buffer) - size)
+                    break
+        for prefix in ("s", "sk"):
+            if self.buffer.endswith(prefix):
+                cut = min(cut, len(self.buffer) - len(prefix))
+        unfinished = re.search(r"\bsk-[a-zA-Z0-9_-]*\Z", self.buffer)
+        if unfinished:
+            cut = min(cut, unfinished.start())
+        spans = [
+            (m.start(), m.end()) for m in re.finditer(r"\bsk-[a-zA-Z0-9_-]{12,}\b", self.buffer)
+        ]
+        for secret in self.secrets:
+            start = self.buffer.find(secret)
+            while start >= 0:
+                spans.append((start, start + len(secret)))
+                start = self.buffer.find(secret, start + 1)
+        for start, end in sorted(spans):
+            if start < cut < end:
+                cut = end
+        text, self.buffer = self.buffer[:cut], self.buffer[cut:]
+        return self.redactor.text(text)
+
+    def finish(self) -> str:
+        text = self.redactor.text(self.buffer)
+        self.buffer = ""
+        return text

@@ -1,7 +1,6 @@
 import asyncio
 import hashlib
 import re
-from secrets import token_urlsafe
 from typing import Literal
 from urllib.parse import quote
 
@@ -38,7 +37,11 @@ from auton.judgment.questions import JudgmentQuestionsFactory
 from auton.kernel.ports import ApplicationError
 from auton.model.contracts import ModelInfo, ModelMessage, ModelRequest, ModelResult
 from auton.server.config import ServerConfig
+from auton.server.identity import IdentityInfo
+from auton.server.limits import RequestLimits
 from auton.server.ports import BootstrapResponse, HealthResponse, ServerDependencies
+from auton.server.run_events import EventStreamFactory, RunSnapshot
+from auton.server.uploads import UploadCommand, UploadIntent, UploadReceipt
 from auton.tools.contracts import (
     ToolApproval,
     ToolDescriptor,
@@ -47,6 +50,11 @@ from auton.tools.contracts import (
     ToolReceipt,
     ToolRequest,
 )
+
+
+class LegacyIdentityCommand(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    project_id: str = Field(pattern=r"^[a-zA-Z0-9_-]{1,80}$")
 
 
 class ContextPreviewCommand(BaseModel):
@@ -131,12 +139,16 @@ class AssetRevisionCommand(BaseModel):
 
 class ServerFactory:
     def create(self, config: ServerConfig, deps: ServerDependencies) -> FastAPI:
+        stream = EventStreamFactory().create(
+            config.settings, deps.agent, deps.events, deps.identity
+        )
         app = FastAPI(
             title="Auton",
             version="0.1.0",
             lifespan=deps.lifespan,
             responses={
-                status: {"model": ErrorBody} for status in (401, 403, 404, 409, 422, 429, 501, 503)
+                status: {"model": ErrorBody}
+                for status in (401, 403, 404, 409, 410, 413, 422, 429, 501, 503)
             },
         )
         app.add_middleware(
@@ -149,7 +161,8 @@ class ServerFactory:
         app.add_middleware(
             TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost", "testserver"]
         )
-        owners: set[str] = set()
+
+        app.add_middleware(RequestLimits)
 
         @app.exception_handler(RequestValidationError)
         async def invalid_request(
@@ -181,9 +194,7 @@ class ServerFactory:
             return deps.conversation
 
         def owner(request: Request) -> str:
-            value = request.cookies.get("auton_owner", "")
-            if value not in owners:
-                raise ApplicationError(401, "session_required", "请重新连接工作台")
+            value = deps.identity.owner(request.cookies.get("auton_owner", ""))
             if request.method != "GET":
                 origin = request.headers.get("origin")
                 if origin is not None and origin not in config.allowed_origins:
@@ -200,15 +211,22 @@ class ServerFactory:
 
         @app.get("/api/v1/bootstrap")
         async def bootstrap(request: Request, response: Response) -> BootstrapResponse:
-            value = request.cookies.get("auton_owner", "")
-            if value not in owners:
-                if len(owners) >= 500:
-                    raise ApplicationError(429, "demo_limit", "演示浏览器会话已达上限")
-                value = token_urlsafe(32)
-                owners.add(value)
-            response.set_cookie("auton_owner", value, httponly=True, samesite="strict")
+            if request.headers.get("sec-fetch-site") == "cross-site" or (
+                request.headers.get("origin") is not None
+                and request.headers["origin"] not in config.allowed_origins
+            ):
+                raise ApplicationError(403, "origin_denied", "Bootstrap source is not allowed")
+            value, identity = await deps.identity.session(request.cookies.get("auton_owner", ""))
+            response.set_cookie(
+                "auton_owner",
+                value,
+                httponly=True,
+                samesite="strict",
+                max_age=identity.remaining_seconds,
+            )
             response.headers["Cache-Control"] = "no-store"
             return BootstrapResponse(
+                identity=identity,
                 profile=config.profile,
                 demo=deps.conversation is not None,
                 implementation=deps.implementation,
@@ -216,6 +234,82 @@ class ServerFactory:
                 event_storage=deps.storage(),
                 policy=deps.control.public(),
             )
+
+        @app.post("/api/v1/identity/adopt-legacy")
+        async def adopt_legacy_identity(
+            request: Request, response: Response, command: LegacyIdentityCommand
+        ) -> IdentityInfo:
+            if (
+                request.headers.get("origin") not in config.allowed_origins
+                or request.headers.get("x-auton-client") != "web"
+            ):
+                raise ApplicationError(
+                    403, "origin_denied", "Explicit local client action required"
+                )
+            legacy = request.cookies.get("auton_owner", "")
+            if not re.fullmatch(r"[a-zA-Z0-9_-]{43}", legacy):
+                raise ApplicationError(401, "legacy_identity_invalid", "No legacy local cookie")
+            await deps.genome.view(Principal(owner=legacy, role="user"), command.project_id)
+            token, identity = await deps.identity.adopt_legacy(legacy)
+            response.set_cookie(
+                "auton_owner",
+                token,
+                httponly=True,
+                samesite="strict",
+                max_age=identity.remaining_seconds,
+            )
+            return identity
+
+        @app.post("/api/v1/identity/reset")
+        async def reset_identity(
+            request: Request, response: Response, command: ModelProbe
+        ) -> IdentityInfo:
+            if (
+                request.headers.get("origin") not in config.allowed_origins
+                or request.headers.get("x-auton-client") != "web"
+            ):
+                raise ApplicationError(
+                    403, "origin_denied", "Identity reset requires an explicit local client action"
+                )
+            token, identity = await deps.identity.session("")
+            response.set_cookie(
+                "auton_owner",
+                token,
+                httponly=True,
+                samesite="strict",
+                max_age=identity.remaining_seconds,
+            )
+            return identity
+
+        @app.post("/api/v1/uploads")
+        async def prepare_upload(request: Request, command: UploadCommand) -> UploadIntent:
+            return await deps.uploads.prepare(Principal(owner=owner(request), role="user"), command)
+
+        @app.post(
+            "/api/v1/uploads/{upload_id}/content",
+            openapi_extra={
+                "requestBody": {
+                    "required": True,
+                    "content": {
+                        "application/octet-stream": {
+                            "schema": {"type": "string", "format": "binary"}
+                        }
+                    },
+                }
+            },
+        )
+        async def complete_upload(request: Request, upload_id: str) -> UploadReceipt:
+            principal = Principal(owner=owner(request), role="user")
+            chunks: list[bytes] = []
+            total = 0
+            async for chunk in request.stream():
+                total += len(chunk)
+                if total > config.settings.max_upload_bytes:
+                    raise ApplicationError(
+                        413, "upload_too_large", "Upload exceeds the configured byte limit"
+                    )
+                chunks.append(chunk)
+            return await deps.uploads.complete(principal, upload_id, b"".join(chunks))
 
         @app.get("/api/v1/projects")
         async def projects(request: Request) -> list[Project]:
@@ -305,13 +399,28 @@ class ServerFactory:
         async def recover(
             request: Request, project_id: str, run_id: str, command: RecoveryCommand
         ) -> AgentRun:
-            return await deps.experience.recover(
+            return await deps.commands.recover(
                 Principal(owner=owner(request), role="user"), project_id, run_id, command
             )
 
+        @app.get("/api/v1/agent/runs/{run_id}/snapshot")
+        async def run_snapshot(request: Request, run_id: str) -> RunSnapshot:
+            return await stream.snapshot(Principal(owner=owner(request), role="user"), run_id)
+
+        @app.websocket("/api/v1/agent/runs/{run_id}/events")
+        async def run_events(websocket: WebSocket, run_id: str, after: int = 0) -> None:
+            try:
+                if websocket.headers.get("origin") not in config.allowed_origins:
+                    raise ApplicationError(403, "origin_denied", "Socket origin is not allowed")
+                token = websocket.cookies.get("auton_owner", "")
+                principal = Principal(owner=deps.identity.owner(token), role="user")
+                await stream.connect(websocket, principal, token, run_id, after)
+            except ApplicationError:
+                await websocket.close(code=1008)
+
         @app.post("/api/v1/agent/runs")
         async def create_agent_run(request: Request, command: CreateRun) -> AgentRun:
-            return await deps.agent.create(Principal(owner=owner(request), role="user"), command)
+            return await deps.commands.create(Principal(owner=owner(request), role="user"), command)
 
         @app.get("/api/v1/agent/runs")
         async def agent_runs(request: Request, project_id: str) -> list[AgentRun]:
@@ -323,7 +432,7 @@ class ServerFactory:
 
         @app.post("/api/v1/agent/runs/{run_id}/commands")
         async def agent_command(request: Request, run_id: str, command: RunCommand) -> AgentRun:
-            return await deps.agent.command(
+            return await deps.commands.apply(
                 Principal(owner=owner(request), role="user"), run_id, command
             )
 
@@ -555,8 +664,11 @@ class ServerFactory:
 
         @app.websocket("/api/v1/sessions/{session_id}/events")
         async def events(websocket: WebSocket, session_id: str) -> None:
-            value = websocket.cookies.get("auton_owner", "")
-            if websocket.headers.get("origin") not in config.allowed_origins or value not in owners:
+            try:
+                value = deps.identity.owner(websocket.cookies.get("auton_owner", ""))
+                if websocket.headers.get("origin") not in config.allowed_origins:
+                    raise ApplicationError(403, "origin_denied", "Socket origin is not allowed")
+            except ApplicationError:
                 await websocket.close(code=1008)
                 return
             queue: asyncio.Queue[SessionEvent] | None = None

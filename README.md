@@ -1,6 +1,6 @@
 # Auton
 
-个人 Agent 工作台。当前完成 **M01 项目框架、M02 持久事件内核、M03 固定控制策略、M04 执行模型网关、M05 本地判断接入、M06 受控工具、M07 版本资产、M08 上下文引擎、M09 单 Agent 执行闭环与 M10 轨迹恢复**：模块工厂、显式依赖组装、FastAPI API、React 对话界面与合成 Demo；M11–M21 尚未实现。
+个人 Agent 工作台。当前完成 **M01 项目框架、M02 持久事件内核、M03 固定控制策略、M04 执行模型网关、M05 本地判断接入、M06 受控工具、M07 版本资产、M08 上下文引擎、M09 单 Agent 执行闭环、M10 轨迹恢复与 M11 服务协议**：模块工厂、显式依赖组装、FastAPI API、React 对话界面与合成 Demo；M12–M21 尚未实现。
 
 后端和开发/验收辅助工具优先使用 Python。仅浏览器界面及其必要构建配置使用 TypeScript/React；Makefile 是 Python 命令入口。
 
@@ -44,9 +44,9 @@ AUTON_CONFIG=config/echo.toml make dev
 AUTON_CONFIG=config/dev.toml make dev
 ```
 
-`echo.toml` 换成内存回声实现，API/页面不变。`dev.toml` 关闭 Demo，真实执行接口返回 `501 not_implemented`，不会伪造模型输出。`test.toml` 用于本地单元/契约测试，来源仅允许 testserver，不用于浏览器演示。
+`echo.toml` 换成内存回声实现，API/页面不变。`dev.toml` 关闭 Demo；真实执行在任务页通过独立 Agent API 使用，不会伪造模型输出。`test.toml` 用于本地单元/契约测试，来源仅允许 testserver，不用于浏览器演示。
 
-服务仅面向本机开发。HTTP 写命令校验来源白名单、浏览器归属和命令头；WebSocket 校验 Origin 与归属，跨会话访问返回不存在。当前不提供生产账号/公网认证或完整业务操作审计，不应改成公网监听使用。M03/M06/M11 会进一步实现策略、操作账本与完整服务协议。
+服务仅面向本机开发。HTTP 写命令校验来源白名单、浏览器归属和命令头；WebSocket 校验 Origin 与归属，跨会话访问返回不存在。当前不提供生产账号/公网认证或完整业务操作审计，不应改成公网监听使用。M03/M06/M11 已提供策略、操作账本与完整本机任务服务协议。
 
 ## 工程结构与模块规范
 
@@ -75,7 +75,7 @@ make contracts
 
 `make check` 包含 Ruff 格式/lint、mypy strict、非浏览器测试、Python/前端依赖边界、OpenAPI/生成类型漂移检查、ESLint/Prettier 和 TypeScript/生产构建。契约检查在临时目录比较，不修改工作区。
 
-`make contracts` 从 Python schema 导出 `contracts/openapi.json`，再使用必要的 TypeScript 工具生成浏览器类型；不要手动修改生成文件。WebSocket 的 `session.updated` 是带完整状态的快照，包含 sequence、run/goal 引用、schema_version 和来源。慢客户端可合并旧快照；重连重新获取当前内存状态，不承诺持久事件回放或保存每个 token。M02 已提供独立 SQLite WAL/FULL EventLog；Demo 聊天尚未接入，业务投影与会话恢复留给 M10/M11。
+`make contracts` 从 Python schema 导出 `contracts/openapi.json`，再使用必要的 TypeScript 工具生成浏览器类型；不要手动修改生成文件。WebSocket 的 `session.updated` 是带完整状态的快照，包含 sequence、run/goal 引用、schema_version 和来源。慢客户端可合并旧快照；重连重新获取当前内存状态，不承诺持久事件回放或保存每个 token。M02 已提供独立 SQLite WAL/FULL EventLog；Demo 聊天尚未接入，真实任务的持久轨迹与游标恢复见 M10/M11，Demo 会话仍单独使用内存快照。
 
 ## Python 浏览器验收
 
@@ -118,7 +118,7 @@ M03 设置页展示权限、外发边界和单目标预算，并提供不实际�
 
 工具页可创建独立只读/审批写入工作区，预览差异、逐次批准、原子写入、读回并下载校验后的文件。另有固定 Python 版本/语法检查和本地 MCP SHA256。默认目录 `.auton_local/tools` 被忽略，不授权修改本仓库或其他目录。
 
-未知写入结果先对账，不盲重放；重复命令复用原凭据。当前只提供 POSIX 受控目录和固定程序，不开放任意代码，也不宣称 OS 安全沙箱。浏览器身份跨重启恢复仍待 M11。见 [M06 验收](docs/milestones/evidence/M06.md)。
+未知写入结果先对账，不盲重放；重复命令复用原凭据。当前只提供 POSIX 受控目录和固定程序，不开放任意代码，也不宣称 OS 安全沙箱。M11 已提供浏览器身份跨后端重启保持。见 [M06 验收](docs/milestones/evidence/M06.md)。
 
 ## 版本资产与记忆（M07）
 
@@ -176,7 +176,7 @@ CLI 使用同一应用接口，身份文件仅保存在忽略的 `.auton_local/c
 }
 ```
 
-`make agent-smoke` 会使用本地 Laya 与真实 DeepSeek，在独立公开测试项目完成文件/调研验收，产生少量 API 费用；不会作为默认 CI。默认单任务最多 8 次模型调用、8 次工具调用、16000 tokens、10000 microUSD（按登记价格估算），并叠加 M03 的独立权限/预算门禁。M09 安全点可以用相同可信主体恢复；浏览器/CLI 跨后端重启的持久身份接 M11，轨迹投影与恢复管理已接入 M10。见 [M09 验收](docs/milestones/evidence/M09.md)。
+`make agent-smoke` 会使用本地 Laya 与真实 DeepSeek，在独立公开测试项目完成文件/调研验收，产生少量 API 费用；不会作为默认 CI。默认单任务最多 8 次模型调用、8 次工具调用、16000 tokens、10000 microUSD（按登记价格估算），并叠加 M03 的独立权限/预算门禁。M09 安全点可以用相同可信主体恢复；浏览器/CLI 跨后端重启的持久身份已接 M11，轨迹投影与恢复管理已接入 M10。见 [M09 验收](docs/milestones/evidence/M09.md)。
 
 
 ## 轨迹与检查点恢复（M10）
@@ -191,4 +191,16 @@ CLI 使用同一应用接口，身份文件仅保存在忽略的 `.auton_local/c
 .venv/bin/python scripts/agent_smoke.py --inspect-existing  # 复核已存在的隔离真实验收记录，不新增模型/工具调用
 ```
 
-`state_cutoff` 的 run checkpoint version 与全局事件 cursor 分开保存。未知用量、缺失快照和旧修订晚到结果不会被当成完整的成功证据。后端已验证独立进程重启、确认写入后进程直接退出的恢复，两者均不重复写入；浏览器/CLI 跨后端重启的持久身份仍接 M11。见 [M10 验收](docs/milestones/evidence/M10.md)。
+`state_cutoff` 的 run checkpoint version 与全局事件 cursor 分开保存。未知用量、缺失快照和旧修订晚到结果不会被当成完整的成功证据。后端已验证独立进程重启、确认写入后进程直接退出的恢复，两者均不重复写入；浏览器/CLI 跨后端重启的持久身份已接 M11。见 [M10 验收](docs/milestones/evidence/M10.md)。
+
+## M11 本机服务协议
+
+任务页使用持久检查点游标的 WebSocket 通知与 HTTP 精确快照恢复。断开页面不会停止任务；连接恢复不会重发命令。临时生成内容明确标记为尚未保存，重启后只恢复已确认结果。Demo 会话仍为内存存储，独立 Agent 任务和项目资料保持原来的持久存储。
+
+默认身份与上传元数据保存在 `.auton_local/server/` 的 SQLite WAL/FULL 数据库；当前有效 Cookie 只保存散列，内部身份独立于 Cookie。浏览器和 CLI 各自使用身份，重启服务后有效身份继续访问自己的原有数据；身份默认有效 30 天，数据库与私有 Cookie 文件不可删除或提交。过期会显式拒绝，不自动创建另一个身份。设置页提供显式新建身份；此操作不会转移旧数据。
+
+M10 及更早版本的 Cookie 只有在原浏览器/CLI 私有文件仍保留时才能证明归属。升级后若提示身份无效，可在设置页选择“恢复升级前的本机身份”，填写原身份拥有的项目 ID。服务端从原项目验证归属，旋转 Cookie 并保留原 namespace；旧 Cookie 被撤销，不能重复迁移。没有旧 Cookie 或有效身份证明时不会通过项目名称认领他人数据。当前不提供公网账号/跨设备找回或已过期新身份的恢复流程。
+
+资产页可上传 UTF-8 文本/Markdown：先声明项目、大小、SHA256，再提交原始字节；默认最多 128 KiB、32000 字符，意图 10 分钟过期。上传仅进入学习候选，仍需人工审阅晋升；不支持二进制附件。默认上传/身份元数据各限 1000 项；创建新记录时清理过期超过 7 天的记录，旧身份迁移撤销标记保留。HTTP 请求总量限制为 2 MiB，包括 chunked body。
+
+`[server]` 可配置 `directory`、`identity_ttl_seconds`、`max_identities`、`max_upload_bytes`、`upload_ttl_seconds`、`stream_page_size`、`stream_send_timeout`。`identity_backend="memory"` 只允许 test profile。服务仍绑定回环地址，拒绝非本机客户端。详见 [M11 验收及协议](docs/milestones/evidence/M11.md)。

@@ -123,9 +123,18 @@ class AgentRun(Contract):
     final_text: str = ""
     check: AcceptanceCheck | None = None
     source: Literal["runtime", "test"]
-    runtime_revision: Literal["single-agent-v1"] = "single-agent-v1"
+    runtime_revision: Literal["single-agent-v1", "single-agent-v2"] = "single-agent-v2"
 
 
 def checkpoint_event_id(owner: str, run_id: str, version: int) -> str:
     digest = hashlib.sha256((owner + "\0" + run_id).encode()).hexdigest()
     return f"agent:{digest}:{version}"
+
+
+class TransientProgress(Contract):
+    request_id: str
+    goal_revision: int
+    version: int
+    sequence: int
+    text: str
+    persisted: Literal[False] = False

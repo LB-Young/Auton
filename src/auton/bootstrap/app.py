@@ -25,9 +25,12 @@ from auton.kernel.modules import resolve_modules
 from auton.kernel.ports import LifecycleHandle, ModuleFactory, RuntimeDependencies
 from auton.model.factory import ModelGatewayFactory
 from auton.model.gateway import GatewayDependencies
+from auton.server.commands import CommandHandlerFactory
 from auton.server.config import ServerConfig
 from auton.server.factory import ServerFactory
+from auton.server.identity import IdentityFactory
 from auton.server.ports import ServerDependencies
+from auton.server.uploads import UploadFactory
 from auton.tools.factory import ToolHostFactory
 from auton.tools.service import ToolDependencies
 
@@ -83,6 +86,9 @@ class ApplicationFactory:
         experience = ExperienceFactory().create(
             config.experience, ExperienceDependencies(kernel.events, agent, genome, context, deps)
         )
+        identity = IdentityFactory().create(config.server, deps)
+        commands = CommandHandlerFactory().create(agent, experience)
+        uploads = UploadFactory().create(config.server, genome, deps)
         conversation: ConversationPort | None = None
         factory: ModuleFactory[DemoConfig, RuntimeDependencies, ConversationPort]
         factory = DemoConversationFactory()
@@ -105,14 +111,34 @@ class ApplicationFactory:
                 context,
                 agent,
                 experience,
+                identity,
+                commands,
+                uploads,
                 conversation,
             ]
             if conversation is not None
-            else [kernel, control, models, judgment, tools, genome, context, agent, experience]
+            else [
+                kernel,
+                control,
+                models,
+                judgment,
+                tools,
+                genome,
+                context,
+                agent,
+                experience,
+                identity,
+                commands,
+                uploads,
+            ]
         )
         redactor = Redactor()
         return ServerFactory().create(
-            ServerConfig(profile=config.profile, allowed_origins=config.allowed_origins),
+            ServerConfig(
+                profile=config.profile,
+                allowed_origins=config.allowed_origins,
+                settings=config.server,
+            ),
             ServerDependencies(
                 conversation=conversation,
                 modules=modules,
@@ -128,6 +154,10 @@ class ApplicationFactory:
                 context=context,
                 agent=agent,
                 experience=experience,
+                identity=identity,
+                commands=commands,
+                uploads=uploads,
+                events=kernel.events,
                 redact=redactor.text,
                 logger=LoggerFactory().create(redactor),
             ),

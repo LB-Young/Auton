@@ -54,6 +54,23 @@ export class ApiClientFactory {
       return (await response.json()) as T;
     }
     return {
+      adoptLegacy: (project_id) => request('/identity/adopt-legacy', { project_id }),
+      runSnapshot: (id) => request(`/agent/runs/${encodeURIComponent(id)}/snapshot`),
+      resetIdentity: () => request('/identity/reset', { request_id: crypto.randomUUID() }),
+      prepareUpload: (command) => request('/uploads', command),
+      uploadContent: async (id, bytes) => {
+        const response = await fetch(base + `/uploads/${encodeURIComponent(id)}/content`, {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/octet-stream', 'X-Auton-Client': 'web' },
+          body: bytes,
+        });
+        if (!response.ok) {
+          const error = (await response.json().catch(() => ({}))) as Partial<ErrorBody>;
+          throw new ApiError(error.code ?? 'upload_failed', error.message ?? '上传失败');
+        }
+        return response.json();
+      },
       trajectory: (project, run) =>
         request<Trajectory>(
           `/projects/${encodeURIComponent(project)}/runs/${encodeURIComponent(run)}/trajectory`,

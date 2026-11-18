@@ -9,7 +9,7 @@ import { createModelFeature } from '../features/models/factory';
 import { createPolicyFeature } from '../features/policy/factory';
 import { createChatFeature } from '../features/chat/factory';
 import { ApiClientFactory } from '../transport/api';
-import { EventStreamFactory } from '../transport/events';
+import { EventStreamFactory, RunEventStreamFactory } from '../transport/events';
 
 export function createApplication() {
   const api = new ApiClientFactory().create();
@@ -20,7 +20,9 @@ export function createApplication() {
     tools: createToolsFeature({ api }),
     genome: createGenomeFeature({ api }),
     context: createContextFeature({ api }),
-    agent: createAgentFeature({ api }),
+    agent: createAgentFeature({ api, events: new RunEventStreamFactory().create() }),
+    adoptLegacy: (project: string) => api.adoptLegacy(project),
+    resetIdentity: () => api.resetIdentity(),
     experience: createExperienceFeature({ api }),
     models: createModelFeature({ api }),
     policy: createPolicyFeature({ api }),

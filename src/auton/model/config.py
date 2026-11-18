@@ -29,7 +29,7 @@ class ModelSpec(BaseModel):
     base_revision: str | None = None
     adapter_revision: str | None = None
     template_revision: str | None = None
-    runtime_revision: str = "deepseek-http-sse-v1"
+    runtime_revision: str = "deepseek-http-sse-v2"
     quantization: str | None = None
     # Operational cap is deliberately smaller than the provider's declared context.
     context_tokens: int = 8192

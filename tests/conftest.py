@@ -15,6 +15,7 @@ from auton.judgment.config import JudgmentConfig
 from auton.kernel.config import KernelConfig
 from auton.kernel.ports import RuntimeDependencies
 from auton.model.config import ModelConfig
+from auton.server.identity import ServerSettings
 from auton.tools.config import ToolConfig
 
 
@@ -32,6 +33,7 @@ def client(deps: RuntimeDependencies, tmp_path: Path) -> Iterator[TestClient]:
             experience=ExperienceConfig(directory=tmp_path / "experience"),
             agent=AgentConfig(directory=str(tmp_path / "agent")),
             genome=GenomeConfig(directory=tmp_path / "assets"),
+            server=ServerSettings(identity_backend="memory"),
             profile="test",
             models=ModelConfig(backend="mock"),
             judgment=JudgmentConfig(backend="mock"),

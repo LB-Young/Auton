@@ -14,11 +14,13 @@ from auton.genome.contracts import GenomeConfig
 from auton.judgment.config import JudgmentConfig
 from auton.kernel.config import KernelConfig
 from auton.model.config import ModelConfig
+from auton.server.identity import ServerSettings
 from auton.tools.config import ToolConfig
 
 
 class ApplicationConfig(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True, hide_input_in_errors=True)
+    server: ServerSettings = Field(default_factory=ServerSettings)
     experience: ExperienceConfig = Field(default_factory=ExperienceConfig)
     agent: AgentConfig = Field(default_factory=AgentConfig)
     constitution: ConstitutionConfig = Field(default_factory=ConstitutionConfig)
@@ -40,6 +42,8 @@ class ApplicationConfig(BaseModel):
 
     @model_validator(mode="after")
     def validate_profile(self) -> "ApplicationConfig":
+        if self.server.identity_backend == "memory" and self.profile != "test":
+            raise ValueError("Memory identities are test-only")
         if self.judgment.backend == "mock" and self.profile != "test":
             raise ValueError("Mock judgment is test-only")
         if self.profile == "test" and self.judgment.backend != "mock":

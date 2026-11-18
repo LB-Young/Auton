@@ -29,6 +29,16 @@ import type {
 } from '../shared/contracts';
 
 export interface ApiClient {
+  adoptLegacy(project: string): Promise<unknown>;
+  runSnapshot(id: string): Promise<import('../shared/contracts').RunSnapshot>;
+  resetIdentity(): Promise<import('../shared/api.generated').components['schemas']['IdentityInfo']>;
+  prepareUpload(
+    command: import('../shared/contracts').UploadCommand,
+  ): Promise<import('../shared/contracts').UploadIntent>;
+  uploadContent(
+    id: string,
+    bytes: Uint8Array<ArrayBuffer>,
+  ): Promise<import('../shared/contracts').UploadReceipt>;
   trajectory(project: string, run: string): Promise<Trajectory>;
   recoverRun(project: string, run: string, command: RecoveryCommand): Promise<AgentRun>;
   createRun(command: CreateRun): Promise<AgentRun>;
@@ -74,6 +84,14 @@ export interface EventStream {
   connect(
     sessionId: string,
     onSnapshot: (event: SessionEvent) => void,
+    onConnection: (connected: boolean) => void,
+  ): () => void;
+}
+
+export interface RunEventStream {
+  connect(
+    runId: string,
+    onFrame: (frame: import('../shared/contracts').RunFrame) => void,
     onConnection: (connected: boolean) => void,
   ): () => void;
 }

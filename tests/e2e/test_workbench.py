@@ -329,6 +329,11 @@ def test_agent_research_and_approved_file_delivery(page: Page) -> None:
     trace.get_by_role("button", name="从已核对检查点恢复").click()
     expect(record.get_by_role("status")).to_contain_text("等待审批", timeout=15000)
     expect(record.get_by_role("link", name="下载任务文件 notes.md")).to_have_count(0)
+    page.reload()
+    page.get_by_role("button", name=re.compile("^任务")).click()
+    page.get_by_role("button", name=re.compile("^Create a precise")).click()
+    expect(record.get_by_role("status")).to_contain_text("等待审批", timeout=15000)
+    screenshot(page, "M11-reconnected-approval.png")
     record.get_by_role("button", name="批准本次任务操作").click()
     expect(record.get_by_role("status")).to_contain_text("验收通过", timeout=15000)
     expect(record).to_contain_text("file-sha256-v1")
@@ -358,3 +363,30 @@ def test_agent_research_and_approved_file_delivery(page: Page) -> None:
     expect(mobile_trace).to_contain_text("投影已追平", timeout=15000)
     mobile_trace.evaluate("el => el.scrollIntoView({block: 'start'})")
     screenshot(page, "M10-mobile.png")
+
+
+def test_server_upload_candidate_and_identity(page: Page) -> None:
+    page.get_by_role("button", name=re.compile("^资产")).click()
+    page.get_by_label("资产项目 ID").fill("server-upload")
+    page.get_by_role("button", name="创建资产项目").click()
+    page.get_by_label("上传项目文本").set_input_files(
+        {
+            "name": "upload.md",
+            "mimeType": "text/markdown",
+            "buffer": b"# Imported notes\nRead before promotion.\n",
+        }
+    )
+    expect(page.get_by_role("button", name="晋升 upload.md")).to_be_visible(timeout=15000)
+    expect(page.get_by_role("button", name="历史 upload.md")).to_have_count(0)
+    page.get_by_role("button", name="晋升 upload.md").scroll_into_view_if_needed()
+    screenshot(page, "M11-upload-candidate.png")
+    page.reload()
+    page.get_by_role("button", name=re.compile("^资产")).click()
+    page.get_by_label("选择资产项目").select_option("server-upload")
+    expect(page.get_by_role("button", name="晋升 upload.md")).to_be_visible()
+    # UI does not promote uploaded material implicitly, even after reloading.
+    page.get_by_role("button", name="晋升 upload.md").click()
+    expect(page.get_by_role("button", name="历史 upload.md")).to_be_visible()
+    page.get_by_role("button", name=re.compile("^设置")).click()
+    expect(page.get_by_text("本机身份：", exact=False)).to_be_visible()
+    screenshot(page, "M11-identity.png")

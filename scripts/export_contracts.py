@@ -10,6 +10,7 @@ from auton.bootstrap.app import ApplicationFactory
 from auton.bootstrap.config import ApplicationConfig
 from auton.demo.ports import SessionEvent
 from auton.kernel.ports import RuntimeDependencies
+from auton.server.run_events import RunFrame
 
 
 def main() -> None:
@@ -26,6 +27,11 @@ def main() -> None:
     )
     schema["components"]["schemas"].update(event.pop("$defs", {}))
     schema["components"]["schemas"]["SessionEvent"] = event
+    frame = RunFrame.model_json_schema(
+        mode="serialization", ref_template="#/components/schemas/{model}"
+    )
+    schema["components"]["schemas"].update(frame.pop("$defs", {}))
+    schema["components"]["schemas"]["RunFrame"] = frame
     text = json.dumps(schema, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
     path = Path(__file__).resolve().parents[1] / "contracts/openapi.json"
     if args.check:

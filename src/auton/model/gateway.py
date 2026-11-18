@@ -9,7 +9,7 @@ from pydantic import JsonValue
 
 from auton.constitution.config import ActionRequest, Usage
 from auton.constitution.ports import ExecutionControlPort
-from auton.constitution.secrets import Redactor, SecretStorePort
+from auton.constitution.secrets import Redactor, SecretStorePort, StreamingRedactor
 from auton.kernel.events import Event, EventScope
 from auton.kernel.ports import ApplicationError, RuntimeDependencies
 from auton.kernel.storage import EventLogPort
@@ -161,7 +161,16 @@ class ModelGateway:
             raise ApplicationError(
                 403, "data_egress_denied", "Private data cannot leave the machine"
             )
-        redactor = Redactor()
+        try:
+            known_secrets = (
+                (self.deps.secrets.get(self.config.secret_reference),)
+                if self.config.backend == "deepseek"
+                else ()
+            )
+        except ApplicationError as error:
+            raise ModelError(error.code, str(error), dispatched=False) from error
+        redactor = Redactor(known_secrets)
+        streaming_redactor = StreamingRedactor(redactor, known_secrets)
         if redactor.text(request.model_dump_json()) != request.model_dump_json():
             raise ApplicationError(
                 403, "credential_in_input", "Credential-like content cannot be sent to a model"
@@ -230,12 +239,19 @@ class ModelGateway:
                                 "invalid_stream", "Data arrived after completion", dispatched=True
                             )
                         else:
-                            yield ModelChunk(kind="delta", content=redactor.text(chunk.content))
+                            safe_delta = streaming_redactor.feed(chunk.content)
+                            if safe_delta:
+                                yield ModelChunk(kind="delta", content=safe_delta)
             if result is None:
                 raise ModelError(
                     "incomplete_stream", "No model completion received", dispatched=True
                 )
-            result = result.model_copy(update={"content": redactor.text(result.content)})
+            remainder = streaming_redactor.finish()
+            if remainder:
+                yield ModelChunk(kind="delta", content=remainder)
+            safe = redactor.redact(result.model_dump(mode="json"))
+            redacted = safe != result.model_dump(mode="json")
+            result = ModelResult.model_validate(safe).model_copy(update={"redacted": redacted})
             await self._record(
                 key,
                 "received",

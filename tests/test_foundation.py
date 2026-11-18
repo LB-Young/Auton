@@ -16,6 +16,7 @@ from auton.kernel.config import KernelConfig
 from auton.kernel.modules import ModuleDescriptor, resolve_modules
 from auton.kernel.ports import ModuleFactory, RuntimeDependencies
 from auton.model.config import ModelConfig
+from auton.server.identity import ServerSettings
 
 
 @pytest.mark.parametrize("implementation", ["echo", "scripted"])
@@ -25,6 +26,7 @@ def test_factory_swap_has_identical_http_and_event_contract(
     app = ApplicationFactory().create(
         ApplicationConfig(
             kernel=KernelConfig(backend="memory"),
+            server=ServerSettings(identity_backend="memory"),
             profile="test",
             models=ModelConfig(backend="mock"),
             judgment=JudgmentConfig(backend="mock"),
@@ -89,6 +91,7 @@ def test_invalid_configuration_is_rejected(config: dict[str, object]) -> None:
 def test_real_profile_never_uses_demo(deps: RuntimeDependencies, tmp_path: Path) -> None:
     app = ApplicationFactory().create(
         ApplicationConfig(
+            server=ServerSettings(directory=tmp_path / "server"),
             profile="production",
             implementation="disabled",
             kernel=KernelConfig(data_directory=tmp_path),

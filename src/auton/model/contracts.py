@@ -124,6 +124,7 @@ class ModelUsage(Contract):
 
 
 class ModelResult(Contract):
+    redacted: bool = False
     request_id: str
     model_id: str
     reported_model: str
@@ -151,7 +152,7 @@ class ModelInfo(Contract):
     base_revision: str | None = None
     adapter_revision: str | None = None
     template_revision: str | None = None
-    runtime_revision: str = "deepseek-http-sse-v1"
+    runtime_revision: str = "deepseek-http-sse-v2"
     quantization: str | None = None
     revision_is_pinned: bool
     context_tokens: int

@@ -42,3 +42,13 @@ export type RunCommand = components['schemas']['RunCommand'];
 
 export type Trajectory = components['schemas']['Trajectory'];
 export type RecoveryCommand = components['schemas']['RecoveryCommand'];
+
+export type RunFrame = components['schemas']['RunFrame'];
+
+export type RunSnapshot = components['schemas']['RunSnapshot'];
+
+export type UploadCommand = components['schemas']['UploadCommand'];
+
+export type UploadIntent = components['schemas']['UploadIntent'];
+
+export type UploadReceipt = components['schemas']['UploadReceipt'];

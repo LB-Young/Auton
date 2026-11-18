@@ -48,6 +48,9 @@ export function Agent({
   const [runs, setRuns] = useState<AgentRun[]>([]);
   const [run, setRun] = useState<AgentRun | null>(null);
   const [revision, setRevision] = useState('');
+  const [connected, setConnected] = useState(false);
+  const [progress, setProgress] =
+    useState<import('../../shared/contracts').RunSnapshot['transient']>(null);
   const scope = useRef(0);
   const running = run && !terminal.has(run.status);
   useEffect(() => {
@@ -92,10 +95,29 @@ export function Agent({
   useEffect(() => {
     if (!identity) return;
     let live = true;
+    let fetching = false;
+    let again = false;
     const refresh = async () => {
+      if (fetching) {
+        again = true;
+        return;
+      }
+      fetching = true;
       try {
-        const value = await feature.get(identity);
+        const snapshot = await feature.snapshot(identity);
+        const value = snapshot.run;
         if (live) {
+          setProgress((old) => {
+            const next = snapshot.transient;
+            if (
+              old &&
+              old.request_id === value.model_request_id &&
+              old.version === value.version &&
+              (!next || old.sequence > next.sequence)
+            )
+              return old;
+            return next;
+          });
           setRun((old) => (old?.id === identity && old.version <= value.version ? value : old));
           setRuns((old) =>
             old.map((r) => (r.id === value.id && r.version <= value.version ? value : r)),
@@ -103,12 +125,34 @@ export function Agent({
         }
       } catch (e) {
         if (live) setError(e instanceof Error ? e.message : '任务状态读取失败');
+      } finally {
+        fetching = false;
+        if (live && again) {
+          again = false;
+          void refresh();
+        }
       }
     };
-    const timer = window.setInterval(() => void refresh(), 900);
+    setProgress(null);
+    void refresh();
+    const unsubscribe = feature.subscribe(
+      identity,
+      (frame) => {
+        if (frame.kind === 'delta' && frame.progress) {
+          const next = frame.progress;
+          setProgress((old) =>
+            old && old.request_id === next.request_id && old.sequence > next.sequence ? old : next,
+          );
+        } else if (frame.kind !== 'heartbeat') void refresh();
+      },
+      (online) => {
+        setConnected(online);
+        if (online) void refresh();
+      },
+    );
     return () => {
       live = false;
-      window.clearInterval(timer);
+      unsubscribe();
     };
   }, [feature, identity]);
   async function act(action: () => Promise<AgentRun>) {
@@ -160,6 +204,7 @@ export function Agent({
       feature.command(selected.id, {
         request_id: crypto.randomUUID(),
         expected_goal_revision: selected.goal_revision,
+        expected_version: selected.version,
         action,
         goal: action === 'revise' ? revision : null,
       }),
@@ -318,6 +363,17 @@ export function Agent({
       {run && (
         <article className="settings-card agent-result" aria-label="真实任务执行记录">
           <h2>执行记录</h2>
+          {!connected && <p role="note">事件连接正在恢复；服务端任务继续运行，重连只读取状态。</p>}
+          {progress &&
+            progress.version === run.version &&
+            progress.goal_revision === run.goal_revision &&
+            progress.request_id === run.model_request_id &&
+            run.status === 'running' && (
+              <div aria-label="临时生成内容">
+                <p>正在生成 · 临时内容，尚未保存</p>
+                <Markdown>{progress.text}</Markdown>
+              </div>
+            )}
           <p role="status">
             {statusLabels[run.status]} · {run.source === 'test' ? '测试替身' : '真实执行'}
           </p>

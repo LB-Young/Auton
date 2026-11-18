@@ -8,7 +8,14 @@ from pathlib import Path
 
 import anyio
 
-from auton.agent.contracts import AcceptanceCheck, AgentConfig, AgentRun, CreateRun, RunCommand
+from auton.agent.contracts import (
+    AcceptanceCheck,
+    AgentConfig,
+    AgentRun,
+    CreateRun,
+    RunCommand,
+    TransientProgress,
+)
 from auton.agent.ports import RunBuilderPort, SessionBuilderPort
 from auton.agent.repository import RunRepository
 from auton.constitution.config import Principal
@@ -72,6 +79,7 @@ class AgentRuntime:
         self._tasks: dict[str, asyncio.Task[None]] = {}
         self._pending: dict[str, Principal] = {}
         self._owners: dict[str, Principal] = {}
+        self._progress: dict[str, TransientProgress] = {}
         self._lease: int | None = None
         self.ready = False
 
@@ -108,17 +116,18 @@ class AgentRuntime:
             for identity, principal in list(self._owners.items()):
                 run = await self.repo.load(principal.owner, identity)
                 if run.status not in TERMINAL:
-                    if run.phase == "tool" and run.reason == "tool_outcome_unknown":
-                        await self._save(principal, run, stop_requested=True)
+                    if run.status == "blocked":
                         continue
+                    stopping = run.stop_requested or run.status == "cancelling"
+                    state = "cancelling" if stopping else "pausing"
+                    if run.status in {"queued", "waiting_approval"}:
+                        state = "cancelled" if stopping else "paused"
                     await self._save(
                         principal,
                         run,
-                        status="cancelling"
-                        if run.status in {"running", "pausing", "cancelling"}
-                        else "cancelled",
-                        stop_requested=True,
-                        reason="shutdown_waiting_for_inflight",
+                        status=state,
+                        stop_requested=stopping,
+                        reason="shutdown_waiting_for_safe_boundary",
                     )
         await asyncio.gather(*list(self._tasks.values()), return_exceptions=True)
         if self._lease is not None:
@@ -360,6 +369,8 @@ class AgentRuntime:
                     changes.update(self._revision_changes(run, command.goal or ""))
             else:
                 raise ApplicationError(422, "agent_command_unknown", "Unsupported action")
+            if command.action == "resume":
+                changes["runtime_revision"] = "single-agent-v2"
             candidate = AgentRun.model_validate(
                 {**run.model_dump(), **changes, "version": run.version + 1}
             )
@@ -649,19 +660,42 @@ class AgentRuntime:
             if current.status != "running":
                 return await self._boundary(principal, current)
         assert run.model_request_id
-        result = await self.deps.models.generate(
-            ModelRequest(
-                model_id=run.command.model_id,
-                request_id=run.model_request_id,
-                principal=principal,
-                goal_id="agent-goal-" + identity,
-                goal_revision=run.goal_revision,
-                messages=snapshot.messages,
-                tools=snapshot.tools,
-                max_output_tokens=self.config.max_output_tokens,
-                data_domain=run.command.data_domain,
-            )
+        request = ModelRequest(
+            model_id=run.command.model_id,
+            request_id=run.model_request_id,
+            principal=principal,
+            goal_id="agent-goal-" + identity,
+            goal_revision=run.goal_revision,
+            messages=snapshot.messages,
+            tools=snapshot.tools,
+            max_output_tokens=self.config.max_output_tokens,
+            data_domain=run.command.data_domain,
         )
+        result = None
+        self._progress[identity] = TransientProgress(
+            request_id=request.request_id,
+            goal_revision=run.goal_revision,
+            version=run.version,
+            sequence=0,
+            text="",
+        )
+        try:
+            async for chunk in self.deps.models.stream(request):
+                if chunk.kind == "delta":
+                    current_progress = self._progress[identity]
+                    text = current_progress.text + chunk.content
+                    if len(text) <= 16000:
+                        self._progress[identity] = current_progress.model_copy(
+                            update={"sequence": current_progress.sequence + 1, "text": text}
+                        )
+                elif chunk.result is not None:
+                    result = chunk.result
+        finally:
+            self._progress.pop(identity, None)
+        if result is None:
+            raise ApplicationError(
+                503, "model_result_missing", "Model stream ended without an acknowledged result"
+            )
         async with self._lock:
             run = await self.repo.load(principal.owner, identity)
             run = await self._save(
@@ -681,6 +715,10 @@ class AgentRuntime:
             if result.finish_reason == "length":
                 return await self._save(
                     principal, run, status="blocked", reason="model_output_incomplete"
+                )
+            if result.redacted and result.tool_calls:
+                return await self._save(
+                    principal, run, status="blocked", reason="sensitive_model_tool_output"
                 )
             if len({c.id for c in result.tool_calls}) != len(result.tool_calls):
                 return await self._save(
@@ -866,6 +904,19 @@ class AgentRuntime:
                 check=check,
                 reason="host_acceptance_" + check.outcome,
             )
+
+    async def transient(self, principal: Principal, run_id: str) -> TransientProgress | None:
+        run = await self.get(principal, run_id)
+        value = self._progress.get(run_id)
+        if (
+            value is None
+            or run.status != "running"
+            or run.phase != "model"
+            or run.model_request_id != value.request_id
+            or run.goal_revision != value.goal_revision
+        ):
+            return None
+        return value
 
     async def report(self, principal: Principal, run_id: str) -> tuple[str, bytes]:
         run = await self.get(principal, run_id)

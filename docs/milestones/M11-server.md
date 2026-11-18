@@ -1,6 +1,6 @@
 # M11：服务端 API、命令与事件流
 
-> 状态：计划中。当前仅建立开发计划，未实现本里程碑。
+> 状态：已完成（本机服务范围）。验收与协议见 [M11 证据](./evidence/M11.md)。
 
 ## 目标与前置依赖
 
@@ -14,10 +14,10 @@ ServerFactory、CommandHandlerFactory、EventStreamFactory。对外 Port、配�
 
 ## 开发任务
 
-- [ ] 固化项目、会话、run、artifact、审批、能力查询和命令 API，生成前端类型。
-- [ ] HTTP 命令带 request_id/goal_revision；鉴权、来源校验、错误模型和并发冲突在服务端处理。
-- [ ] WebSocket 明确持久游标、临时 delta、快照对齐、去重与重连，不能承诺 token 全部持久化。
-- [ ] 实现上传限制、artifact 授权读取、资源清理、请求取消语义及后台任务与连接生命周期分离。
+- [x] 固化项目、会话、run、artifact、审批、能力查询和命令 API，生成前端类型。
+- [x] HTTP 命令带 request_id/goal_revision；鉴权、来源校验、错误模型和并发冲突在服务端处理。
+- [x] WebSocket 明确持久游标、临时 delta、快照对齐、去重与重连，不能承诺 token 全部持久化。
+- [x] 实现上传限制、artifact 授权读取、资源清理、请求取消语义及后台任务与连接生命周期分离。
 
 ## 前端交付
 

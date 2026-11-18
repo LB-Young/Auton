@@ -147,6 +147,24 @@ export function Genome({ feature }: { feature: GenomeFeature }) {
           <article className="settings-card">
             <h2>学习候选</h2>
             <label className="judgment-label">
+              上传 UTF-8 文本至候选区（最多 128 KiB，仍需审阅晋升）
+              <input
+                aria-label="上传项目文本"
+                type="file"
+                accept=".txt,.md,.json,.csv"
+                disabled={busy}
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  event.target.value = '';
+                  if (file)
+                    void run(async () => {
+                      await feature.upload(state.project.id, file);
+                      update(await feature.view(state.project.id));
+                    });
+                }}
+              />
+            </label>
+            <label className="judgment-label">
               资产 ID
               <input
                 aria-label="资产 ID"

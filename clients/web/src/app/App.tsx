@@ -697,6 +697,37 @@ export function App({ application }: { application: Application }) {
                 <p className="module-description">查看当前能力，保持每一步真实可见。</p>
                 <div className="settings-card">
                   <h2>连接状态</h2>
+                  <button
+                    className="secondary-button"
+                    onClick={() => {
+                      const project = window.prompt(
+                        '输入旧身份拥有的项目 ID，以恢复升级前的本机身份。需要此浏览器仍保留旧 Cookie。',
+                      );
+                      if (project)
+                        void application
+                          .adoptLegacy(project)
+                          .then(() => window.location.reload())
+                          .catch((error: Error) => setNotice(error.message));
+                    }}
+                  >
+                    恢复升级前的本机身份
+                  </button>
+                  <p>
+                    本机身份：{state.boot?.identity?.identity_id ?? '不可用'} ·{' '}
+                    {state.boot?.identity?.persistent ? '重启后保持' : '测试临时身份'}
+                  </p>
+                  <button
+                    className="secondary-button"
+                    onClick={() => {
+                      if (window.confirm('创建新本机身份后，旧身份的数据不会转移。确认继续？'))
+                        void application
+                          .resetIdentity()
+                          .then(() => window.location.reload())
+                          .catch((error: Error) => setNotice(error.message));
+                    }}
+                  >
+                    创建新的本机身份
+                  </button>
                   <dl>
                     <div>
                       <dt>后端服务</dt>

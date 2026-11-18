@@ -1,6 +1,6 @@
 from typing import Protocol
 
-from auton.agent.contracts import AgentRun, CreateRun, RunCommand
+from auton.agent.contracts import AgentRun, CreateRun, RunCommand, TransientProgress
 from auton.constitution.config import Principal
 from auton.kernel.ports import LifecycleHandle
 
@@ -13,6 +13,7 @@ class AgentRuntimePort(LifecycleHandle, Protocol):
     async def command_result(
         self, principal: Principal, run_id: str, command: RunCommand
     ) -> AgentRun | None: ...
+    async def transient(self, principal: Principal, run_id: str) -> TransientProgress | None: ...
     async def report(self, principal: Principal, run_id: str) -> tuple[str, bytes]: ...
 
 

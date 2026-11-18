@@ -17,11 +17,16 @@ from auton.genome.ports import GenomePort
 from auton.judgment.ports import JudgmentPort
 from auton.kernel.events import StorageInfo
 from auton.kernel.modules import ModuleDescriptor
+from auton.kernel.storage import EventLogPort
 from auton.model.ports import ModelGatewayPort
+from auton.server.commands import CommandHandlerPort
+from auton.server.identity import IdentityInfo, IdentityPort
+from auton.server.uploads import UploadPort
 from auton.tools.ports import ToolHostPort
 
 
 class BootstrapResponse(BaseModel):
+    identity: IdentityInfo
     profile: str
     demo: bool
     implementation: str
@@ -44,6 +49,10 @@ class ServerDependencies:
     lifespan: Callable[[FastAPI], AbstractAsyncContextManager[None]]
     is_ready: Callable[[], bool]
     storage: Callable[[], StorageInfo]
+    uploads: UploadPort
+    commands: CommandHandlerPort
+    identity: IdentityPort
+    events: EventLogPort
     experience: ExperiencePort
     agent: AgentRuntimePort
     context: ContextEnginePort
