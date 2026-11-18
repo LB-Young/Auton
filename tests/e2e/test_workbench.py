@@ -284,3 +284,58 @@ def test_context_budget_sources_compression_and_mobile(page: Page) -> None:
     screenshot(page, "M08-context-mobile.png")
     page.get_by_label("上下文目标").fill("新修订")
     expect(page.locator(".context-result")).to_have_count(0)
+
+
+def test_agent_research_and_approved_file_delivery(page: Page) -> None:
+    page.get_by_role("button", name=re.compile("^资产")).click()
+    page.get_by_label("资产项目 ID", exact=True).fill("agent-browser")
+    page.get_by_label("资产项目名称").fill("Agent 验收项目")
+    page.get_by_role("button", name="创建资产项目").click()
+    page.get_by_label("资产候选内容").fill(
+        "Context retrieval preserves provenance and project boundaries."
+    )
+    page.get_by_role("button", name="保存到学习候选").click()
+    page.get_by_role("button", name="晋升 项目笔记").click()
+    expect(page.get_by_role("button", name="历史 项目笔记")).to_be_visible()
+    page.get_by_role("button", name=re.compile("^工具")).click()
+    page.get_by_label("允许新工作区申请写入与固定进程操作").check()
+    page.get_by_role("button", name="创建工具工作区").click()
+    expect(page.get_by_label("工具工作区")).not_to_have_value("")
+    page.get_by_role("button", name=re.compile("^任务")).click()
+    page.get_by_label("真实任务目标").fill("Research context retrieval and provenance.")
+    page.get_by_role("button", name="启动真实任务").click()
+    record = page.get_by_label("真实任务执行记录")
+    expect(record.get_by_role("status")).to_contain_text("验收通过", timeout=15000)
+    expect(record.get_by_role("status")).to_contain_text("测试替身")
+    expect(record).to_contain_text("retrieval-citations-v1")
+    with page.expect_download() as report:
+        record.get_by_role("link", name="下载任务报告").click()
+    assert "[asset:notes]" in Path(report.value.path()).read_text()
+    record.get_by_role("heading", name="执行记录").scroll_into_view_if_needed()
+    screenshot(page, "M09-research.png")
+    page.get_by_label("任务验收类型").select_option("file")
+    page.get_by_label("真实任务目标").fill("Create a precise UTF-8 text file.")
+    page.get_by_label("任务期望内容").fill("hello\n")
+    page.get_by_role("button", name="启动真实任务").click()
+    expect(record.get_by_role("status")).to_contain_text("等待审批", timeout=15000)
+    expect(record.locator(".tool-output").first).to_contain_text("+hello")
+    screenshot(page, "M09-approval.png")
+    record.get_by_role("button", name="批准本次任务操作").click()
+    expect(record.get_by_role("status")).to_contain_text("验收通过", timeout=15000)
+    expect(record).to_contain_text("file-sha256-v1")
+    record.get_by_text(re.compile("file.write · succeeded")).click()
+    with page.expect_download() as artifact:
+        record.get_by_role("link", name="下载任务文件 notes.md").click()
+    assert Path(artifact.value.path()).read_text() == "hello\n"
+    record.get_by_role("heading", name="执行记录").scroll_into_view_if_needed()
+    screenshot(page, "M09-file.png")
+    page.reload()
+    page.get_by_role("button", name=re.compile("^任务")).click()
+    page.get_by_role("button", name=re.compile("^Create a precise")).click()
+    expect(page.get_by_label("真实任务执行记录")).to_contain_text("file-sha256-v1")
+    page.set_viewport_size({"width": 390, "height": 844})
+    assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth")
+    page.get_by_label("真实任务执行记录").get_by_role(
+        "heading", name="执行记录"
+    ).scroll_into_view_if_needed()
+    screenshot(page, "M09-mobile.png")

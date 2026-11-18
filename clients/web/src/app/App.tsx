@@ -37,6 +37,7 @@ import type { Application } from './composition';
 import type { Artifact, PolicyDecision } from '../shared/contracts';
 import { Judgment } from '../features/judgment/Judgment';
 import { Tools } from '../features/tools/Tools';
+import { Agent } from '../features/agent/Agent';
 import { Context } from '../features/context/Context';
 import { Genome } from '../features/genome/Genome';
 import { Models } from '../features/models/Models';
@@ -411,7 +412,11 @@ export function App({ application }: { application: Application }) {
           <div className="topbar-actions">
             <span className="demo-badge">
               <span />
-              {state.boot?.demo === false ? '真实执行未接入' : '框架演示'}
+              {view === 'agent'
+                ? '任务工作台'
+                : state.boot?.demo === false
+                  ? '真实任务已接入'
+                  : '框架演示'}
             </span>
             <span className="topbar-divider" />
             <button
@@ -660,6 +665,8 @@ export function App({ application }: { application: Application }) {
                   </div>
                 </div>
               </>
+            ) : view === 'agent' ? (
+              <Agent feature={application.agent} />
             ) : view === 'context' ? (
               <Context feature={application.context} />
             ) : view === 'genome' ? (
@@ -797,7 +804,8 @@ export function App({ application }: { application: Application }) {
                   </button>
                 </div>
                 <p className="module-note">
-                  本机工作台已接入持久事件、固定策略与执行模型网关。真实 Agent 对话将在 M09 接入。
+                  本机工作台已接入持久事件、固定策略与执行模型网关。真实 Agent
+                  已接入任务页；主对话仍为 Demo。
                 </p>
               </section>
             ) : (

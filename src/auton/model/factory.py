@@ -18,7 +18,7 @@ class ProviderFactory:
         client_factory: Callable[[], httpx.AsyncClient] | None = None,
     ) -> ProviderPort:
         if config.backend == "mock":
-            return MockProvider()
+            return MockProvider(config.fixture_scenario)
         return DeepSeekProvider(
             config,
             secrets,

@@ -4,6 +4,75 @@
  */
 
 export interface paths {
+  '/api/v1/agent/runs': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Agent Runs */
+    get: operations['agent_runs_api_v1_agent_runs_get'];
+    put?: never;
+    /** Create Agent Run */
+    post: operations['create_agent_run_api_v1_agent_runs_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/agent/runs/{run_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Agent Run */
+    get: operations['agent_run_api_v1_agent_runs__run_id__get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/agent/runs/{run_id}/commands': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Agent Command */
+    post: operations['agent_command_api_v1_agent_runs__run_id__commands_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/agent/runs/{run_id}/report': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Agent Report */
+    get: operations['agent_report_api_v1_agent_runs__run_id__report_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/bootstrap': {
     parameters: {
       query?: never;
@@ -606,6 +675,61 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
+    /** Acceptance */
+    'Acceptance-Input': {
+      /**
+       * Kind
+       * @enum {string}
+       */
+      kind: 'file' | 'research';
+      /**
+       * Min Sources
+       * @default 1
+       */
+      min_sources: number;
+      /** Path */
+      path?: string | null;
+      /** Sha256 */
+      sha256?: string | null;
+    };
+    /** Acceptance */
+    'Acceptance-Output': {
+      /**
+       * Kind
+       * @enum {string}
+       */
+      kind: 'file' | 'research';
+      /**
+       * Min Sources
+       * @default 1
+       */
+      min_sources: number;
+      /** Path */
+      path: string | null;
+      /** Sha256 */
+      sha256: string | null;
+    };
+    /** AcceptanceCheck */
+    AcceptanceCheck: {
+      /**
+       * Checker
+       * @enum {string}
+       */
+      checker: 'file-sha256-v1' | 'retrieval-citations-v1';
+      /** Evidence */
+      evidence: string[];
+      /**
+       * Outcome
+       * @enum {string}
+       */
+      outcome: 'passed' | 'failed' | 'unknown';
+      /**
+       * Semantic Quality Verified
+       * @default false
+       * @constant
+       */
+      semantic_quality_verified: false;
+    };
     /** ActionRequest */
     ActionRequest: {
       /** Action */
@@ -644,6 +768,151 @@ export interface components {
       principal: components['schemas']['Principal'];
       /** Provider */
       provider?: string | null;
+    };
+    /** AgentRun */
+    AgentRun: {
+      /** Approvals */
+      approvals: {
+        [key: string]: string;
+      };
+      check: components['schemas']['AcceptanceCheck'] | null;
+      command: components['schemas']['CreateRun-Output'];
+      /**
+       * Context Ids
+       * @default []
+       */
+      context_ids: string[];
+      /**
+       * Cost Microusd
+       * @default 0
+       */
+      cost_microusd: number;
+      /**
+       * Executor Selection
+       * @default user-explicit
+       * @constant
+       */
+      executor_selection: 'user-explicit';
+      /**
+       * Final Text
+       * @default
+       */
+      final_text: string;
+      /**
+       * Goal Revision
+       * @default 1
+       */
+      goal_revision: number;
+      /**
+       * History
+       * @default []
+       */
+      history: components['schemas']['ModelMessage-Output'][];
+      /** Id */
+      id: string;
+      /**
+       * Input Cutoff Unit
+       * @default run-checkpoint-version
+       * @constant
+       */
+      input_cutoff_unit: 'run-checkpoint-version';
+      /**
+       * Judgment Ids
+       * @default []
+       */
+      judgment_ids: string[];
+      /**
+       * Judgments
+       * @default []
+       */
+      judgments: components['schemas']['JudgmentResult'][];
+      /** Model Request Id */
+      model_request_id: string | null;
+      /**
+       * Model Results
+       * @default []
+       */
+      model_results: components['schemas']['ModelResult'][];
+      /**
+       * Pending Calls
+       * @default []
+       */
+      pending_calls: components['schemas']['ToolCall'][];
+      /** Pending Goal */
+      pending_goal: string | null;
+      /**
+       * Phase
+       * @default idle
+       * @enum {string}
+       */
+      phase: 'idle' | 'judgment' | 'context' | 'model' | 'tool' | 'acceptance';
+      /**
+       * Plans
+       * @default []
+       */
+      plans: components['schemas']['ToolPlan'][];
+      /**
+       * Reason
+       * @default queued
+       */
+      reason: string;
+      /**
+       * Receipts
+       * @default []
+       */
+      receipts: components['schemas']['ToolReceipt'][];
+      /**
+       * Runtime Revision
+       * @default single-agent-v1
+       * @constant
+       */
+      runtime_revision: 'single-agent-v1';
+      /**
+       * Session Id
+       * @default
+       */
+      session_id: string;
+      /**
+       * Source
+       * @enum {string}
+       */
+      source: 'runtime' | 'test';
+      /**
+       * Status
+       * @default queued
+       * @enum {string}
+       */
+      status:
+        | 'queued'
+        | 'running'
+        | 'waiting_approval'
+        | 'blocked'
+        | 'pausing'
+        | 'paused'
+        | 'cancelling'
+        | 'cancelled'
+        | 'succeeded'
+        | 'failed';
+      /**
+       * Steps
+       * @default 0
+       */
+      steps: number;
+      /**
+       * Stop Requested
+       * @default false
+       */
+      stop_requested: boolean;
+      /**
+       * Tokens Used
+       * @default 0
+       */
+      tokens_used: number;
+      /**
+       * Version
+       * @default 0
+       */
+      version: number;
     };
     /** Answer */
     Answer: {
@@ -992,6 +1261,72 @@ export interface components {
       tokenizer_revision: string;
       /** Tools */
       tools: components['schemas']['ToolSpec'][];
+    };
+    /** CreateRun */
+    'CreateRun-Input': {
+      acceptance: components['schemas']['Acceptance-Input'];
+      /**
+       * Allowed Tools
+       * @default [
+       *       "file.read",
+       *       "mcp.sha256"
+       *     ]
+       */
+      allowed_tools: ('file.read' | 'file.write' | 'process.run' | 'mcp.sha256')[];
+      /**
+       * Boundaries
+       * @default []
+       */
+      boundaries: string[];
+      /**
+       * Data Domain
+       * @default local-only
+       * @enum {string}
+       */
+      data_domain: 'public' | 'local-only';
+      /** Goal */
+      goal: string;
+      /** Model Id */
+      model_id: string;
+      /** Project Id */
+      project_id: string;
+      /** Request Id */
+      request_id: string;
+      /** Workspace Id */
+      workspace_id: string;
+    };
+    /** CreateRun */
+    'CreateRun-Output': {
+      acceptance: components['schemas']['Acceptance-Output'];
+      /**
+       * Allowed Tools
+       * @default [
+       *       "file.read",
+       *       "mcp.sha256"
+       *     ]
+       */
+      allowed_tools: ('file.read' | 'file.write' | 'process.run' | 'mcp.sha256')[];
+      /**
+       * Boundaries
+       * @default []
+       */
+      boundaries: string[];
+      /**
+       * Data Domain
+       * @default local-only
+       * @enum {string}
+       */
+      data_domain: 'public' | 'local-only';
+      /** Goal */
+      goal: string;
+      /** Model Id */
+      model_id: string;
+      /** Project Id */
+      project_id: string;
+      /** Request Id */
+      request_id: string;
+      /** Workspace Id */
+      workspace_id: string;
     };
     /** CreateSession */
     CreateSession: {
@@ -1456,6 +1791,20 @@ export interface components {
        */
       status: 'proposed' | 'blocked' | 'not_requested' | 'stale';
     };
+    /** RunCommand */
+    RunCommand: {
+      /**
+       * Action
+       * @enum {string}
+       */
+      action: 'pause' | 'cancel' | 'resume' | 'approve' | 'reconcile' | 'revise';
+      /** Expected Goal Revision */
+      expected_goal_revision: number;
+      /** Goal */
+      goal?: string | null;
+      /** Request Id */
+      request_id: string;
+    };
     /** SendMessage */
     SendMessage: {
       /** Content */
@@ -1611,6 +1960,10 @@ export interface components {
        * @default []
        */
       boundaries: string[];
+      /** Delivery */
+      delivery?: {
+        [key: string]: components['schemas']['JsonValue'];
+      };
       /** Goal */
       goal: string;
       /**
@@ -1855,6 +2208,482 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+  agent_runs_api_v1_agent_runs_get: {
+    parameters: {
+      query: {
+        project_id: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['AgentRun'][];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  create_agent_run_api_v1_agent_runs_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CreateRun-Input'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['AgentRun'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  agent_run_api_v1_agent_runs__run_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        run_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['AgentRun'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  agent_command_api_v1_agent_runs__run_id__commands_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        run_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RunCommand'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['AgentRun'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  agent_report_api_v1_agent_runs__run_id__report_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        run_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
   bootstrap_api_v1_bootstrap_get: {
     parameters: {
       query?: never;

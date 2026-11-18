@@ -1,6 +1,150 @@
 {
   "components": {
     "schemas": {
+      "Acceptance-Input": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "enum": [
+              "file",
+              "research"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "min_sources": {
+            "default": 1,
+            "maximum": 6.0,
+            "minimum": 1.0,
+            "title": "Min Sources",
+            "type": "integer"
+          },
+          "path": {
+            "anyOf": [
+              {
+                "maxLength": 400,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Path"
+          },
+          "sha256": {
+            "anyOf": [
+              {
+                "pattern": "^[a-f0-9]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sha256"
+          }
+        },
+        "required": [
+          "kind"
+        ],
+        "title": "Acceptance",
+        "type": "object"
+      },
+      "Acceptance-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "enum": [
+              "file",
+              "research"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "min_sources": {
+            "default": 1,
+            "maximum": 6.0,
+            "minimum": 1.0,
+            "title": "Min Sources",
+            "type": "integer"
+          },
+          "path": {
+            "anyOf": [
+              {
+                "maxLength": 400,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Path"
+          },
+          "sha256": {
+            "anyOf": [
+              {
+                "pattern": "^[a-f0-9]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sha256"
+          }
+        },
+        "required": [
+          "kind",
+          "path",
+          "sha256",
+          "min_sources"
+        ],
+        "title": "Acceptance",
+        "type": "object"
+      },
+      "AcceptanceCheck": {
+        "additionalProperties": false,
+        "properties": {
+          "checker": {
+            "enum": [
+              "file-sha256-v1",
+              "retrieval-citations-v1"
+            ],
+            "title": "Checker",
+            "type": "string"
+          },
+          "evidence": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Evidence",
+            "type": "array"
+          },
+          "outcome": {
+            "enum": [
+              "passed",
+              "failed",
+              "unknown"
+            ],
+            "title": "Outcome",
+            "type": "string"
+          },
+          "semantic_quality_verified": {
+            "const": false,
+            "default": false,
+            "title": "Semantic Quality Verified",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "outcome",
+          "checker",
+          "evidence",
+          "semantic_quality_verified"
+        ],
+        "title": "AcceptanceCheck",
+        "type": "object"
+      },
       "ActionRequest": {
         "additionalProperties": false,
         "properties": {
@@ -82,6 +226,255 @@
           "action"
         ],
         "title": "ActionRequest",
+        "type": "object"
+      },
+      "AgentRun": {
+        "additionalProperties": false,
+        "properties": {
+          "approvals": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Approvals",
+            "type": "object"
+          },
+          "check": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AcceptanceCheck"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "command": {
+            "$ref": "#/components/schemas/CreateRun-Output"
+          },
+          "context_ids": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Context Ids",
+            "type": "array"
+          },
+          "cost_microusd": {
+            "default": 0,
+            "title": "Cost Microusd",
+            "type": "integer"
+          },
+          "executor_selection": {
+            "const": "user-explicit",
+            "default": "user-explicit",
+            "title": "Executor Selection",
+            "type": "string"
+          },
+          "final_text": {
+            "default": "",
+            "title": "Final Text",
+            "type": "string"
+          },
+          "goal_revision": {
+            "default": 1,
+            "title": "Goal Revision",
+            "type": "integer"
+          },
+          "history": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/ModelMessage-Output"
+            },
+            "title": "History",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "input_cutoff_unit": {
+            "const": "run-checkpoint-version",
+            "default": "run-checkpoint-version",
+            "title": "Input Cutoff Unit",
+            "type": "string"
+          },
+          "judgment_ids": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Judgment Ids",
+            "type": "array"
+          },
+          "judgments": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/JudgmentResult"
+            },
+            "title": "Judgments",
+            "type": "array"
+          },
+          "model_request_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Request Id"
+          },
+          "model_results": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/ModelResult"
+            },
+            "title": "Model Results",
+            "type": "array"
+          },
+          "pending_calls": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/ToolCall"
+            },
+            "title": "Pending Calls",
+            "type": "array"
+          },
+          "pending_goal": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pending Goal"
+          },
+          "phase": {
+            "default": "idle",
+            "enum": [
+              "idle",
+              "judgment",
+              "context",
+              "model",
+              "tool",
+              "acceptance"
+            ],
+            "title": "Phase",
+            "type": "string"
+          },
+          "plans": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/ToolPlan"
+            },
+            "title": "Plans",
+            "type": "array"
+          },
+          "reason": {
+            "default": "queued",
+            "title": "Reason",
+            "type": "string"
+          },
+          "receipts": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/ToolReceipt"
+            },
+            "title": "Receipts",
+            "type": "array"
+          },
+          "runtime_revision": {
+            "const": "single-agent-v1",
+            "default": "single-agent-v1",
+            "title": "Runtime Revision",
+            "type": "string"
+          },
+          "session_id": {
+            "default": "",
+            "title": "Session Id",
+            "type": "string"
+          },
+          "source": {
+            "enum": [
+              "runtime",
+              "test"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "status": {
+            "default": "queued",
+            "enum": [
+              "queued",
+              "running",
+              "waiting_approval",
+              "blocked",
+              "pausing",
+              "paused",
+              "cancelling",
+              "cancelled",
+              "succeeded",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "steps": {
+            "default": 0,
+            "title": "Steps",
+            "type": "integer"
+          },
+          "stop_requested": {
+            "default": false,
+            "title": "Stop Requested",
+            "type": "boolean"
+          },
+          "tokens_used": {
+            "default": 0,
+            "title": "Tokens Used",
+            "type": "integer"
+          },
+          "version": {
+            "default": 0,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "session_id",
+          "id",
+          "version",
+          "goal_revision",
+          "command",
+          "status",
+          "phase",
+          "reason",
+          "steps",
+          "tokens_used",
+          "cost_microusd",
+          "model_results",
+          "history",
+          "pending_calls",
+          "plans",
+          "receipts",
+          "approvals",
+          "context_ids",
+          "judgment_ids",
+          "judgments",
+          "input_cutoff_unit",
+          "executor_selection",
+          "model_request_id",
+          "pending_goal",
+          "stop_requested",
+          "final_text",
+          "check",
+          "source",
+          "runtime_revision"
+        ],
+        "title": "AgentRun",
         "type": "object"
       },
       "Answer": {
@@ -905,6 +1298,173 @@
           "checkpoint_modified"
         ],
         "title": "ContextSnapshot",
+        "type": "object"
+      },
+      "CreateRun-Input": {
+        "additionalProperties": false,
+        "properties": {
+          "acceptance": {
+            "$ref": "#/components/schemas/Acceptance-Input"
+          },
+          "allowed_tools": {
+            "default": [
+              "file.read",
+              "mcp.sha256"
+            ],
+            "items": {
+              "enum": [
+                "file.read",
+                "file.write",
+                "process.run",
+                "mcp.sha256"
+              ],
+              "type": "string"
+            },
+            "maxItems": 4,
+            "title": "Allowed Tools",
+            "type": "array"
+          },
+          "boundaries": {
+            "default": [],
+            "items": {
+              "maxLength": 300,
+              "type": "string"
+            },
+            "maxItems": 16,
+            "title": "Boundaries",
+            "type": "array"
+          },
+          "data_domain": {
+            "default": "local-only",
+            "enum": [
+              "public",
+              "local-only"
+            ],
+            "title": "Data Domain",
+            "type": "string"
+          },
+          "goal": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Goal",
+            "type": "string"
+          },
+          "model_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Model Id",
+            "type": "string"
+          },
+          "project_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "request_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,100}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "workspace_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Workspace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "project_id",
+          "workspace_id",
+          "model_id",
+          "goal",
+          "acceptance"
+        ],
+        "title": "CreateRun",
+        "type": "object"
+      },
+      "CreateRun-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "acceptance": {
+            "$ref": "#/components/schemas/Acceptance-Output"
+          },
+          "allowed_tools": {
+            "default": [
+              "file.read",
+              "mcp.sha256"
+            ],
+            "items": {
+              "enum": [
+                "file.read",
+                "file.write",
+                "process.run",
+                "mcp.sha256"
+              ],
+              "type": "string"
+            },
+            "maxItems": 4,
+            "title": "Allowed Tools",
+            "type": "array"
+          },
+          "boundaries": {
+            "default": [],
+            "items": {
+              "maxLength": 300,
+              "type": "string"
+            },
+            "maxItems": 16,
+            "title": "Boundaries",
+            "type": "array"
+          },
+          "data_domain": {
+            "default": "local-only",
+            "enum": [
+              "public",
+              "local-only"
+            ],
+            "title": "Data Domain",
+            "type": "string"
+          },
+          "goal": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Goal",
+            "type": "string"
+          },
+          "model_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Model Id",
+            "type": "string"
+          },
+          "project_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "request_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,100}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "workspace_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Workspace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "project_id",
+          "workspace_id",
+          "model_id",
+          "goal",
+          "boundaries",
+          "data_domain",
+          "allowed_tools",
+          "acceptance"
+        ],
+        "title": "CreateRun",
         "type": "object"
       },
       "CreateSession": {
@@ -2113,6 +2673,53 @@
         "title": "RouteDecision",
         "type": "object"
       },
+      "RunCommand": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "enum": [
+              "pause",
+              "cancel",
+              "resume",
+              "approve",
+              "reconcile",
+              "revise"
+            ],
+            "title": "Action",
+            "type": "string"
+          },
+          "expected_goal_revision": {
+            "minimum": 1.0,
+            "title": "Expected Goal Revision",
+            "type": "integer"
+          },
+          "goal": {
+            "anyOf": [
+              {
+                "maxLength": 4000,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Goal"
+          },
+          "request_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,100}$",
+            "title": "Request Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "expected_goal_revision",
+          "action"
+        ],
+        "title": "RunCommand",
+        "type": "object"
+      },
       "SendMessage": {
         "additionalProperties": false,
         "properties": {
@@ -2477,6 +3084,13 @@
             "maxItems": 20,
             "title": "Boundaries",
             "type": "array"
+          },
+          "delivery": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonValue"
+            },
+            "title": "Delivery",
+            "type": "object"
           },
           "goal": {
             "maxLength": 4000,
@@ -3022,6 +3636,560 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/v1/agent/runs": {
+      "get": {
+        "operationId": "agent_runs_api_v1_agent_runs_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AgentRun"
+                  },
+                  "title": "Response Agent Runs Api V1 Agent Runs Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Agent Runs"
+      },
+      "post": {
+        "operationId": "create_agent_run_api_v1_agent_runs_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRun-Input"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentRun"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Create Agent Run"
+      }
+    },
+    "/api/v1/agent/runs/{run_id}": {
+      "get": {
+        "operationId": "agent_run_api_v1_agent_runs__run_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentRun"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Agent Run"
+      }
+    },
+    "/api/v1/agent/runs/{run_id}/commands": {
+      "post": {
+        "operationId": "agent_command_api_v1_agent_runs__run_id__commands_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RunCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentRun"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Agent Command"
+      }
+    },
+    "/api/v1/agent/runs/{run_id}/report": {
+      "get": {
+        "operationId": "agent_report_api_v1_agent_runs__run_id__report_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Agent Report"
+      }
+    },
     "/api/v1/bootstrap": {
       "get": {
         "operationId": "bootstrap_api_v1_bootstrap_get",

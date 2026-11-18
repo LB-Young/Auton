@@ -6,6 +6,7 @@ from urllib.parse import urlsplit
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from auton.agent.contracts import AgentConfig
 from auton.constitution.config import ConstitutionConfig
 from auton.context.contracts import ContextConfig
 from auton.genome.contracts import GenomeConfig
@@ -17,6 +18,7 @@ from auton.tools.config import ToolConfig
 
 class ApplicationConfig(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True, hide_input_in_errors=True)
+    agent: AgentConfig = Field(default_factory=AgentConfig)
     constitution: ConstitutionConfig = Field(default_factory=ConstitutionConfig)
     context: ContextConfig = Field(default_factory=ContextConfig)
     genome: GenomeConfig = Field(default_factory=GenomeConfig)

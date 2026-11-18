@@ -2,7 +2,7 @@ import hashlib
 from pathlib import Path
 from typing import Annotated, Literal
 
-from pydantic import Field, model_validator
+from pydantic import Field, JsonValue, model_validator
 
 from auton.constitution.config import Principal
 from auton.model.contracts import Contract, ModelMessage, ToolSpec
@@ -22,6 +22,7 @@ class PendingOperation(Contract):
 
 
 class TaskState(Contract):
+    delivery: dict[str, JsonValue] = Field(default_factory=dict)
     goal: str = Field(min_length=1, max_length=4000)
     boundaries: tuple[Annotated[str, Field(max_length=300)], ...] = Field(default=(), max_length=20)
     pending: tuple[PendingOperation, ...] = Field(default=(), max_length=30)

@@ -35,3 +35,7 @@ export type VersionInfo = components['schemas']['VersionInfo'];
 
 export type ContextSnapshot = components['schemas']['ContextSnapshot'];
 export type ContextPreviewCommand = components['schemas']['ContextPreviewCommand'];
+
+export type AgentRun = components['schemas']['AgentRun'];
+export type CreateRun = components['schemas']['CreateRun-Input'];
+export type RunCommand = components['schemas']['RunCommand'];

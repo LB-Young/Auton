@@ -1,4 +1,7 @@
 import type {
+  AgentRun,
+  CreateRun,
+  RunCommand,
   ContextSnapshot,
   ContextPreviewCommand,
   JudgmentInfo,
@@ -24,6 +27,10 @@ import type {
 } from '../shared/contracts';
 
 export interface ApiClient {
+  createRun(command: CreateRun): Promise<AgentRun>;
+  agentRun(id: string): Promise<AgentRun>;
+  agentRuns(project: string): Promise<AgentRun[]>;
+  agentCommand(id: string, command: RunCommand): Promise<AgentRun>;
   prepareContext(project: string, command: ContextPreviewCommand): Promise<ContextSnapshot>;
   contextSnapshot(project: string, id: string): Promise<ContextSnapshot>;
   judgment(): Promise<JudgmentInfo>;

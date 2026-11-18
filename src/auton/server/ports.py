@@ -7,6 +7,7 @@ from typing import Literal
 from fastapi import FastAPI
 from pydantic import BaseModel
 
+from auton.agent.ports import AgentRuntimePort
 from auton.constitution.config import PublicPolicy
 from auton.constitution.ports import PolicyControlPort
 from auton.context.ports import ContextEnginePort
@@ -42,6 +43,7 @@ class ServerDependencies:
     lifespan: Callable[[FastAPI], AbstractAsyncContextManager[None]]
     is_ready: Callable[[], bool]
     storage: Callable[[], StorageInfo]
+    agent: AgentRuntimePort
     context: ContextEnginePort
     genome: GenomePort
     tools: ToolHostPort

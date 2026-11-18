@@ -1,11 +1,19 @@
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class ModelConfig(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True, hide_input_in_errors=True)
     backend: Literal["deepseek", "mock"] = "deepseek"
+    fixture_scenario: Literal["baseline", "agent_acceptance"] = "baseline"
+
+    @model_validator(mode="after")
+    def fixture_only(self) -> "ModelConfig":
+        if self.backend != "mock" and self.fixture_scenario != "baseline":
+            raise ValueError("Synthetic scenarios require explicit mock backend")
+        return self
+
     secret_reference: str = Field(default="DEEPSEEK_API_KEY", pattern=r"^[A-Z][A-Z0-9_]{2,99}$")
     timeout_seconds: float = Field(default=45, gt=0, le=120)
     max_parallel: int = Field(default=4, ge=1, le=16)

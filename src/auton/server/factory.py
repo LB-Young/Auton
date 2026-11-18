@@ -12,6 +12,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field, JsonValue, model_validator
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
+from auton.agent.contracts import AgentRun, CreateRun, RunCommand
 from auton.constitution.config import (
     ActionRequest,
     ConstitutionConfig,
@@ -172,7 +173,9 @@ class ServerFactory:
 
         def service() -> ConversationPort:
             if deps.conversation is None:
-                raise ApplicationError(501, "not_implemented", "真实 Agent 尚未实现，未启用 Demo")
+                raise ApplicationError(
+                    501, "not_implemented", "主对话 Demo 未启用，请使用真实任务接口"
+                )
             return deps.conversation
 
         def owner(request: Request) -> str:
@@ -283,6 +286,39 @@ class ServerFactory:
         ) -> str:
             return await deps.genome.diff(
                 Principal(owner=owner(request)), project_id, asset_id, revision
+            )
+
+        @app.post("/api/v1/agent/runs")
+        async def create_agent_run(request: Request, command: CreateRun) -> AgentRun:
+            return await deps.agent.create(Principal(owner=owner(request), role="user"), command)
+
+        @app.get("/api/v1/agent/runs")
+        async def agent_runs(request: Request, project_id: str) -> list[AgentRun]:
+            return await deps.agent.list(Principal(owner=owner(request), role="user"), project_id)
+
+        @app.get("/api/v1/agent/runs/{run_id}")
+        async def agent_run(request: Request, run_id: str) -> AgentRun:
+            return await deps.agent.get(Principal(owner=owner(request), role="user"), run_id)
+
+        @app.post("/api/v1/agent/runs/{run_id}/commands")
+        async def agent_command(request: Request, run_id: str, command: RunCommand) -> AgentRun:
+            return await deps.agent.command(
+                Principal(owner=owner(request), role="user"), run_id, command
+            )
+
+        @app.get("/api/v1/agent/runs/{run_id}/report")
+        async def agent_report(request: Request, run_id: str) -> Response:
+            name, data = await deps.agent.report(
+                Principal(owner=owner(request), role="user"), run_id
+            )
+            return Response(
+                data,
+                media_type="text/markdown",
+                headers={
+                    "Content-Disposition": "attachment; filename*=UTF-8''" + quote(name),
+                    "Cache-Control": "no-store",
+                    "X-Content-Type-Options": "nosniff",
+                },
             )
 
         @app.post("/api/v1/projects/{project_id}/context")

@@ -3,6 +3,8 @@ from contextlib import AsyncExitStack, asynccontextmanager
 
 from fastapi import FastAPI
 
+from auton.agent.factory import AgentRuntimeFactory
+from auton.agent.service import AgentDependencies
 from auton.bootstrap.config import ApplicationConfig, load_config
 from auton.bootstrap.registry import module_catalog
 from auton.constitution.factory import ConstitutionDependencies, ConstitutionFactory
@@ -72,6 +74,10 @@ class ApplicationFactory:
         context = ContextEngineFactory().create(
             config.context, ContextDependencies(tools, genome, models, control, kernel.events, deps)
         )
+        agent = AgentRuntimeFactory().create(
+            config.agent,
+            AgentDependencies(context, models, tools, judgment, genome, kernel.events, deps),
+        )
         conversation: ConversationPort | None = None
         factory: ModuleFactory[DemoConfig, RuntimeDependencies, ConversationPort]
         factory = DemoConversationFactory()
@@ -84,9 +90,9 @@ class ApplicationFactory:
                 deps,
             )
         runtime = ApplicationRuntime(
-            [kernel, control, models, judgment, tools, genome, context, conversation]
+            [kernel, control, models, judgment, tools, genome, context, agent, conversation]
             if conversation is not None
-            else [kernel, control, models, judgment, tools, genome, context]
+            else [kernel, control, models, judgment, tools, genome, context, agent]
         )
         redactor = Redactor()
         return ServerFactory().create(
@@ -104,6 +110,7 @@ class ApplicationFactory:
                 tools=tools,
                 genome=genome,
                 context=context,
+                agent=agent,
                 redact=redactor.text,
                 logger=LoggerFactory().create(redactor),
             ),

@@ -1,6 +1,6 @@
 # M09：单 Agent 运行时与任务状态机
 
-> 状态：计划中。当前仅建立开发计划，未实现本里程碑。
+> 状态：受控单 Agent 执行范围已完成本地验收，见 [M09 验收与限制](./evidence/M09.md)。
 
 ## 目标与前置依赖
 
@@ -14,10 +14,10 @@ AgentRuntimeFactory、SessionFactory、RunFactory。对外 Port、配置、实�
 
 ## 开发任务
 
-- [ ] 实现装配→调用模型→校验动作→执行工具→记录→继续/交付的受控循环。
-- [ ] 定义 queued/running/waiting_approval/blocked/cancelling/cancelled/succeeded/failed 等状态与合法转移。
-- [ ] 支持用户修订、暂停/取消、安全 checkpoint 和总预算；停止应由运行时确认。
-- [ ] CLI 通过同一应用 Port 创建/恢复任务，记录所有真实模型/工具/判断来源；业务验收与模型自述分离。
+- [x] 实现装配→调用模型→校验动作→执行工具→记录→继续/交付的受控循环。
+- [x] 定义 queued/running/waiting_approval/blocked/cancelling/cancelled/succeeded/failed 等状态与合法转移。
+- [x] 支持用户修订、暂停/取消、安全 checkpoint 和总预算；停止应由运行时确认。
+- [x] CLI 通过同一应用 Port 创建/恢复任务，记录所有真实模型/工具/判断来源；业务验收与模型自述分离。
 
 ## 前端交付
 

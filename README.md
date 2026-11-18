@@ -1,6 +1,6 @@
 # Auton
 
-个人 Agent 工作台。当前完成 **M01 项目框架、M02 持久事件内核、M03 固定控制策略、M04 执行模型网关、M05 本地判断接入、M06 受控工具、M07 版本资产与 M08 上下文引擎**：模块工厂、显式依赖组装、FastAPI API、React 对话界面与合成 Demo；M09–M21 尚未实现。
+个人 Agent 工作台。当前完成 **M01 项目框架、M02 持久事件内核、M03 固定控制策略、M04 执行模型网关、M05 本地判断接入、M06 受控工具、M07 版本资产、M08 上下文引擎与 M09 单 Agent 执行闭环**：模块工厂、显式依赖组装、FastAPI API、React 对话界面与合成 Demo；M10–M21 尚未实现。
 
 后端和开发/验收辅助工具优先使用 Python。仅浏览器界面及其必要构建配置使用 TypeScript/React；Makefile 是 Python 命令入口。
 
@@ -140,3 +140,40 @@ make context-smoke   # 本地真实 tokenizer：中英文、工具定义与调�
 缺少 tokenizer 时明确阻塞，不用字符近似或测试替身降级。检索使用词项/中文 bigram 基线，显示来源、内容 SHA256 和字符区间；不可信资料不授予权限。预算不足时先移除低优先级证据，再移除完整旧轮次，目标、边界、未决操作 receipt 和最新修订始终保留，仍放不下则阻塞。原始轨迹和 checkpoint 不被覆盖。
 
 界面分别显示本地 token 数与保守准入预算；服务端实际 usage 用于结算。配置 `[context]` 支持 `tokenizer_directory`、`max_evidence`、`chunk_characters`、`hosted_overhead_tokens`。见 [M08 验收与限制](docs/milestones/evidence/M08.md)。
+
+
+## 真实任务（M09）
+
+在资产页创建项目并审核资料，在工具页创建受限工作区，再进入任务页。当前支持已有项目资料的只读调研和精确文本文件交付；执行模型由用户明确选择，Laya 仅记录建议。远程调用前应明确声明任务、资料及工作区内容可外发。写入需逐项审阅批准，不提供任意 shell 或任意 Python 执行。
+
+文件验收比对实际文件与用户预先给出的 SHA256；资料报告检查引用是否指向本次保留证据。结构验收通过不等于语义质量已评估，独立质量评估接 M13。停止先进入 cancelling，等待在途动作结果；未知写入需要对账，不能盲目重试。主对话仍保留明确 Demo，真实任务与会话记录在任务页。
+
+CLI 使用同一应用接口，身份文件仅保存在忽略的 `.auton_local/cli`：
+
+```sh
+.venv/bin/python scripts/agent_cli.py init example --notes /path/to/public-notes.md
+.venv/bin/python scripts/agent_cli.py create --file /path/to/run.json
+.venv/bin/python scripts/agent_cli.py list example
+.venv/bin/python scripts/agent_cli.py get RUN_ID
+.venv/bin/python scripts/agent_cli.py command RUN_ID pause --revision 1
+.venv/bin/python scripts/agent_cli.py command RUN_ID resume --revision 1
+```
+
+`init --editable` 才允许建立可申请写入的工作区；已有工作区的权限范围不会被修改。`init --notes` 显式导入并晋升选定资料，不覆盖已有不同内容。浏览器与 CLI 默认是不同主体，分别初始化自己的项目。
+
+公开资料调研的 `run.json` 示例：
+
+```json
+{
+  "request_id": "research-example-1",
+  "project_id": "example",
+  "workspace_id": "example",
+  "model_id": "deepseek-flash",
+  "goal": "Research the public project notes and cite [asset:notes].",
+  "allowed_tools": ["file.read"],
+  "data_domain": "public",
+  "acceptance": {"kind": "research", "min_sources": 1}
+}
+```
+
+`make agent-smoke` 会使用本地 Laya 与真实 DeepSeek，在独立公开测试项目完成文件/调研验收，产生少量 API 费用；不会作为默认 CI。默认单任务最多 8 次模型调用、8 次工具调用、16000 tokens、10000 microUSD（按登记价格估算），并叠加 M03 的独立权限/预算门禁。M09 安全点可以用相同可信主体恢复；浏览器/CLI 跨后端重启的持久身份接 M11，完整轨迹投影与恢复管理接 M10。见 [M09 验收](docs/milestones/evidence/M09.md)。

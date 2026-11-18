@@ -1411,3 +1411,23 @@ svg {
     text-align: left;
   }
 }
+
+.agent-message {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+.agent-message > strong {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.agent-page .markdown {
+  font-size: 14px;
+  line-height: 1.7;
+}
+.agent-page a {
+  display: inline-block;
+  margin: 8px 0;
+}

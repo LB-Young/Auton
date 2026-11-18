@@ -1,4 +1,5 @@
 import type {
+  AgentRun,
   ContextSnapshot,
   ActionRequest,
   PolicyDecision,
@@ -52,6 +53,12 @@ export class ApiClientFactory {
       return (await response.json()) as T;
     }
     return {
+      createRun: (command) => request<AgentRun>('/agent/runs', command),
+      agentRun: (id) => request<AgentRun>(`/agent/runs/${encodeURIComponent(id)}`),
+      agentRuns: (project) =>
+        request<AgentRun[]>(`/agent/runs?project_id=${encodeURIComponent(project)}`),
+      agentCommand: (id, command) =>
+        request<AgentRun>(`/agent/runs/${encodeURIComponent(id)}/commands`, command),
       prepareContext: (project, command) =>
         request<ContextSnapshot>(`/projects/${encodeURIComponent(project)}/context`, command),
       contextSnapshot: (project, id) =>

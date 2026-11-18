@@ -254,6 +254,42 @@ class DeepSeekProvider:
 
 
 class MockProvider:
+    def __init__(self, scenario: str = "baseline") -> None:
+        self.scenario = scenario
+
+    def agent_fixture(self, request: ModelRequest) -> tuple[str, tuple[ToolCall, ...]]:
+        state: dict[str, object] = {}
+        sources: list[str] = []
+        for message in request.messages:
+            if message.role != "user" or not message.content:
+                continue
+            try:
+                value = json.loads(message.content)
+            except ValueError:
+                continue
+            if not isinstance(value, dict):
+                continue
+            if value.get("source") == "host-task-state" and not state:
+                state = value.get("state", {})
+            if value.get("source") == "retrieved-evidence":
+                sources.extend(value.get("asset_ids", []))
+        delivery = state.get("delivery", {})
+        if isinstance(delivery, dict) and delivery.get("kind") == "file":
+            if any(m.role == "tool" for m in request.messages):
+                return "[TEST FIXTURE] The host must verify the file digest.", ()
+            return "", (
+                ToolCall(
+                    id="fixture-write",
+                    name="file_write",
+                    arguments={"path": str(delivery.get("path", "notes.md")), "content": "hello\n"},
+                ),
+            )
+        text = (
+            "[TEST FIXTURE] Context retrieval preserves project boundaries and source provenance. "
+            * 3
+        )
+        return text + " ".join("[asset:" + source + "]" for source in sorted(set(sources))), ()
+
     async def start(self) -> None:
         pass
 
@@ -276,6 +312,8 @@ class MockProvider:
                     id="fixture-tool", name=request.tools[0].name, arguments={"value": "fixture"}
                 ),
             )
+        if self.scenario == "agent_acceptance" and request.goal_id.startswith("agent-goal-"):
+            content, calls = self.agent_fixture(request)
         for offset in range(0, len(content), 5):
             await asyncio.sleep(0)
             yield ModelChunk(kind="delta", content=content[offset : offset + 5])
