@@ -1,8 +1,8 @@
 import hashlib
 
-from pydantic import JsonValue
+from pydantic import JsonValue, ValidationError
 
-from auton.agent.contracts import AgentRun
+from auton.agent.contracts import AgentRun, checkpoint_event_id
 from auton.kernel.events import Event, EventScope
 from auton.kernel.ports import ApplicationError, RuntimeDependencies
 from auton.kernel.storage import EventLogPort, StorageError
@@ -36,7 +36,14 @@ class RunRepository:
                 low, latest = middle, found
             else:
                 high = middle
-        return AgentRun.model_validate(latest.event.payload["run"])
+        try:
+            return AgentRun.model_validate(latest.event.payload["run"])
+        except ValidationError as error:
+            raise ApplicationError(
+                409,
+                "agent_checkpoint_schema_incompatible",
+                "Checkpoint schema is unsupported; execution is blocked",
+            ) from error
 
     async def command_seen(self, owner: str, command_id: str, digest: str) -> str | None:
         value = await self.events.lookup("agent-command:" + key(owner, command_id))
@@ -64,7 +71,7 @@ class RunRepository:
             }
         )
         event = Event(
-            event_id=f"agent:{key(owner, run.id)}:{run.version}",
+            event_id=checkpoint_event_id(owner, run.id, run.version),
             kind="agent.checkpoint",
             timestamp=self.runtime.now(),
             scope=scope,

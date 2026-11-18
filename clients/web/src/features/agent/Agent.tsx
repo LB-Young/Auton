@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import type {
   AgentRun,
   ModelInfo,
@@ -23,7 +23,13 @@ const statusLabels: Record<AgentRun['status'], string> = {
 };
 const terminal = new Set(['succeeded', 'failed', 'cancelled']);
 
-export function Agent({ feature }: { feature: AgentFeature }) {
+export function Agent({
+  feature,
+  renderTrajectory,
+}: {
+  feature: AgentFeature;
+  renderTrajectory?: (run: AgentRun, onRecovered: (run: AgentRun) => void) => ReactNode;
+}) {
   const [projects, setProjects] = useState<Project[]>([]);
   const [workspaces, setWorkspaces] = useState<WorkspaceView[]>([]);
   const [models, setModels] = useState<ModelInfo[]>([]);
@@ -441,6 +447,10 @@ export function Agent({ feature }: { feature: AgentFeature }) {
               下载任务报告
             </a>
           )}
+          {renderTrajectory?.(run, (value) => {
+            setRun(value);
+            setRuns((old) => old.map((r) => (r.id === value.id ? value : r)));
+          })}
           <details>
             <summary>判断、上下文与模型来源</summary>
             <pre className="tool-output">

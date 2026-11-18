@@ -55,7 +55,7 @@ def test_origin_session_and_owner_checks(client: TestClient) -> None:
 def test_future_modules_are_not_ready(client: TestClient) -> None:
     modules = client.get("/api/v1/capabilities").json()
     planned = [module for module in modules if module["status"] == "planned"]
-    assert len(planned) == 12
+    assert len(planned) == 11
     assert all(module["factory_entry"] is None for module in planned)
 
 

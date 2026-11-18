@@ -10,6 +10,7 @@ from pydantic import ValidationError
 
 from auton.agent.contracts import CreateRun, RunCommand
 from auton.cli.factory import AgentClientFactory
+from auton.experience.contracts import RecoveryCommand
 from auton.kernel.ports import ApplicationError
 
 
@@ -28,6 +29,16 @@ async def main(args: argparse.Namespace) -> None:
                 await asyncio.to_thread(Path(args.file).read_text)
             )
             value = (await client.create(command)).model_dump(mode="json")
+        elif args.operation == "trajectory":
+            value = (await client.trajectory(args.project, args.run)).model_dump(mode="json")
+        elif args.operation == "recover":
+            recovery = RecoveryCommand(
+                request_id=args.request_id or str(uuid4()),
+                expected_version=args.version,
+                expected_goal_revision=args.revision,
+                checkpoint_event_id=args.checkpoint_event,
+            )
+            value = (await client.recover(args.project, args.run, recovery)).model_dump(mode="json")
         elif args.operation == "get":
             value = (await client.get(args.run)).model_dump(mode="json")
         elif args.operation == "list":
@@ -63,6 +74,16 @@ if __name__ == "__main__":
     get.add_argument("run")
     listing = sub.add_parser("list")
     listing.add_argument("project")
+    trajectory = sub.add_parser("trajectory")
+    trajectory.add_argument("run")
+    trajectory.add_argument("--project", required=True)
+    recover = sub.add_parser("recover")
+    recover.add_argument("run")
+    recover.add_argument("--project", required=True)
+    recover.add_argument("--version", type=int, required=True)
+    recover.add_argument("--revision", type=int, required=True)
+    recover.add_argument("--checkpoint-event", required=True)
+    recover.add_argument("--request-id")
     command = sub.add_parser("command")
     command.add_argument("run")
     command.add_argument(

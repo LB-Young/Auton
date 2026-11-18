@@ -37,6 +37,7 @@ import type { Application } from './composition';
 import type { Artifact, PolicyDecision } from '../shared/contracts';
 import { Judgment } from '../features/judgment/Judgment';
 import { Tools } from '../features/tools/Tools';
+import { Trajectory } from '../features/experience/Trajectory';
 import { Agent } from '../features/agent/Agent';
 import { Context } from '../features/context/Context';
 import { Genome } from '../features/genome/Genome';
@@ -666,7 +667,16 @@ export function App({ application }: { application: Application }) {
                 </div>
               </>
             ) : view === 'agent' ? (
-              <Agent feature={application.agent} />
+              <Agent
+                feature={application.agent}
+                renderTrajectory={(run, onRecovered) => (
+                  <Trajectory
+                    feature={application.experience}
+                    run={run}
+                    onRecovered={onRecovered}
+                  />
+                )}
+              />
             ) : view === 'context' ? (
               <Context feature={application.context} />
             ) : view === 'genome' ? (

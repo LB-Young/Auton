@@ -2,6 +2,7 @@ import asyncio
 import hashlib
 import re
 from secrets import token_urlsafe
+from typing import Literal
 from urllib.parse import quote
 
 from anyio import CancelScope
@@ -30,6 +31,7 @@ from auton.demo.ports import (
     SessionEvent,
     StopRun,
 )
+from auton.experience.contracts import RecoveryCommand, Trajectory
 from auton.genome.contracts import Asset, Project, Revision, Snapshot, VersionInfo
 from auton.judgment.contracts import JudgmentInfo, JudgmentRequest, JudgmentResult
 from auton.judgment.questions import JudgmentQuestionsFactory
@@ -286,6 +288,25 @@ class ServerFactory:
         ) -> str:
             return await deps.genome.diff(
                 Principal(owner=owner(request)), project_id, asset_id, revision
+            )
+
+        @app.get("/api/v1/projects/{project_id}/runs/{run_id}/trajectory")
+        async def trajectory(
+            request: Request,
+            project_id: str,
+            run_id: str,
+            purpose: Literal["inspect", "recovery"] = "inspect",
+        ) -> Trajectory:
+            return await deps.experience.trajectory(
+                Principal(owner=owner(request), role="user"), project_id, run_id, purpose
+            )
+
+        @app.post("/api/v1/projects/{project_id}/runs/{run_id}/recover")
+        async def recover(
+            request: Request, project_id: str, run_id: str, command: RecoveryCommand
+        ) -> AgentRun:
+            return await deps.experience.recover(
+                Principal(owner=owner(request), role="user"), project_id, run_id, command
             )
 
         @app.post("/api/v1/agent/runs")

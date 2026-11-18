@@ -1,4 +1,5 @@
 import type {
+  Trajectory,
   AgentRun,
   ContextSnapshot,
   ActionRequest,
@@ -53,6 +54,15 @@ export class ApiClientFactory {
       return (await response.json()) as T;
     }
     return {
+      trajectory: (project, run) =>
+        request<Trajectory>(
+          `/projects/${encodeURIComponent(project)}/runs/${encodeURIComponent(run)}/trajectory`,
+        ),
+      recoverRun: (project, run, command) =>
+        request<AgentRun>(
+          `/projects/${encodeURIComponent(project)}/runs/${encodeURIComponent(run)}/recover`,
+          command,
+        ),
       createRun: (command) => request<AgentRun>('/agent/runs', command),
       agentRun: (id) => request<AgentRun>(`/agent/runs/${encodeURIComponent(id)}`),
       agentRuns: (project) =>

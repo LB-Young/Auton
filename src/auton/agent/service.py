@@ -225,6 +225,19 @@ class AgentRuntime:
             )
         ]
 
+    async def command_result(
+        self, principal: Principal, run_id: str, command: RunCommand
+    ) -> AgentRun | None:
+        self._check_ready()
+        self.actor(principal)
+        digest = hashlib.sha256((run_id + command.model_dump_json()).encode()).hexdigest()
+        seen = await self.repo.command_seen(principal.owner, command.request_id, digest)
+        if seen is None:
+            return None
+        if seen != run_id:
+            raise ApplicationError(409, "agent_command_conflict", "Command belongs to another run")
+        return await self.repo.load(principal.owner, run_id)
+
     async def command(self, principal: Principal, run_id: str, command: RunCommand) -> AgentRun:
         self._check_ready()
         runtime = self.actor(principal)
@@ -234,6 +247,12 @@ class AgentRuntime:
             if seen:
                 return await self.repo.load(principal.owner, seen)
             run = await self.repo.load(principal.owner, run_id)
+            if command.expected_version is not None and run.version != command.expected_version:
+                raise ApplicationError(
+                    409,
+                    "agent_checkpoint_changed",
+                    "Refresh the checkpoint before issuing this command",
+                )
             if run.goal_revision != command.expected_goal_revision:
                 raise ApplicationError(
                     409, "agent_stale_revision", "Command targets an old goal revision"

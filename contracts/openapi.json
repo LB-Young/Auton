@@ -932,6 +932,63 @@
         "title": "BootstrapResponse",
         "type": "object"
       },
+      "CheckpointReference": {
+        "additionalProperties": false,
+        "properties": {
+          "cursor": {
+            "title": "Cursor",
+            "type": "integer"
+          },
+          "digest": {
+            "title": "Digest",
+            "type": "string"
+          },
+          "event_id": {
+            "title": "Event Id",
+            "type": "string"
+          },
+          "goal_id": {
+            "default": "",
+            "title": "Goal Id",
+            "type": "string"
+          },
+          "project_id": {
+            "default": "",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          },
+          "runtime_revision": {
+            "title": "Runtime Revision",
+            "type": "string"
+          },
+          "session_id": {
+            "default": "",
+            "title": "Session Id",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "session_id",
+          "goal_id",
+          "project_id",
+          "run_id",
+          "cursor",
+          "event_id",
+          "version",
+          "runtime_revision",
+          "digest"
+        ],
+        "title": "CheckpointReference",
+        "type": "object"
+      },
       "ConstitutionConfig": {
         "additionalProperties": false,
         "properties": {
@@ -1538,6 +1595,96 @@
           "source"
         ],
         "title": "DecisionSource",
+        "type": "object"
+      },
+      "EpisodeSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "context_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Context Ids",
+            "type": "array"
+          },
+          "estimated_cost_microusd": {
+            "title": "Estimated Cost Microusd",
+            "type": "integer"
+          },
+          "first_cursor": {
+            "title": "First Cursor",
+            "type": "integer"
+          },
+          "goal_id": {
+            "title": "Goal Id",
+            "type": "string"
+          },
+          "goal_revision": {
+            "title": "Goal Revision",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "last_cursor": {
+            "title": "Last Cursor",
+            "type": "integer"
+          },
+          "model_request_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Model Request Ids",
+            "type": "array"
+          },
+          "observed_tokens": {
+            "title": "Observed Tokens",
+            "type": "integer"
+          },
+          "operation_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Operation Ids",
+            "type": "array"
+          },
+          "parent_run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Run Id"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          },
+          "session_id": {
+            "title": "Session Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "session_id",
+          "goal_id",
+          "run_id",
+          "goal_revision",
+          "first_cursor",
+          "last_cursor",
+          "context_ids",
+          "model_request_ids",
+          "operation_ids",
+          "observed_tokens",
+          "estimated_cost_microusd",
+          "parent_run_id"
+        ],
+        "title": "EpisodeSummary",
         "type": "object"
       },
       "ErrorBody": {
@@ -2546,6 +2693,40 @@
         "title": "PublicPolicy",
         "type": "object"
       },
+      "RecoveryCommand": {
+        "additionalProperties": false,
+        "properties": {
+          "checkpoint_event_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Checkpoint Event Id",
+            "type": "string"
+          },
+          "expected_goal_revision": {
+            "minimum": 1.0,
+            "title": "Expected Goal Revision",
+            "type": "integer"
+          },
+          "expected_version": {
+            "minimum": 0.0,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "request_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,100}$",
+            "title": "Request Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "expected_version",
+          "expected_goal_revision",
+          "checkpoint_event_id"
+        ],
+        "title": "RecoveryCommand",
+        "type": "object"
+      },
       "Revision": {
         "additionalProperties": false,
         "properties": {
@@ -2692,6 +2873,18 @@
             "minimum": 1.0,
             "title": "Expected Goal Revision",
             "type": "integer"
+          },
+          "expected_version": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Version"
           },
           "goal": {
             "anyOf": [
@@ -3539,6 +3732,250 @@
           "title"
         ],
         "title": "ToolWorkspaceCommand",
+        "type": "object"
+      },
+      "TraceEdge": {
+        "additionalProperties": false,
+        "properties": {
+          "relation": {
+            "enum": [
+              "checkpoint",
+              "input",
+              "decision",
+              "authorization",
+              "receipt",
+              "verification",
+              "parent"
+            ],
+            "title": "Relation",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "target": {
+            "title": "Target",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source",
+          "target",
+          "relation"
+        ],
+        "title": "TraceEdge",
+        "type": "object"
+      },
+      "TraceNode": {
+        "additionalProperties": false,
+        "properties": {
+          "cursor": {
+            "title": "Cursor",
+            "type": "integer"
+          },
+          "details": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonValue"
+            },
+            "title": "Details",
+            "type": "object"
+          },
+          "event_time": {
+            "title": "Event Time",
+            "type": "string"
+          },
+          "goal_revision": {
+            "title": "Goal Revision",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "late_revision_result": {
+            "default": false,
+            "title": "Late Revision Result",
+            "type": "boolean"
+          },
+          "processed_at": {
+            "title": "Processed At",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "cursor",
+          "kind",
+          "event_time",
+          "processed_at",
+          "source",
+          "goal_revision",
+          "late_revision_result",
+          "details"
+        ],
+        "title": "TraceNode",
+        "type": "object"
+      },
+      "Trajectory": {
+        "additionalProperties": false,
+        "properties": {
+          "caught_up": {
+            "title": "Caught Up",
+            "type": "boolean"
+          },
+          "checkpoint": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CheckpointReference"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "checkpoint_state": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonValue"
+            },
+            "title": "Checkpoint State",
+            "type": "object"
+          },
+          "cost_microusd": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost Microusd"
+          },
+          "edges": {
+            "items": {
+              "$ref": "#/components/schemas/TraceEdge"
+            },
+            "title": "Edges",
+            "type": "array"
+          },
+          "episodes": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/EpisodeSummary"
+            },
+            "title": "Episodes",
+            "type": "array"
+          },
+          "missing_references": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Missing References",
+            "type": "array"
+          },
+          "nodes": {
+            "items": {
+              "$ref": "#/components/schemas/TraceNode"
+            },
+            "title": "Nodes",
+            "type": "array"
+          },
+          "processing_cursor": {
+            "title": "Processing Cursor",
+            "type": "integer"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "projection_schema": {
+            "const": 2,
+            "default": 2,
+            "title": "Projection Schema",
+            "type": "integer"
+          },
+          "purpose": {
+            "enum": [
+              "inspect",
+              "recovery"
+            ],
+            "title": "Purpose",
+            "type": "string"
+          },
+          "recovery_available": {
+            "title": "Recovery Available",
+            "type": "boolean"
+          },
+          "recovery_reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Recovery Reasons",
+            "type": "array"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "default": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "semantic_quality_verified": {
+            "const": false,
+            "default": false,
+            "title": "Semantic Quality Verified",
+            "type": "boolean"
+          },
+          "tokens_used": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tokens Used"
+          },
+          "usage_complete": {
+            "title": "Usage Complete",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "schema_version",
+          "project_id",
+          "run_id",
+          "purpose",
+          "projection_schema",
+          "processing_cursor",
+          "checkpoint",
+          "caught_up",
+          "checkpoint_state",
+          "episodes",
+          "nodes",
+          "edges",
+          "missing_references",
+          "recovery_available",
+          "recovery_reasons",
+          "tokens_used",
+          "cost_microusd",
+          "usage_complete",
+          "semantic_quality_verified"
+        ],
+        "title": "Trajectory",
         "type": "object"
       },
       "Usage": {
@@ -6635,6 +7072,266 @@
           }
         },
         "summary": "Get Context"
+      }
+    },
+    "/api/v1/projects/{project_id}/runs/{run_id}/recover": {
+      "post": {
+        "operationId": "recover_api_v1_projects__project_id__runs__run_id__recover_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecoveryCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentRun"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Recover"
+      }
+    },
+    "/api/v1/projects/{project_id}/runs/{run_id}/trajectory": {
+      "get": {
+        "operationId": "trajectory_api_v1_projects__project_id__runs__run_id__trajectory_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "purpose",
+            "required": false,
+            "schema": {
+              "default": "inspect",
+              "enum": [
+                "inspect",
+                "recovery"
+              ],
+              "title": "Purpose",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Trajectory"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Trajectory"
       }
     },
     "/api/v1/projects/{project_id}/snapshots": {

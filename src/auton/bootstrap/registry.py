@@ -1,7 +1,6 @@
 from auton.kernel.modules import ModuleDescriptor
 
 PLANNED = (
-    ("experience", "轨迹与恢复", "M10"),
     ("server", "完整服务协议", "M11"),
     ("web", "完整工作台", "M12"),
     ("assess", "独立评估", "M13"),
@@ -106,6 +105,16 @@ def module_catalog(demo: bool) -> list[ModuleDescriptor]:
             requires=("context", "models", "judgment", "tools", "assets", "event_log"),
             factory_entry="agent.AgentRuntimeFactory",
             config_schema="AgentConfig",
+        ),
+        ModuleDescriptor(
+            id="experience",
+            title="轨迹与恢复",
+            milestone="M10",
+            status="ready",
+            provides=("experience",),
+            requires=("agent", "assets", "context", "event_log"),
+            factory_entry="experience.ExperienceFactory",
+            config_schema="ExperienceConfig",
         ),
         ModuleDescriptor(
             id="demo",

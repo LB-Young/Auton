@@ -1,4 +1,6 @@
 import type {
+  Trajectory,
+  RecoveryCommand,
   AgentRun,
   CreateRun,
   RunCommand,
@@ -27,6 +29,8 @@ import type {
 } from '../shared/contracts';
 
 export interface ApiClient {
+  trajectory(project: string, run: string): Promise<Trajectory>;
+  recoverRun(project: string, run: string, command: RecoveryCommand): Promise<AgentRun>;
   createRun(command: CreateRun): Promise<AgentRun>;
   agentRun(id: string): Promise<AgentRun>;
   agentRuns(project: string): Promise<AgentRun[]>;

@@ -431,6 +431,40 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/projects/{project_id}/runs/{run_id}/recover': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Recover */
+    post: operations['recover_api_v1_projects__project_id__runs__run_id__recover_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/projects/{project_id}/runs/{run_id}/trajectory': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Trajectory */
+    get: operations['trajectory_api_v1_projects__project_id__runs__run_id__trajectory_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/projects/{project_id}/snapshots': {
     parameters: {
       query?: never;
@@ -1076,6 +1110,36 @@ export interface components {
       /** Profile */
       profile: string;
     };
+    /** CheckpointReference */
+    CheckpointReference: {
+      /** Cursor */
+      cursor: number;
+      /** Digest */
+      digest: string;
+      /** Event Id */
+      event_id: string;
+      /**
+       * Goal Id
+       * @default
+       */
+      goal_id: string;
+      /**
+       * Project Id
+       * @default
+       */
+      project_id: string;
+      /** Run Id */
+      run_id: string;
+      /** Runtime Revision */
+      runtime_revision: string;
+      /**
+       * Session Id
+       * @default
+       */
+      session_id: string;
+      /** Version */
+      version: number;
+    };
     /** ConstitutionConfig */
     ConstitutionConfig: {
       /**
@@ -1357,6 +1421,35 @@ export interface components {
       source: 'local' | 'test';
       /** Subfolder */
       subfolder: string;
+    };
+    /** EpisodeSummary */
+    EpisodeSummary: {
+      /** Context Ids */
+      context_ids: string[];
+      /** Estimated Cost Microusd */
+      estimated_cost_microusd: number;
+      /** First Cursor */
+      first_cursor: number;
+      /** Goal Id */
+      goal_id: string;
+      /** Goal Revision */
+      goal_revision: number;
+      /** Id */
+      id: string;
+      /** Last Cursor */
+      last_cursor: number;
+      /** Model Request Ids */
+      model_request_ids: string[];
+      /** Observed Tokens */
+      observed_tokens: number;
+      /** Operation Ids */
+      operation_ids: string[];
+      /** Parent Run Id */
+      parent_run_id: string | null;
+      /** Run Id */
+      run_id: string;
+      /** Session Id */
+      session_id: string;
     };
     /** ErrorBody */
     ErrorBody: {
@@ -1752,6 +1845,17 @@ export interface components {
       /** Version */
       version: string;
     };
+    /** RecoveryCommand */
+    RecoveryCommand: {
+      /** Checkpoint Event Id */
+      checkpoint_event_id: string;
+      /** Expected Goal Revision */
+      expected_goal_revision: number;
+      /** Expected Version */
+      expected_version: number;
+      /** Request Id */
+      request_id: string;
+    };
     /** Revision */
     Revision: {
       /** Assets */
@@ -1800,6 +1904,8 @@ export interface components {
       action: 'pause' | 'cancel' | 'resume' | 'approve' | 'reconcile' | 'revise';
       /** Expected Goal Revision */
       expected_goal_revision: number;
+      /** Expected Version */
+      expected_version?: number | null;
       /** Goal */
       goal?: string | null;
       /** Request Id */
@@ -2156,6 +2262,111 @@ export interface components {
       read_only: boolean;
       /** Title */
       title: string;
+    };
+    /** TraceEdge */
+    TraceEdge: {
+      /**
+       * Relation
+       * @enum {string}
+       */
+      relation:
+        | 'checkpoint'
+        | 'input'
+        | 'decision'
+        | 'authorization'
+        | 'receipt'
+        | 'verification'
+        | 'parent';
+      /** Source */
+      source: string;
+      /** Target */
+      target: string;
+    };
+    /** TraceNode */
+    TraceNode: {
+      /** Cursor */
+      cursor: number;
+      /** Details */
+      details: {
+        [key: string]: components['schemas']['JsonValue'];
+      };
+      /** Event Time */
+      event_time: string;
+      /** Goal Revision */
+      goal_revision: number;
+      /** Id */
+      id: string;
+      /** Kind */
+      kind: string;
+      /**
+       * Late Revision Result
+       * @default false
+       */
+      late_revision_result: boolean;
+      /** Processed At */
+      processed_at: string;
+      /** Source */
+      source: string;
+    };
+    /** Trajectory */
+    Trajectory: {
+      /** Caught Up */
+      caught_up: boolean;
+      checkpoint: components['schemas']['CheckpointReference'] | null;
+      /** Checkpoint State */
+      checkpoint_state: {
+        [key: string]: components['schemas']['JsonValue'];
+      };
+      /** Cost Microusd */
+      cost_microusd: number | null;
+      /** Edges */
+      edges: components['schemas']['TraceEdge'][];
+      /**
+       * Episodes
+       * @default []
+       */
+      episodes: components['schemas']['EpisodeSummary'][];
+      /** Missing References */
+      missing_references: string[];
+      /** Nodes */
+      nodes: components['schemas']['TraceNode'][];
+      /** Processing Cursor */
+      processing_cursor: number;
+      /** Project Id */
+      project_id: string;
+      /**
+       * Projection Schema
+       * @default 2
+       * @constant
+       */
+      projection_schema: 2;
+      /**
+       * Purpose
+       * @enum {string}
+       */
+      purpose: 'inspect' | 'recovery';
+      /** Recovery Available */
+      recovery_available: boolean;
+      /** Recovery Reasons */
+      recovery_reasons: string[];
+      /** Run Id */
+      run_id: string;
+      /**
+       * Schema Version
+       * @default 1
+       * @constant
+       */
+      schema_version: 1;
+      /**
+       * Semantic Quality Verified
+       * @default false
+       * @constant
+       */
+      semantic_quality_verified: false;
+      /** Tokens Used */
+      tokens_used: number | null;
+      /** Usage Complete */
+      usage_complete: boolean;
     };
     /** Usage */
     Usage: {
@@ -4704,6 +4915,202 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['ContextSnapshot'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  recover_api_v1_projects__project_id__runs__run_id__recover_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        project_id: string;
+        run_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RecoveryCommand'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['AgentRun'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  trajectory_api_v1_projects__project_id__runs__run_id__trajectory_get: {
+    parameters: {
+      query?: {
+        purpose?: 'inspect' | 'recovery';
+      };
+      header?: never;
+      path: {
+        project_id: string;
+        run_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Trajectory'];
         };
       };
       /** @description Unauthorized */

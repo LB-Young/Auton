@@ -1,6 +1,6 @@
 # Auton 开发里程碑
 
-> v0.1，2026-11-16。M01 项目框架已实现并通过本地验收，见 [验收记录](./evidence/M01.md)。M02 已完成，见 [验收](./evidence/M02.md)。M03 已完成，见 [验收](./evidence/M03.md)。M04 已接入真实 DeepSeek，见 [验收](./evidence/M04.md)。M05 已完成本地工程接入，当前质量未达自动采用门槛，见 [验收](./evidence/M05.md)。M06 受控工具范围已完成，见 [验收](./evidence/M06.md)。M07 人工资产与记忆治理已完成，见 [验收](./evidence/M07.md)。M08 固定检索与完整轮次压缩已完成，见 [验收](./evidence/M08.md)。M09 受控单 Agent 执行闭环已完成，见 [验收](./evidence/M09.md)。M10–M21 计划中。
+> v0.1，2026-11-16。M01 项目框架已实现并通过本地验收，见 [验收记录](./evidence/M01.md)。M02 已完成，见 [验收](./evidence/M02.md)。M03 已完成，见 [验收](./evidence/M03.md)。M04 已接入真实 DeepSeek，见 [验收](./evidence/M04.md)。M05 已完成本地工程接入，当前质量未达自动采用门槛，见 [验收](./evidence/M05.md)。M06 受控工具范围已完成，见 [验收](./evidence/M06.md)。M07 人工资产与记忆治理已完成，见 [验收](./evidence/M07.md)。M08 固定检索与完整轮次压缩已完成，见 [验收](./evidence/M08.md)。M09 受控单 Agent 执行闭环已完成，见 [验收](./evidence/M09.md)。M10 单机轨迹投影与恢复已完成，见 [验收](./evidence/M10.md)。M11–M21 计划中。
 > 开发顺序以本目录为准，替代总架构原先 M1–M6 的粗粒度安排；旧 M/J/R/D/T 编号只是研究阶段参考，不直接等同本目录编号。
 
 ## 1. 必须先做什么
@@ -28,7 +28,7 @@
 | [M07 资产、项目资料与记忆治理](./M07-genome.md) | M02、M03 | GenomeFactory、AssetRepositoryFactory、MemoryPolicyFactory、ResolverFactory | 同一 snapshot 可复现；历史版本能查看和回退，来源与项目权限可追踪。 | 已完成（人工治理范围） |
 | [M08 上下文装配、检索与压缩](./M08-context.md) | M04、M06、M07 | ContextEngineFactory、RetrieverFactory、CompressorFactory | 长会话超限前有可解释压缩/阻塞，消息与工具协议保持完整。 | 已完成（固定检索与轮次压缩） |
 | [M09 单 Agent 运行时与任务状态机](./M09-agent.md) | M05、M06、M08 | AgentRuntimeFactory、SessionFactory、RunFactory | 完成一个受控文件任务与一个只读调研任务，交付真实 artifact 和验收结果。 | 已完成（受控单 Agent） |
-| [M10 轨迹投影、检查点与恢复](./M10-experience.md) | M02、M09 | ExperienceFactory、ProjectionFactory、CheckpointRepositoryFactory | 删掉可重建投影后从 EventLog 恢复得到一致查询结果。 | 计划中 |
+| [M10 轨迹投影、检查点与恢复](./M10-experience.md) | M02、M09 | ExperienceFactory、ProjectionFactory、CheckpointRepositoryFactory | 删掉可重建投影后从 EventLog 恢复得到一致查询结果。 | 已完成（单机轨迹与恢复） |
 | [M11 服务端 API、命令与事件流](./M11-server.md) | M03、M09、M10 | ServerFactory、CommandHandlerFactory、EventStreamFactory | 浏览器断开不取消服务端任务；重连后正确恢复状态且不重复命令。 | 计划中 |
 | [M12 前端工作台完善与真实联调](./M12-web.md) | M07、M09、M10、M11 | WebAppFactory、createChatFeature、createProjectsFeature、ArtifactViewerFactory | 真实任务从新建到审批、工具、产物、刷新恢复可完整操作。 | 计划中 |
 | [M13 独立评估、可信信号与校准](./M13-assess.md) | M03、M10 | AssessFactory、CheckerFactory、JudgeFactory、EvalStoreFactory | 评测者不能被优化/训练模块修改，test/meta 不泄漏给候选生成器。 | 计划中 |

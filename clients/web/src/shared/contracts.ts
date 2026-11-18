@@ -39,3 +39,6 @@ export type ContextPreviewCommand = components['schemas']['ContextPreviewCommand
 export type AgentRun = components['schemas']['AgentRun'];
 export type CreateRun = components['schemas']['CreateRun-Input'];
 export type RunCommand = components['schemas']['RunCommand'];
+
+export type Trajectory = components['schemas']['Trajectory'];
+export type RecoveryCommand = components['schemas']['RecoveryCommand'];

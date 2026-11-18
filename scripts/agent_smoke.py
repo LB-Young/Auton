@@ -1,5 +1,6 @@
 """Opt-in real Laya + DeepSeek + file/research integration acceptance."""
 
+import argparse
 import asyncio
 import hashlib
 import json
@@ -17,6 +18,9 @@ from auton.constitution.secrets import SecretStoreFactory
 from auton.context.contracts import ContextConfig
 from auton.context.factory import ContextEngineFactory
 from auton.context.service import ContextDependencies
+from auton.experience.contracts import ExperienceConfig
+from auton.experience.factory import ExperienceFactory
+from auton.experience.service import ExperienceDependencies
 from auton.genome.contracts import Asset, GenomeConfig, Project
 from auton.genome.factory import GenomeFactory
 from auton.genome.service import GenomeDependencies
@@ -24,6 +28,7 @@ from auton.judgment.config import JudgmentConfig
 from auton.judgment.factory import JudgmentFactory
 from auton.judgment.service import JudgmentDependencies
 from auton.kernel.config import KernelConfig
+from auton.kernel.events import EventScope
 from auton.kernel.factory import EventLogFactory
 from auton.kernel.ports import RuntimeDependencies
 from auton.model.config import ModelConfig
@@ -36,7 +41,7 @@ from auton.tools.service import ToolDependencies
 ROOT = Path(__file__).resolve().parents[1]
 
 
-async def main() -> None:
+async def main(inspect_existing: bool = False) -> None:
     identity = "smoke-" + str(uuid4())
     principal = Principal(owner=identity, role="user")
     runtime = principal.model_copy(update={"role": "runtime"})
@@ -73,11 +78,73 @@ async def main() -> None:
         AgentConfig(directory=str(ROOT / ".auton_local/agent-smoke/runtime")),
         AgentDependencies(context, models, tools, judgment, assets, events, deps),
     )
+    experience = ExperienceFactory().create(
+        ExperienceConfig(directory=ROOT / ".auton_local/agent-smoke/experience"),
+        ExperienceDependencies(events, agent, assets, context, deps),
+    )
     results: list[dict[str, object]] = []
     async with AsyncExitStack() as stack:
-        for resource in (events, policy, models, judgment, tools, assets, context, agent):
+        for resource in (
+            events,
+            policy,
+            models,
+            judgment,
+            tools,
+            assets,
+            context,
+            agent,
+            experience,
+        ):
             stack.push_async_callback(resource.close)
             await resource.start()
+        if inspect_existing:
+            report = json.loads(
+                await asyncio.to_thread((ROOT / "test-results/agent-smoke.json").read_text)
+            )
+            summaries: list[dict[str, object]] = []
+            for smoke_entry in report["results"]:
+                rows = await events.read(
+                    limit=1000, scope=EventScope.model_validate({"run_id": smoke_entry["run_id"]})
+                )
+                raw = [
+                    row.event.payload["run"] for row in rows if row.event.kind == "agent.checkpoint"
+                ][-1]
+                assert isinstance(raw, dict) and isinstance(raw["command"], dict)
+                owner = str(raw["command"]["project_id"])
+                assert owner.startswith("smoke-"), (
+                    "Inspection is limited to this isolated smoke fixture"
+                )
+                trace = await experience.trajectory(
+                    Principal(owner=owner, role="user"), owner, smoke_entry["run_id"]
+                )
+                assert trace.caught_up and not trace.missing_references, trace.missing_references
+                assert (
+                    trace.usage_complete
+                    and sum(episode.observed_tokens for episode in trace.episodes)
+                    == smoke_entry["tokens"]
+                )
+                assert any(
+                    node.kind == "judgment.raw" and isinstance(node.details.get("source"), dict)
+                    for node in trace.nodes
+                )
+                assert all(owner not in node.model_dump_json() for node in trace.nodes)
+                summary: dict[str, object] = {
+                    "kind": smoke_entry["kind"],
+                    "nodes": len(trace.nodes),
+                    "edges": len(trace.edges),
+                    "episodes": len(trace.episodes),
+                    "confirmed_tokens": trace.tokens_used,
+                    "cost_microusd": trace.cost_microusd,
+                    "missing": list(trace.missing_references),
+                    "new_model_or_tool_calls": 0,
+                }
+                summaries.append(summary)
+                print(json.dumps(summary), flush=True)
+            await asyncio.to_thread(
+                (ROOT / "test-results/trajectory-native.json").write_text,
+                json.dumps(summaries, indent=2) + "\n",
+            )
+            return
         await assets.create_project(
             principal, Project(id=identity, title="Public acceptance notes")
         )
@@ -212,4 +279,10 @@ async def main() -> None:
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--inspect-existing",
+        action="store_true",
+        help="Inspect existing isolated smoke runs without issuing model/tool calls",
+    )
+    asyncio.run(main(parser.parse_args().inspect_existing))

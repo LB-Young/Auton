@@ -12,6 +12,7 @@ from auton.constitution.config import PublicPolicy
 from auton.constitution.ports import PolicyControlPort
 from auton.context.ports import ContextEnginePort
 from auton.demo.ports import ConversationPort
+from auton.experience.ports import ExperiencePort
 from auton.genome.ports import GenomePort
 from auton.judgment.ports import JudgmentPort
 from auton.kernel.events import StorageInfo
@@ -43,6 +44,7 @@ class ServerDependencies:
     lifespan: Callable[[FastAPI], AbstractAsyncContextManager[None]]
     is_ready: Callable[[], bool]
     storage: Callable[[], StorageInfo]
+    experience: ExperiencePort
     agent: AgentRuntimePort
     context: ContextEnginePort
     genome: GenomePort

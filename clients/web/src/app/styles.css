@@ -1431,3 +1431,21 @@ svg {
   display: inline-block;
   margin: 8px 0;
 }
+
+.trajectory-view {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+.trajectory-events {
+  padding-left: 20px;
+}
+.trajectory-events li {
+  margin: 12px 0;
+  font-size: 12px;
+}
+.trajectory-view p {
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  line-height: 1.8;
+}

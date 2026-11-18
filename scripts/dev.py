@@ -166,6 +166,7 @@ def e2e() -> None:
             '[models]\nbackend = "mock"\nfixture_scenario = "agent_acceptance"\n'
             '[judgment]\nbackend = "mock"\n'
             f"[tools]\ndirectory = {json.dumps(str(Path(directory) / 'tools'))}\n"
+            f"[experience]\ndirectory = {json.dumps(str(Path(directory) / 'experience'))}\n"
             f"[agent]\ndirectory = {json.dumps(str(Path(directory) / 'agent'))}\n"
             f"[genome]\ndirectory = {json.dumps(str(Path(directory) / 'assets'))}\n"
             "[kernel]\n"

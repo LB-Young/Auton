@@ -14,6 +14,8 @@ from auton.context.service import ContextDependencies
 from auton.demo.config import DemoConfig
 from auton.demo.factory import DemoConversationFactory
 from auton.demo.ports import ConversationPort
+from auton.experience.factory import ExperienceFactory
+from auton.experience.service import ExperienceDependencies
 from auton.genome.factory import GenomeFactory
 from auton.genome.service import GenomeDependencies
 from auton.judgment.factory import JudgmentFactory
@@ -78,6 +80,9 @@ class ApplicationFactory:
             config.agent,
             AgentDependencies(context, models, tools, judgment, genome, kernel.events, deps),
         )
+        experience = ExperienceFactory().create(
+            config.experience, ExperienceDependencies(kernel.events, agent, genome, context, deps)
+        )
         conversation: ConversationPort | None = None
         factory: ModuleFactory[DemoConfig, RuntimeDependencies, ConversationPort]
         factory = DemoConversationFactory()
@@ -90,9 +95,20 @@ class ApplicationFactory:
                 deps,
             )
         runtime = ApplicationRuntime(
-            [kernel, control, models, judgment, tools, genome, context, agent, conversation]
+            [
+                kernel,
+                control,
+                models,
+                judgment,
+                tools,
+                genome,
+                context,
+                agent,
+                experience,
+                conversation,
+            ]
             if conversation is not None
-            else [kernel, control, models, judgment, tools, genome, context, agent]
+            else [kernel, control, models, judgment, tools, genome, context, agent, experience]
         )
         redactor = Redactor()
         return ServerFactory().create(
@@ -111,6 +127,7 @@ class ApplicationFactory:
                 genome=genome,
                 context=context,
                 agent=agent,
+                experience=experience,
                 redact=redactor.text,
                 logger=LoggerFactory().create(redactor),
             ),

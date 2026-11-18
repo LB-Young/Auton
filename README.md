@@ -1,6 +1,6 @@
 # Auton
 
-个人 Agent 工作台。当前完成 **M01 项目框架、M02 持久事件内核、M03 固定控制策略、M04 执行模型网关、M05 本地判断接入、M06 受控工具、M07 版本资产、M08 上下文引擎与 M09 单 Agent 执行闭环**：模块工厂、显式依赖组装、FastAPI API、React 对话界面与合成 Demo；M10–M21 尚未实现。
+个人 Agent 工作台。当前完成 **M01 项目框架、M02 持久事件内核、M03 固定控制策略、M04 执行模型网关、M05 本地判断接入、M06 受控工具、M07 版本资产、M08 上下文引擎、M09 单 Agent 执行闭环与 M10 轨迹恢复**：模块工厂、显式依赖组装、FastAPI API、React 对话界面与合成 Demo；M11–M21 尚未实现。
 
 后端和开发/验收辅助工具优先使用 Python。仅浏览器界面及其必要构建配置使用 TypeScript/React；Makefile 是 Python 命令入口。
 
@@ -176,4 +176,19 @@ CLI 使用同一应用接口，身份文件仅保存在忽略的 `.auton_local/c
 }
 ```
 
-`make agent-smoke` 会使用本地 Laya 与真实 DeepSeek，在独立公开测试项目完成文件/调研验收，产生少量 API 费用；不会作为默认 CI。默认单任务最多 8 次模型调用、8 次工具调用、16000 tokens、10000 microUSD（按登记价格估算），并叠加 M03 的独立权限/预算门禁。M09 安全点可以用相同可信主体恢复；浏览器/CLI 跨后端重启的持久身份接 M11，完整轨迹投影与恢复管理接 M10。见 [M09 验收](docs/milestones/evidence/M09.md)。
+`make agent-smoke` 会使用本地 Laya 与真实 DeepSeek，在独立公开测试项目完成文件/调研验收，产生少量 API 费用；不会作为默认 CI。默认单任务最多 8 次模型调用、8 次工具调用、16000 tokens、10000 microUSD（按登记价格估算），并叠加 M03 的独立权限/预算门禁。M09 安全点可以用相同可信主体恢复；浏览器/CLI 跨后端重启的持久身份接 M11，轨迹投影与恢复管理已接入 M10。见 [M09 验收](docs/milestones/evidence/M09.md)。
+
+
+## 轨迹与检查点恢复（M10）
+
+任务执行记录下新增“轨迹与恢复”：查看原始事件时间线、处理游标、判断/授权/模型/工具/验收关联、episode 用量与缺失证据。在暂停或阻塞的安全边界，可从已核对检查点恢复；旧版本会被拒绝，未知工具仍须先对账，恢复不会跳过原审批。
+
+投影缓存位于忽略的 `.auton_local/experience`，只保存事件元数据与检查点引用，不复制原始模型消息或凭据。可从 M02 原始事件重建；当前支持索引 schema 1→2 重投影，未知版本明确拒绝。查询仅供用户检查和恢复，不授予训练导出权限。
+
+```sh
+.venv/bin/python scripts/agent_cli.py trajectory RUN_ID --project example
+.venv/bin/python scripts/agent_cli.py recover RUN_ID --project example --version VERSION --revision REVISION --checkpoint-event EVENT_ID
+.venv/bin/python scripts/agent_smoke.py --inspect-existing  # 复核已存在的隔离真实验收记录，不新增模型/工具调用
+```
+
+`state_cutoff` 的 run checkpoint version 与全局事件 cursor 分开保存。未知用量、缺失快照和旧修订晚到结果不会被当成完整的成功证据。后端已验证独立进程重启、确认写入后进程直接退出的恢复，两者均不重复写入；浏览器/CLI 跨后端重启的持久身份仍接 M11。见 [M10 验收](docs/milestones/evidence/M10.md)。

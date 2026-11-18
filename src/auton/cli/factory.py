@@ -8,6 +8,7 @@ import anyio
 import httpx
 
 from auton.agent.contracts import AgentRun, CreateRun, RunCommand
+from auton.experience.contracts import RecoveryCommand, Trajectory
 from auton.genome.contracts import Revision
 from auton.kernel.ports import ApplicationError
 
@@ -145,6 +146,33 @@ class AgentClient:
             "read_only": read_only,
             "notes_imported": notes is not None,
         }
+
+    async def trajectory(self, project: str, run_id: str) -> Trajectory:
+        return Trajectory.model_validate(
+            (
+                await self._request(
+                    "GET",
+                    (
+                        f"/api/v1/projects/{quote(project, safe='')}/runs/"
+                        f"{quote(run_id, safe='')}/trajectory"
+                    ),
+                )
+            ).json()
+        )
+
+    async def recover(self, project: str, run_id: str, command: RecoveryCommand) -> AgentRun:
+        return AgentRun.model_validate(
+            (
+                await self._request(
+                    "POST",
+                    (
+                        f"/api/v1/projects/{quote(project, safe='')}/runs/"
+                        f"{quote(run_id, safe='')}/recover"
+                    ),
+                    command.model_dump(mode="json"),
+                )
+            ).json()
+        )
 
     async def create(self, command: CreateRun) -> AgentRun:
         return AgentRun.model_validate(

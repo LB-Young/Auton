@@ -9,6 +9,7 @@ from fastapi.testclient import TestClient
 from auton.agent.contracts import AgentConfig
 from auton.bootstrap.app import ApplicationFactory
 from auton.bootstrap.config import ApplicationConfig
+from auton.experience.contracts import ExperienceConfig
 from auton.genome.contracts import GenomeConfig
 from auton.judgment.config import JudgmentConfig
 from auton.kernel.config import KernelConfig
@@ -28,6 +29,7 @@ def client(deps: RuntimeDependencies, tmp_path: Path) -> Iterator[TestClient]:
         ApplicationConfig(
             kernel=KernelConfig(backend="memory"),
             tools=ToolConfig(directory=tmp_path / "tools"),
+            experience=ExperienceConfig(directory=tmp_path / "experience"),
             agent=AgentConfig(directory=str(tmp_path / "agent")),
             genome=GenomeConfig(directory=tmp_path / "assets"),
             profile="test",

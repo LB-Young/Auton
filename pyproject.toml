@@ -67,7 +67,7 @@ root_package = "auton"
 name = "Kernel is independent"
 type = "forbidden"
 source_modules = ["auton.kernel"]
-forbidden_modules = ["auton.bootstrap", "auton.demo", "auton.server", "auton.constitution", "auton.model", "auton.judgment", "auton.tools", "auton.genome", "auton.context", "auton.agent"]
+forbidden_modules = ["auton.bootstrap", "auton.demo", "auton.server", "auton.constitution", "auton.model", "auton.judgment", "auton.tools", "auton.genome", "auton.context", "auton.agent", "auton.experience"]
 
 [[tool.importlinter.contracts]]
 name = "Demo never imports transport or composition"
@@ -155,10 +155,22 @@ forbidden_modules = ["auton.context.service", "auton.context.factory", "auton.co
 name = "Agent depends on public runtime ports"
 type = "forbidden"
 source_modules = ["auton.agent"]
-forbidden_modules = ["auton.bootstrap", "auton.server", "auton.model.gateway", "auton.model.provider", "auton.context.service", "auton.context.factory", "auton.judgment.service", "auton.judgment.factory", "auton.tools.service", "auton.genome.service", "auton.constitution.control"]
+forbidden_modules = ["auton.bootstrap", "auton.server", "auton.model.gateway", "auton.model.provider", "auton.context.service", "auton.context.factory", "auton.judgment.service", "auton.judgment.factory", "auton.tools.service", "auton.genome.service", "auton.constitution.control", "auton.experience"]
 
 [[tool.importlinter.contracts]]
 name = "Transport only uses public agent contracts"
 type = "forbidden"
 source_modules = ["auton.server"]
 forbidden_modules = ["auton.agent.service", "auton.agent.factory", "auton.agent.repository"]
+
+[[tool.importlinter.contracts]]
+name = "Experience uses public ports and event facts"
+type = "forbidden"
+source_modules = ["auton.experience"]
+forbidden_modules = ["auton.bootstrap", "auton.server", "auton.agent.service", "auton.agent.repository", "auton.context.service", "auton.tools.service", "auton.model.gateway"]
+
+[[tool.importlinter.contracts]]
+name = "Transport uses public experience contracts"
+type = "forbidden"
+source_modules = ["auton.server"]
+forbidden_modules = ["auton.experience.service", "auton.experience.projection", "auton.experience.repository", "auton.experience.factory"]

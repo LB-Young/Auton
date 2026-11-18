@@ -76,6 +76,7 @@ RunStatus = Literal[
 class RunCommand(Contract):
     request_id: str = Field(pattern=r"^[a-zA-Z0-9_-]{1,100}$")
     expected_goal_revision: int = Field(ge=1)
+    expected_version: int | None = Field(default=None, ge=0)
     action: Literal["pause", "cancel", "resume", "approve", "reconcile", "revise"]
     goal: str | None = Field(default=None, min_length=1, max_length=4000)
 
@@ -123,3 +124,8 @@ class AgentRun(Contract):
     check: AcceptanceCheck | None = None
     source: Literal["runtime", "test"]
     runtime_revision: Literal["single-agent-v1"] = "single-agent-v1"
+
+
+def checkpoint_event_id(owner: str, run_id: str, version: int) -> str:
+    digest = hashlib.sha256((owner + "\0" + run_id).encode()).hexdigest()
+    return f"agent:{digest}:{version}"

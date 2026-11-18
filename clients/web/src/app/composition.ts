@@ -1,6 +1,7 @@
 import { createArtifactFeature } from '../features/artifacts/factory';
 import { createJudgmentFeature } from '../features/judgment/factory';
 import { createToolsFeature } from '../features/tools/factory';
+import { createExperienceFeature } from '../features/experience/factory';
 import { createAgentFeature } from '../features/agent/factory';
 import { createContextFeature } from '../features/context/factory';
 import { createGenomeFeature } from '../features/genome/factory';
@@ -20,6 +21,7 @@ export function createApplication() {
     genome: createGenomeFeature({ api }),
     context: createContextFeature({ api }),
     agent: createAgentFeature({ api }),
+    experience: createExperienceFeature({ api }),
     models: createModelFeature({ api }),
     policy: createPolicyFeature({ api }),
     artifacts: createArtifactFeature(),
