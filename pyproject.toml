@@ -52,7 +52,7 @@ select = ["E", "F", "I", "UP", "B", "ASYNC"]
 [tool.mypy]
 python_version = "3.12"
 strict = true
-files = ["src", "tests", "scripts/export_contracts.py", "scripts/dev.py", "scripts/check_boundaries.py", "scripts/setup.py", "scripts/check_secrets.py", "scripts/model_smoke.py", "scripts/judgment_smoke.py", "scripts/download_laya.py", "scripts/download_context_tokenizers.py", "scripts/context_smoke.py", "scripts/agent_cli.py", "scripts/agent_smoke.py", "scripts/delegation_smoke.py", "scripts/evolution_smoke.py"]
+files = ["src", "tests", "scripts/export_contracts.py", "scripts/dev.py", "scripts/check_boundaries.py", "scripts/setup.py", "scripts/check_secrets.py", "scripts/model_smoke.py", "scripts/judgment_smoke.py", "scripts/download_laya.py", "scripts/download_context_tokenizers.py", "scripts/context_smoke.py", "scripts/agent_cli.py", "scripts/agent_smoke.py", "scripts/delegation_smoke.py", "scripts/evolution_smoke.py", "scripts/decision_review_smoke.py"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -67,7 +67,7 @@ root_package = "auton"
 name = "Kernel is independent"
 type = "forbidden"
 source_modules = ["auton.kernel"]
-forbidden_modules = ["auton.bootstrap", "auton.demo", "auton.server", "auton.constitution", "auton.model", "auton.judgment", "auton.tools", "auton.genome", "auton.context", "auton.agent", "auton.experience", "auton.assess", "auton.delegation", "auton.evolve"]
+forbidden_modules = ["auton.bootstrap", "auton.demo", "auton.server", "auton.constitution", "auton.model", "auton.judgment", "auton.tools", "auton.genome", "auton.context", "auton.agent", "auton.experience", "auton.assess", "auton.delegation", "auton.evolve", "auton.decision_review"]
 
 [[tool.importlinter.contracts]]
 name = "Demo never imports transport or composition"
@@ -224,3 +224,22 @@ name = "Transport uses only evolution contracts and ports"
 type = "forbidden"
 source_modules = ["auton.server"]
 forbidden_modules = ["auton.evolve.service", "auton.evolve.store", "auton.evolve.proposals", "auton.evolve.arena", "auton.evolve.factory", "auton.evolve.mutation", "auton.evolve.gates"]
+
+
+[[tool.importlinter.contracts]]
+name = "Decision reviewer only uses public evidence and model ports"
+type = "forbidden"
+source_modules = ["auton.decision_review"]
+forbidden_modules = ["auton.bootstrap", "auton.server", "auton.agent.service", "auton.agent.repository", "auton.assess.service", "auton.assess.store", "auton.assess.judge", "auton.genome.service", "auton.context.service", "auton.experience.service", "auton.experience.projection", "auton.model.gateway", "auton.judgment.service", "auton.judgment.adapter"]
+
+[[tool.importlinter.contracts]]
+name = "Executor and teacher cannot review themselves"
+type = "forbidden"
+source_modules = ["auton.agent", "auton.judgment", "auton.model", "auton.assess", "auton.context", "auton.tools"]
+forbidden_modules = ["auton.decision_review"]
+
+[[tool.importlinter.contracts]]
+name = "Transport uses only decision review contracts and port"
+type = "forbidden"
+source_modules = ["auton.server"]
+forbidden_modules = ["auton.decision_review.service", "auton.decision_review.store", "auton.decision_review.reviewer", "auton.decision_review.policy", "auton.decision_review.calibration", "auton.decision_review.sources", "auton.decision_review.factory"]

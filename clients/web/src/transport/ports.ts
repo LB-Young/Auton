@@ -30,6 +30,7 @@ import type {
 
 export interface ApiClient {
   assessment: AssessmentApi;
+  decisionReview: DecisionReviewApi;
   evolution: EvolutionApi;
   delegation: DelegationApi;
   runHistory(
@@ -184,4 +185,21 @@ export interface EvolutionApi {
     id: string,
     command: import('../shared/contracts').SubmitProposal,
   ): Promise<import('../shared/contracts').Proposal>;
+}
+
+export interface DecisionReviewApi {
+  status(): Promise<import('../shared/contracts').ReviewStatus>;
+  list(project: string): Promise<import('../shared/contracts').ReviewRecord[]>;
+  get(id: string): Promise<import('../shared/contracts').ReviewRecord>;
+  review(
+    command: import('../shared/contracts').ReviewCommand,
+  ): Promise<import('../shared/contracts').ReviewRecord>;
+  revise(
+    id: string,
+    command: import('../shared/contracts').HumanRevision,
+  ): Promise<import('../shared/contracts').ReviewRecord>;
+  calibrations(): Promise<import('../shared/contracts').CalibrationView[]>;
+  annotateMeta(
+    command: import('../shared/contracts').MetaCaseCommand,
+  ): Promise<import('../shared/contracts').CalibrationView>;
 }

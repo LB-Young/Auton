@@ -4,12 +4,13 @@ PROJECT_ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 PYTHON ?= python3
 DEV_PYTHON ?= $(PROJECT_ROOT).venv/bin/python
 
-.PHONY: help setup dev api web check contracts evolution-smoke delegation-smoke workbench-smoke agent-smoke context-setup context-smoke judgment-setup judgment-smoke browser-install e2e clean clean-preview clean-cache clean-build clean-empty
+.PHONY: help setup dev api web check contracts decision-review-smoke evolution-smoke delegation-smoke workbench-smoke agent-smoke context-setup context-smoke judgment-setup judgment-smoke browser-install e2e clean clean-preview clean-cache clean-build clean-empty
 
 help:
 	@printf '%s\n' \
 	  'make setup          安装锁定的 Python 与浏览器界面依赖' \
 	  'make dev            启动本机前后端任务工作台' \
+	  'make decision-review-smoke 独立决策复核验收（使用 API 额度）' \
 	  'make evolution-smoke 真实 Skill 隔离验收（使用 API 额度）' \
 	  'make delegation-smoke 真实单/多 Agent 成对验收（使用 API 额度）' \
 	  'make workbench-smoke 显式运行真实浏览器任务与重启验收（使用 API 额度）' \
@@ -89,3 +90,6 @@ delegation-smoke:
 
 evolution-smoke:
 	@"$(DEV_PYTHON)" "$(PROJECT_ROOT)scripts/evolution_smoke.py"
+
+decision-review-smoke:
+	@"$(DEV_PYTHON)" "$(PROJECT_ROOT)scripts/decision_review_smoke.py"

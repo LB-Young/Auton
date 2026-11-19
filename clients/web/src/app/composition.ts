@@ -1,3 +1,4 @@
+import { DecisionReviewFeatureFactory } from '../features/decision-review/factory';
 import { EvolutionFeatureFactory } from '../features/evolution/factory';
 import { DelegationFeatureFactory } from '../features/delegation/factory';
 import { AssessmentFeatureFactory } from '../features/assessment/factory';
@@ -22,6 +23,7 @@ export function createApplication() {
   return {
     projects,
     assessment: new AssessmentFeatureFactory().create({ api }),
+    decisionReview: new DecisionReviewFeatureFactory().create({ api }),
     evolution: new EvolutionFeatureFactory().create({ api }),
     delegation: new DelegationFeatureFactory().create({ api }),
     chat: createChatFeature({ api, events }),

@@ -16,6 +16,7 @@ from test_context import context as context
 
 from auton.agent.service import AgentRuntime
 from auton.constitution.secrets import Redactor, StreamingRedactor
+from auton.decision_review.contracts import DecisionReviewConfig
 from auton.evolve.contracts import EvolutionConfig
 from auton.kernel.ports import ApplicationError, RuntimeDependencies
 from auton.model.contracts import ModelChunk, ModelRequest
@@ -337,6 +338,7 @@ def test_persistent_http_identity_and_upload_survive_application_restart(
     from auton.tools.config import ToolConfig
 
     config = ApplicationConfig(
+        decision_review=DecisionReviewConfig(directory=tmp_path / "decision-review"),
         evolve=EvolutionConfig(directory=tmp_path / "evolve"),
         delegation=DelegationConfig(directory=tmp_path / "delegation"),
         assess=AssessConfig(directory=tmp_path / "assess"),

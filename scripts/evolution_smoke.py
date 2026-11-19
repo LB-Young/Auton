@@ -44,6 +44,7 @@ def main(reuse: bool) -> None:
         "assess",
         "delegation",
         "evolve",
+        "decision_review",
         "kernel",
     ):
         config[section] = {

@@ -39,6 +39,7 @@ import { Judgment } from '../features/judgment/Judgment';
 import { Tools } from '../features/tools/Tools';
 import { Trajectory } from '../features/experience/Trajectory';
 import { Agent } from '../features/agent/Agent';
+import { DecisionReview } from '../features/decision-review/DecisionReview';
 import { Evolution } from '../features/evolution/Evolution';
 import { Delegation } from '../features/delegation/Delegation';
 import { Assessment } from '../features/assessment/Assessment';
@@ -62,6 +63,12 @@ const workspaces = [
     label: '进化',
     icon: FlaskConical,
     description: '诊断技能、评测局部改动并审核候选。',
+  },
+  {
+    id: 'decision_review',
+    label: '决策复核',
+    icon: FlaskConical,
+    description: '查看决策的依据、后续贡献与筛选原因。',
   },
   { id: 'genome', label: '资产', icon: Layers, description: '管理技能、项目知识与长期记忆。' },
   { id: 'model', label: '模型', icon: Cpu, description: '连接执行模型，查看能力与判断来源。' },
@@ -792,6 +799,8 @@ export function App({ application }: { application: Application }) {
               </div>
             ) : view === 'delegation' ? (
               <Delegation feature={application.delegation} />
+            ) : view === 'decision_review' ? (
+              <DecisionReview feature={application.decisionReview} />
             ) : view === 'evolve' ? (
               <Evolution feature={application.evolution} />
             ) : view === 'assess' ? (

@@ -12,6 +12,7 @@ from auton.assess.ports import AssessPort
 from auton.constitution.config import PublicPolicy
 from auton.constitution.ports import PolicyControlPort
 from auton.context.ports import ContextEnginePort
+from auton.decision_review.ports import DecisionReviewPort
 from auton.delegation.ports import DelegationPort
 from auton.demo.ports import ConversationPort
 from auton.evolve.ports import EvolutionPort
@@ -58,6 +59,7 @@ class ServerDependencies:
     commands: CommandHandlerPort
     identity: IdentityPort
     events: EventLogPort
+    decision_review: DecisionReviewPort
     evolve: EvolutionPort
     delegation: DelegationPort
     assess: AssessPort

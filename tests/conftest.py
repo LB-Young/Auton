@@ -10,6 +10,7 @@ from auton.agent.contracts import AgentConfig
 from auton.assess.contracts import AssessConfig
 from auton.bootstrap.app import ApplicationFactory
 from auton.bootstrap.config import ApplicationConfig
+from auton.decision_review.contracts import DecisionReviewConfig
 from auton.delegation.contracts import DelegationConfig
 from auton.evolve.contracts import EvolutionConfig
 from auton.experience.contracts import ExperienceConfig
@@ -31,6 +32,7 @@ def deps() -> RuntimeDependencies:
 def client(deps: RuntimeDependencies, tmp_path: Path) -> Iterator[TestClient]:
     app = ApplicationFactory().create(
         ApplicationConfig(
+            decision_review=DecisionReviewConfig(directory=tmp_path / "decision-review"),
             evolve=EvolutionConfig(directory=tmp_path / "evolve"),
             delegation=DelegationConfig(directory=tmp_path / "delegation"),
             assess=AssessConfig(directory=tmp_path / "assess"),

@@ -14,6 +14,8 @@ from auton.constitution.factory import ConstitutionDependencies, ConstitutionFac
 from auton.constitution.secrets import LoggerFactory, Redactor, SecretStoreFactory
 from auton.context.factory import ContextEngineFactory
 from auton.context.service import ContextDependencies
+from auton.decision_review.dependencies import ReviewDependencies
+from auton.decision_review.factory import DecisionReviewFactory
 from auton.delegation.factory import DelegationFactory
 from auton.delegation.service import DelegationDependencies
 from auton.demo.config import DemoConfig
@@ -147,6 +149,31 @@ class ApplicationFactory:
             ),
             kernel.events,
         )
+        review_kernel = KernelFactory().create(
+            KernelConfig(
+                backend=config.kernel.backend,
+                data_directory=config.decision_review.directory / "reviewer-journal",
+            ),
+            deps,
+        )
+        review_models = ModelGatewayFactory().create(
+            config.models,
+            GatewayDependencies(control, review_kernel.events, deps, SecretStoreFactory().create()),
+        )
+        decision_review = DecisionReviewFactory().create(
+            config.decision_review,
+            ReviewDependencies(
+                agent,
+                assess,
+                experience,
+                genome,
+                review_models,
+                kernel.events,
+                deps,
+                config.models.backend == "mock",
+                delegation=delegation,
+            ),
+        )
         identity = IdentityFactory().create(config.server, deps)
         commands = CommandHandlerFactory().create(agent, experience)
         uploads = UploadFactory().create(config.server, genome, deps)
@@ -177,6 +204,9 @@ class ApplicationFactory:
                 assess,
                 delegation,
                 evolve,
+                review_kernel,
+                review_models,
+                decision_review,
                 identity,
                 commands,
                 uploads,
@@ -198,6 +228,9 @@ class ApplicationFactory:
                 assess,
                 delegation,
                 evolve,
+                review_kernel,
+                review_models,
+                decision_review,
                 identity,
                 commands,
                 uploads,
@@ -228,6 +261,7 @@ class ApplicationFactory:
                 assess=assess,
                 delegation=delegation,
                 evolve=evolve,
+                decision_review=decision_review,
                 identity=identity,
                 commands=commands,
                 feedback=FeedbackFactory().create(agent, kernel.events, deps),

@@ -127,3 +127,14 @@ export type SubmitProposal = components['schemas']['SubmitProposal'];
 
 export type ArenaCommand = components['schemas']['ArenaCommand-Input'];
 export type ReflectCommand = components['schemas']['ReflectCommand-Input'];
+
+export type ReviewStatus = components['schemas']['ReviewStatus'];
+
+export type ReviewRecord = components['schemas']['ReviewRecord'];
+
+export type MetaCaseCommand = components['schemas']['MetaCaseCommand'];
+
+export type CalibrationView = components['schemas']['CalibrationView'];
+
+export type ReviewCommand = components['schemas']['ReviewCommand-Input'];
+export type HumanRevision = components['schemas']['HumanRevision-Input'];

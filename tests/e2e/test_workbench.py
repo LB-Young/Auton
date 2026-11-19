@@ -991,3 +991,58 @@ def test_evolution_local_patch_arena_gate_failure_restart_and_mobile(page: Page)
     page.get_by_role("heading", name="资产进化", exact=True).scroll_into_view_if_needed()
     assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
     screenshot(page, "M15-evolution-mobile.png")
+
+
+def test_decision_review_shadow_exclusion_manual_revision_reload_and_mobile(page: Page) -> None:
+    import json
+    import time
+    from uuid import uuid4
+
+    project = "review-" + uuid4().hex[:10]
+    seed_workbench(page, project)
+    created = create_workbench_run(
+        page, project, "Research context retrieval and cite [asset:notes].", "source-review"
+    )
+    deadline = time.monotonic() + 20
+    while True:
+        run = page.request.get(BASE + "/api/v1/agent/runs/" + str(created["id"])).json()
+        if run["status"] in {"succeeded", "failed", "blocked"}:
+            break
+        assert time.monotonic() < deadline
+        page.wait_for_timeout(100)
+    assert run["judgments"] and not run["judgments"][0]["adopted"]
+    page.goto(BASE + "?view=decision_review")
+    expect(page.get_by_role("heading", name="决策轨迹复核", exact=True)).to_be_visible()
+    page.get_by_label("复核项目", exact=True).select_option(project)
+    page.get_by_role("button", name="填写复核命令", exact=True).click()
+    editor = page.get_by_label("复核命令 JSON", exact=True)
+    expect(editor).not_to_have_value("")
+    command = json.loads(editor.input_value())
+    assert command["run_id"] == run["id"] and command["public"] is False
+    page.get_by_role("button", name="执行两阶段复核", exact=True).click()
+    state = page.get_by_label("决策样本状态", exact=True)
+    expect(state).to_contain_text("HOLD", timeout=15000)
+    expect(state).to_contain_text("不进入正向训练")
+    expect(page.get_by_text("阶段 A：仅看决策前状态", exact=True)).to_be_visible()
+    expect(page.get_by_text("阶段 B：后续实际贡献", exact=True)).to_be_visible()
+    expect(page.get_by_text("自动准入：关闭", exact=False).first).to_be_visible()
+    screenshot(page, "M16-decision-review-desktop.png")
+    page.get_by_label("复核操作", exact=True).select_option("revise")
+    page.get_by_role("button", name="填写复核命令", exact=True).click()
+    expect(editor).to_have_value(re.compile("proposed_verdict", re.S))
+    correction = json.loads(editor.input_value())
+    correction["proposed_verdict"] = "DROP"
+    correction["reason"] = (
+        "This manual exclusion must not give an unused judgment credit for actor success."
+    )
+    editor.fill(json.dumps(correction))
+    page.get_by_role("button", name="保存人工修订", exact=True).click()
+    expect(page.get_by_text("人工修订历史", exact=True)).to_be_visible()
+    expect(state).to_contain_text("DROP")
+    page.reload()
+    page.get_by_label("复核项目", exact=True).select_option(project)
+    expect(page.get_by_text("人工修订历史", exact=True)).to_be_visible()
+    page.set_viewport_size({"width": 390, "height": 844})
+    page.get_by_role("heading", name="决策轨迹复核", exact=True).scroll_into_view_if_needed()
+    assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+    screenshot(page, "M16-decision-review-mobile.png")

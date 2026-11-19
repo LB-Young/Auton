@@ -54,6 +54,17 @@ export class ApiClientFactory {
       return (await response.json()) as T;
     }
     return {
+      decisionReview: {
+        status: () => request('/decision-review/status'),
+        list: (project) =>
+          request(`/decision-review/reviews?project_id=${encodeURIComponent(project)}`),
+        get: (id) => request(`/decision-review/reviews/${encodeURIComponent(id)}`),
+        review: (command) => request('/decision-review/jobs', command),
+        revise: (id, command) =>
+          request(`/decision-review/reviews/${encodeURIComponent(id)}/revisions`, command),
+        calibrations: () => request('/decision-review/calibrations'),
+        annotateMeta: (command) => request('/decision-review/meta', command),
+      },
       evolution: {
         status: () => request('/evolution/status'),
         proposals: (project) =>

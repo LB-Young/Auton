@@ -34,7 +34,7 @@
 | [M13 独立评估、可信信号与校准](./M13-assess.md) | M03、M10 | AssessFactory、CheckerFactory、JudgeFactory、EvalStoreFactory | 评测者不能被优化/训练模块修改，test/meta 不泄漏给候选生成器。 | 工程验收通过；语义校准门禁关闭 |
 | [M14 多 Agent 委派与结果集成](./M14-delegation.md) | M06、M09、M10、M13 | DelegationFactory、RoleFactory、WorkspaceLeaseFactory、ResultIntegratorFactory | 同一受控任务的单/多 Agent 对照记录总成本与收益，不以更多调用宣称提升。 | 已完成（受控文件 supervisor-worker） |
 | [M15 资产诊断、候选补丁与门禁](./M15-evolve.md) | M07、M13 | EvolutionFactory、DiagnoserFactory、MutationStrategyFactory、GateFactory | 用一个受控 Skill 改进案例跑通候选到评测报告，失败候选被保留原因。 | 已完成（受控局部补丁与隔离门禁；[证据](./evidence/M15.md)） |
-| [M16 决策轨迹复核与样本筛选](./M16-decision-review.md) | M05、M10、M13 | DecisionReviewFactory、AttributionPolicyFactory、ReviewerAdapterFactory | 错误但被补救成功的判断不会自动 KEEP，合理但环境失败的判断不会机械 DROP。 | 计划中 |
+| [M16 决策轨迹复核与样本筛选](./M16-decision-review.md) | M05、M10、M13 | DecisionReviewFactory、AttributionPolicyFactory、ReviewerAdapterFactory | 错误但被补救成功的判断不会自动 KEEP，合理但环境失败的判断不会机械 DROP。 | 工程闭环完成，真实 KEEP 门禁关闭（[证据](./evidence/M16.md)） |
 | [M17 数据加工、快照与谱系](./M17-datasets.md) | M10、M13、M16 | DatasetPipelineFactory、ExporterFactory、LineageStoreFactory | 任一训练目标可追溯原始事件与准入理由，未来轨迹不混入当时输入。 | 计划中 |
 | [M18 本地执行模型训练](./M18-executor-training.md) | M04、M13、M17 | ExecutorTrainingFactory、TrainingBackendFactory、TrainingJobFactory | 同一数据与配置可复现并恢复训练，失败不触发重复昂贵 job。 | 计划中 |
 | [M19 本地类 Jev 训练与四层评估](./M19-decision-training.md) | M05、M13、M17 | DecisionTrainingFactory、DecisionBackendFactory、ShadowEvaluatorFactory | 新模型不靠只测 KEEP、只看一致率或几乎全弃权取得通过。 | 计划中 |

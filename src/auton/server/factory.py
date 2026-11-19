@@ -41,6 +41,15 @@ from auton.constitution.config import (
     PublicPolicy,
 )
 from auton.context.contracts import ContextRequest, ContextSnapshot, TaskState
+from auton.decision_review.contracts import (
+    CalibrationView,
+    HumanRevision,
+    MetaCaseCommand,
+    ReviewCommand,
+    ReviewExport,
+    ReviewRecord,
+    ReviewStatus,
+)
 from auton.delegation.contracts import (
     ContrastCommand,
     DelegationCommand,
@@ -444,6 +453,59 @@ class ServerFactory:
         ) -> AgentRun:
             return await deps.commands.recover(
                 Principal(owner=owner(request), role="user"), project_id, run_id, command
+            )
+
+        @app.get("/api/v1/decision-review/status")
+        async def decision_review_status(request: Request) -> ReviewStatus:
+            owner(request)
+            return deps.decision_review.status()
+
+        @app.post("/api/v1/decision-review/jobs", status_code=201)
+        async def review_decision(request: Request, command: ReviewCommand) -> ReviewRecord:
+            return await deps.decision_review.review(
+                Principal(owner=owner(request), role="user"), command
+            )
+
+        @app.get("/api/v1/decision-review/reviews")
+        async def decision_reviews(request: Request, project_id: str) -> tuple[ReviewRecord, ...]:
+            return await deps.decision_review.list(
+                Principal(owner=owner(request), role="user"), project_id
+            )
+
+        @app.get("/api/v1/decision-review/reviews/{review_id}")
+        async def decision_review(request: Request, review_id: str) -> ReviewRecord:
+            return await deps.decision_review.get(
+                Principal(owner=owner(request), role="user"), review_id
+            )
+
+        @app.post("/api/v1/decision-review/reviews/{review_id}/revisions")
+        async def revise_decision_review(
+            request: Request, review_id: str, command: HumanRevision
+        ) -> ReviewRecord:
+            return await deps.decision_review.revise(
+                Principal(owner=owner(request), role="user"), review_id, command
+            )
+
+        @app.post("/api/v1/decision-review/meta")
+        async def decision_review_meta(
+            request: Request, command: MetaCaseCommand
+        ) -> CalibrationView:
+            return await deps.decision_review.annotate_meta(
+                Principal(owner=owner(request), role="user"), command
+            )
+
+        @app.get("/api/v1/decision-review/calibrations")
+        async def decision_review_calibrations(request: Request) -> tuple[CalibrationView, ...]:
+            return await deps.decision_review.calibrations(
+                Principal(owner=owner(request), role="user")
+            )
+
+        @app.get("/api/v1/decision-review/eligible")
+        async def decision_review_eligible(
+            request: Request, project_id: str
+        ) -> tuple[ReviewExport, ...]:
+            return await deps.decision_review.eligible(
+                Principal(owner=owner(request), role="user"), project_id
             )
 
         @app.get("/api/v1/evolution/status")

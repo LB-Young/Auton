@@ -10,6 +10,7 @@ from auton.agent.contracts import AgentConfig
 from auton.assess.contracts import AssessConfig
 from auton.constitution.config import ConstitutionConfig
 from auton.context.contracts import ContextConfig
+from auton.decision_review.contracts import DecisionReviewConfig
 from auton.delegation.contracts import DelegationConfig
 from auton.evolve.contracts import EvolutionConfig
 from auton.experience.contracts import ExperienceConfig
@@ -22,6 +23,7 @@ from auton.tools.config import ToolConfig
 
 
 class ApplicationConfig(BaseModel):
+    decision_review: DecisionReviewConfig = Field(default_factory=DecisionReviewConfig)
     evolve: EvolutionConfig = Field(default_factory=EvolutionConfig)
     delegation: DelegationConfig = Field(default_factory=DelegationConfig)
     assess: AssessConfig = Field(default_factory=AssessConfig)

@@ -2225,6 +2225,112 @@
         "title": "CalibrationReport",
         "type": "object"
       },
+      "CalibrationView": {
+        "additionalProperties": false,
+        "properties": {
+          "config_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Config Digest",
+            "type": "string"
+          },
+          "coverage": {
+            "default": 0,
+            "title": "Coverage",
+            "type": "number"
+          },
+          "eligible": {
+            "default": false,
+            "title": "Eligible",
+            "type": "boolean"
+          },
+          "independent_families": {
+            "default": 0,
+            "title": "Independent Families",
+            "type": "integer"
+          },
+          "kappa": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kappa"
+          },
+          "keep_contamination_upper": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Keep Contamination Upper"
+          },
+          "keep_errors": {
+            "default": 0,
+            "title": "Keep Errors",
+            "type": "integer"
+          },
+          "per_verdict": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Per Verdict",
+            "type": "object"
+          },
+          "predicted_keep": {
+            "default": 0,
+            "title": "Predicted Keep",
+            "type": "integer"
+          },
+          "protected_review_ids": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Protected Review Ids",
+            "type": "array"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "reviewer_signature": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewer Signature"
+          }
+        },
+        "required": [
+          "config_digest",
+          "reviewer_signature",
+          "eligible",
+          "independent_families",
+          "coverage",
+          "kappa",
+          "predicted_keep",
+          "keep_errors",
+          "keep_contamination_upper",
+          "per_verdict",
+          "reasons",
+          "protected_review_ids"
+        ],
+        "title": "CalibrationView",
+        "type": "object"
+      },
       "CaseBank": {
         "additionalProperties": false,
         "properties": {
@@ -3161,6 +3267,65 @@
           "expected_version"
         ],
         "title": "ContrastCommand",
+        "type": "object"
+      },
+      "Contribution": {
+        "additionalProperties": false,
+        "properties": {
+          "causal_support": {
+            "enum": [
+              "controlled",
+              "corrective_chain",
+              "observational",
+              "none"
+            ],
+            "title": "Causal Support",
+            "type": "string"
+          },
+          "efficiency": {
+            "enum": [
+              "beneficial",
+              "avoidable_detour",
+              "necessary_exploration",
+              "unknown"
+            ],
+            "title": "Efficiency",
+            "type": "string"
+          },
+          "evidence_refs": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 16,
+            "minItems": 0,
+            "title": "Evidence Refs",
+            "type": "array"
+          },
+          "explanation": {
+            "maxLength": 1500,
+            "minLength": 1,
+            "title": "Explanation",
+            "type": "string"
+          },
+          "verdict": {
+            "enum": [
+              "beneficial",
+              "harmful",
+              "environment_only",
+              "unknown"
+            ],
+            "title": "Verdict",
+            "type": "string"
+          }
+        },
+        "required": [
+          "verdict",
+          "causal_support",
+          "efficiency",
+          "evidence_refs",
+          "explanation"
+        ],
+        "title": "Contribution",
         "type": "object"
       },
       "CreateRun-Input": {
@@ -4935,6 +5100,42 @@
         "title": "Evidence",
         "type": "object"
       },
+      "EvidenceFact": {
+        "additionalProperties": false,
+        "properties": {
+          "cursor": {
+            "title": "Cursor",
+            "type": "integer"
+          },
+          "digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Digest",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "text": {
+            "maxLength": 1000,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "digest",
+          "kind",
+          "cursor",
+          "text"
+        ],
+        "title": "EvidenceFact",
+        "type": "object"
+      },
       "EvolutionStatus": {
         "additionalProperties": false,
         "properties": {
@@ -5336,6 +5537,115 @@
         "title": "HealthResponse",
         "type": "object"
       },
+      "HumanRevision-Input": {
+        "additionalProperties": false,
+        "properties": {
+          "evidence_refs": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Evidence Refs",
+            "type": "array"
+          },
+          "expected_version": {
+            "minimum": 0.0,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "proposed_verdict": {
+            "enum": [
+              "KEEP",
+              "DROP",
+              "HOLD"
+            ],
+            "title": "Proposed Verdict",
+            "type": "string"
+          },
+          "reason": {
+            "maxLength": 2000,
+            "minLength": 10,
+            "title": "Reason",
+            "type": "string"
+          },
+          "request_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "source": {
+            "const": "user_observation",
+            "default": "user_observation",
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "expected_version",
+          "proposed_verdict",
+          "reason",
+          "evidence_refs"
+        ],
+        "title": "HumanRevision",
+        "type": "object"
+      },
+      "HumanRevision-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "evidence_refs": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Evidence Refs",
+            "type": "array"
+          },
+          "expected_version": {
+            "minimum": 0.0,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "proposed_verdict": {
+            "enum": [
+              "KEEP",
+              "DROP",
+              "HOLD"
+            ],
+            "title": "Proposed Verdict",
+            "type": "string"
+          },
+          "reason": {
+            "maxLength": 2000,
+            "minLength": 10,
+            "title": "Reason",
+            "type": "string"
+          },
+          "request_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "source": {
+            "const": "user_observation",
+            "default": "user_observation",
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "expected_version",
+          "proposed_verdict",
+          "reason",
+          "evidence_refs",
+          "source"
+        ],
+        "title": "HumanRevision",
+        "type": "object"
+      },
       "IdentityInfo": {
         "properties": {
           "expires_at": {
@@ -5618,6 +5928,100 @@
         "title": "JudgmentPreview",
         "type": "object"
       },
+      "JudgmentRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "data_domain": {
+            "default": "local-only",
+            "enum": [
+              "public",
+              "local-only",
+              "secret"
+            ],
+            "title": "Data Domain",
+            "type": "string"
+          },
+          "goal_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Goal Id",
+            "type": "string"
+          },
+          "goal_revision": {
+            "default": 1,
+            "minimum": 1.0,
+            "title": "Goal Revision",
+            "type": "integer"
+          },
+          "principal": {
+            "$ref": "#/components/schemas/Principal"
+          },
+          "questions": {
+            "items": {
+              "$ref": "#/components/schemas/Question"
+            },
+            "maxItems": 8,
+            "minItems": 1,
+            "title": "Questions",
+            "type": "array"
+          },
+          "request_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "pattern": "^[a-zA-Z0-9_-]+$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "required_capabilities": {
+            "default": [
+              "text"
+            ],
+            "items": {
+              "enum": [
+                "text",
+                "tools",
+                "json"
+              ],
+              "type": "string"
+            },
+            "title": "Required Capabilities",
+            "type": "array"
+          },
+          "required_context_tokens": {
+            "default": 0,
+            "maximum": 1048576.0,
+            "minimum": 0.0,
+            "title": "Required Context Tokens",
+            "type": "integer"
+          },
+          "state": {
+            "maxLength": 12000,
+            "minLength": 1,
+            "title": "State",
+            "type": "string"
+          },
+          "state_cutoff": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "State Cutoff",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "request_id",
+          "principal",
+          "goal_id",
+          "goal_revision",
+          "state_cutoff",
+          "state",
+          "questions",
+          "required_capabilities",
+          "required_context_tokens",
+          "data_domain"
+        ],
+        "title": "JudgmentRequest",
+        "type": "object"
+      },
       "JudgmentResult": {
         "additionalProperties": false,
         "properties": {
@@ -5725,6 +6129,83 @@
           "content"
         ],
         "title": "Message",
+        "type": "object"
+      },
+      "MetaCaseCommand": {
+        "additionalProperties": false,
+        "properties": {
+          "confirm_independent_human_annotation": {
+            "default": false,
+            "title": "Confirm Independent Human Annotation",
+            "type": "boolean"
+          },
+          "evidence_refs": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Evidence Refs",
+            "type": "array"
+          },
+          "expected_review_version": {
+            "minimum": 0.0,
+            "title": "Expected Review Version",
+            "type": "integer"
+          },
+          "explanation": {
+            "maxLength": 2000,
+            "minLength": 20,
+            "title": "Explanation",
+            "type": "string"
+          },
+          "family": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Family",
+            "type": "string"
+          },
+          "gold": {
+            "enum": [
+              "KEEP",
+              "DROP",
+              "HOLD"
+            ],
+            "title": "Gold",
+            "type": "string"
+          },
+          "label_source": {
+            "const": "human_annotation",
+            "default": "human_annotation",
+            "title": "Label Source",
+            "type": "string"
+          },
+          "origin_group": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Origin Group",
+            "type": "string"
+          },
+          "request_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "review_id": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Review Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "review_id",
+          "expected_review_version",
+          "family",
+          "origin_group",
+          "gold",
+          "explanation",
+          "evidence_refs"
+        ],
+        "title": "MetaCaseCommand",
         "type": "object"
       },
       "Metrics": {
@@ -6357,6 +6838,28 @@
         "title": "OptimizationTask",
         "type": "object"
       },
+      "Option": {
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Description",
+            "type": "string"
+          },
+          "id": {
+            "pattern": "^[a-z][a-z0-9_]{0,49}$",
+            "title": "Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "description"
+        ],
+        "title": "Option",
+        "type": "object"
+      },
       "PendingOperation": {
         "additionalProperties": false,
         "properties": {
@@ -6858,6 +7361,112 @@
         "title": "PublicPolicy",
         "type": "object"
       },
+      "Question": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "pattern": "^[a-z][a-z0-9_]{0,49}$",
+            "title": "Id",
+            "type": "string"
+          },
+          "instructions": {
+            "maxLength": 600,
+            "minLength": 1,
+            "title": "Instructions",
+            "type": "string"
+          },
+          "options": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/Option"
+            },
+            "maxItems": 6,
+            "title": "Options",
+            "type": "array"
+          },
+          "point": {
+            "enum": [
+              "information_sufficiency",
+              "executor_tier",
+              "tool_domain",
+              "skill_match"
+            ],
+            "title": "Point",
+            "type": "string"
+          },
+          "revision": {
+            "default": "auton-question-v1",
+            "title": "Revision",
+            "type": "string"
+          },
+          "type": {
+            "default": "choice",
+            "enum": [
+              "choice",
+              "boolean",
+              "score"
+            ],
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "point",
+          "type",
+          "revision",
+          "instructions",
+          "options"
+        ],
+        "title": "Question",
+        "type": "object"
+      },
+      "Reasonableness": {
+        "additionalProperties": false,
+        "properties": {
+          "evidence_refs": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 12,
+            "minItems": 0,
+            "title": "Evidence Refs",
+            "type": "array"
+          },
+          "explanation": {
+            "maxLength": 1500,
+            "minLength": 1,
+            "title": "Explanation",
+            "type": "string"
+          },
+          "knowledge_at_time": {
+            "enum": [
+              "sufficient",
+              "insufficient",
+              "unknown"
+            ],
+            "title": "Knowledge At Time",
+            "type": "string"
+          },
+          "verdict": {
+            "enum": [
+              "supported",
+              "unreasonable",
+              "unknown"
+            ],
+            "title": "Verdict",
+            "type": "string"
+          }
+        },
+        "required": [
+          "verdict",
+          "knowledge_at_time",
+          "evidence_refs",
+          "explanation"
+        ],
+        "title": "Reasonableness",
+        "type": "object"
+      },
       "RecoveryCommand": {
         "additionalProperties": false,
         "properties": {
@@ -7017,6 +7626,534 @@
           "direction"
         ],
         "title": "ReflectCommand",
+        "type": "object"
+      },
+      "ReviewCommand-Input": {
+        "additionalProperties": false,
+        "properties": {
+          "assessment_report_id": {
+            "anyOf": [
+              {
+                "pattern": "^[a-f0-9]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assessment Report Id"
+          },
+          "expected_run_version": {
+            "minimum": 0.0,
+            "title": "Expected Run Version",
+            "type": "integer"
+          },
+          "judgment_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Judgment Id",
+            "type": "string"
+          },
+          "project_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "public": {
+            "default": false,
+            "title": "Public",
+            "type": "boolean"
+          },
+          "question_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Question Id",
+            "type": "string"
+          },
+          "request_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "run_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Run Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "project_id",
+          "run_id",
+          "expected_run_version",
+          "judgment_id",
+          "question_id"
+        ],
+        "title": "ReviewCommand",
+        "type": "object"
+      },
+      "ReviewCommand-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "assessment_report_id": {
+            "anyOf": [
+              {
+                "pattern": "^[a-f0-9]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assessment Report Id"
+          },
+          "expected_run_version": {
+            "minimum": 0.0,
+            "title": "Expected Run Version",
+            "type": "integer"
+          },
+          "judgment_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Judgment Id",
+            "type": "string"
+          },
+          "project_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "public": {
+            "default": false,
+            "title": "Public",
+            "type": "boolean"
+          },
+          "question_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Question Id",
+            "type": "string"
+          },
+          "request_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "run_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Run Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "project_id",
+          "run_id",
+          "expected_run_version",
+          "judgment_id",
+          "question_id",
+          "assessment_report_id",
+          "public"
+        ],
+        "title": "ReviewCommand",
+        "type": "object"
+      },
+      "ReviewExport": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "input": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonValue"
+            },
+            "title": "Input",
+            "type": "object"
+          },
+          "qualification_signature": {
+            "title": "Qualification Signature",
+            "type": "string"
+          },
+          "source_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Source Digest",
+            "type": "string"
+          },
+          "target": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonValue"
+            },
+            "title": "Target",
+            "type": "object"
+          },
+          "verdict": {
+            "const": "KEEP",
+            "default": "KEEP",
+            "title": "Verdict",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "source_digest",
+          "input",
+          "target",
+          "qualification_signature",
+          "verdict"
+        ],
+        "title": "ReviewExport",
+        "type": "object"
+      },
+      "ReviewRecord": {
+        "additionalProperties": false,
+        "properties": {
+          "audit_retained": {
+            "const": true,
+            "default": true,
+            "title": "Audit Retained",
+            "type": "boolean"
+          },
+          "command": {
+            "$ref": "#/components/schemas/ReviewCommand-Output"
+          },
+          "config_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Config Digest",
+            "type": "string"
+          },
+          "evidence_current": {
+            "default": true,
+            "title": "Evidence Current",
+            "type": "boolean"
+          },
+          "human_revisions": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/HumanRevision-Output"
+            },
+            "title": "Human Revisions",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "positive_training_eligible": {
+            "default": false,
+            "title": "Positive Training Eligible",
+            "type": "boolean"
+          },
+          "proposed_verdict": {
+            "default": "HOLD",
+            "enum": [
+              "KEEP",
+              "DROP",
+              "HOLD"
+            ],
+            "title": "Proposed Verdict",
+            "type": "string"
+          },
+          "qualification_signature": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Qualification Signature"
+          },
+          "reason_codes": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Reason Codes",
+            "type": "array"
+          },
+          "stage_a": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StageReceipt"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "stage_b": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StageReceipt"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "default": "pending",
+            "enum": [
+              "pending",
+              "stage_a",
+              "stage_b",
+              "complete",
+              "blocked"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "subject": {
+            "$ref": "#/components/schemas/ReviewSubject"
+          },
+          "verdict": {
+            "default": "HOLD",
+            "enum": [
+              "KEEP",
+              "DROP",
+              "HOLD"
+            ],
+            "title": "Verdict",
+            "type": "string"
+          },
+          "version": {
+            "default": 0,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "command",
+          "config_digest",
+          "subject",
+          "stage_a",
+          "stage_b",
+          "status",
+          "verdict",
+          "proposed_verdict",
+          "reason_codes",
+          "human_revisions",
+          "qualification_signature",
+          "evidence_current",
+          "positive_training_eligible",
+          "audit_retained"
+        ],
+        "title": "ReviewRecord",
+        "type": "object"
+      },
+      "ReviewStatus": {
+        "additionalProperties": false,
+        "properties": {
+          "automatic_admission": {
+            "const": "requires_human_meta_calibration",
+            "default": "requires_human_meta_calibration",
+            "title": "Automatic Admission",
+            "type": "string"
+          },
+          "config_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Config Digest",
+            "type": "string"
+          },
+          "online_adoption": {
+            "const": "unchanged",
+            "default": "unchanged",
+            "title": "Online Adoption",
+            "type": "string"
+          },
+          "positive_rule": {
+            "const": "current_calibrated_adopted_beneficial_KEEP_only",
+            "default": "current_calibrated_adopted_beneficial_KEEP_only",
+            "title": "Positive Rule",
+            "type": "string"
+          },
+          "reviewer_model": {
+            "title": "Reviewer Model",
+            "type": "string"
+          },
+          "rubric_revision": {
+            "title": "Rubric Revision",
+            "type": "string"
+          }
+        },
+        "required": [
+          "config_digest",
+          "reviewer_model",
+          "rubric_revision",
+          "online_adoption",
+          "positive_rule",
+          "automatic_admission"
+        ],
+        "title": "ReviewStatus",
+        "type": "object"
+      },
+      "ReviewSubject": {
+        "additionalProperties": false,
+        "properties": {
+          "actual_fingerprints": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Actual Fingerprints",
+            "type": "array"
+          },
+          "actual_model_ids": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Actual Model Ids",
+            "type": "array"
+          },
+          "after_evidence": {
+            "items": {
+              "$ref": "#/components/schemas/EvidenceFact"
+            },
+            "title": "After Evidence",
+            "type": "array"
+          },
+          "answer": {
+            "$ref": "#/components/schemas/Answer"
+          },
+          "assessment_current": {
+            "default": false,
+            "title": "Assessment Current",
+            "type": "boolean"
+          },
+          "assessment_passed": {
+            "default": false,
+            "title": "Assessment Passed",
+            "type": "boolean"
+          },
+          "assessment_report_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assessment Report Id"
+          },
+          "before_evidence": {
+            "items": {
+              "$ref": "#/components/schemas/EvidenceFact"
+            },
+            "title": "Before Evidence",
+            "type": "array"
+          },
+          "blockers": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Blockers",
+            "type": "array"
+          },
+          "causal_link_verified": {
+            "default": false,
+            "title": "Causal Link Verified",
+            "type": "boolean"
+          },
+          "checkpoint_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Checkpoint Digest",
+            "type": "string"
+          },
+          "checkpoint_id": {
+            "title": "Checkpoint Id",
+            "type": "string"
+          },
+          "decision": {
+            "$ref": "#/components/schemas/JudgmentResult"
+          },
+          "efficiency_comparison_verified": {
+            "default": false,
+            "title": "Efficiency Comparison Verified",
+            "type": "boolean"
+          },
+          "environment_failure": {
+            "default": false,
+            "title": "Environment Failure",
+            "type": "boolean"
+          },
+          "goal_changed": {
+            "default": false,
+            "title": "Goal Changed",
+            "type": "boolean"
+          },
+          "goal_revision": {
+            "title": "Goal Revision",
+            "type": "integer"
+          },
+          "interaction_group": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interaction Group"
+          },
+          "request": {
+            "$ref": "#/components/schemas/JudgmentRequest"
+          },
+          "run_version": {
+            "title": "Run Version",
+            "type": "integer"
+          },
+          "source": {
+            "enum": [
+              "runtime",
+              "test"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "source_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Source Digest",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request",
+          "decision",
+          "answer",
+          "checkpoint_id",
+          "checkpoint_digest",
+          "run_version",
+          "goal_revision",
+          "source",
+          "before_evidence",
+          "after_evidence",
+          "source_digest",
+          "blockers",
+          "assessment_report_id",
+          "assessment_passed",
+          "assessment_current",
+          "causal_link_verified",
+          "efficiency_comparison_verified",
+          "environment_failure",
+          "goal_changed",
+          "interaction_group",
+          "actual_model_ids",
+          "actual_fingerprints"
+        ],
+        "title": "ReviewSubject",
         "type": "object"
       },
       "Revision": {
@@ -7966,6 +9103,139 @@
           "end_character"
         ],
         "title": "SourceLocation",
+        "type": "object"
+      },
+      "StageReceipt": {
+        "additionalProperties": false,
+        "properties": {
+          "cost_microusd": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": 0,
+            "title": "Cost Microusd"
+          },
+          "dispatch": {
+            "default": "not_dispatched",
+            "enum": [
+              "confirmed",
+              "not_dispatched",
+              "unknown"
+            ],
+            "title": "Dispatch",
+            "type": "string"
+          },
+          "evidence_refs": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Evidence Refs",
+            "type": "array"
+          },
+          "fingerprint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fingerprint"
+          },
+          "input_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Input Digest",
+            "type": "string"
+          },
+          "model_declaration_digest": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Declaration Digest"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "reported_model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reported Model"
+          },
+          "request_id": {
+            "title": "Request Id",
+            "type": "string"
+          },
+          "source": {
+            "default": "unavailable",
+            "enum": [
+              "runtime",
+              "test",
+              "unavailable"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": 0,
+            "title": "Tokens"
+          },
+          "verdict": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Reasonableness"
+              },
+              {
+                "$ref": "#/components/schemas/Contribution"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verdict"
+          }
+        },
+        "required": [
+          "model_declaration_digest",
+          "request_id",
+          "input_digest",
+          "verdict",
+          "reported_model",
+          "fingerprint",
+          "source",
+          "dispatch",
+          "tokens",
+          "cost_microusd",
+          "reason",
+          "evidence_refs"
+        ],
+        "title": "StageReceipt",
         "type": "object"
       },
       "StopRun": {
@@ -12614,6 +13884,1036 @@
           }
         },
         "summary": "Event Contract"
+      }
+    },
+    "/api/v1/decision-review/calibrations": {
+      "get": {
+        "operationId": "decision_review_calibrations_api_v1_decision_review_calibrations_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CalibrationView"
+                  },
+                  "title": "Response Decision Review Calibrations Api V1 Decision Review Calibrations Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Decision Review Calibrations"
+      }
+    },
+    "/api/v1/decision-review/eligible": {
+      "get": {
+        "operationId": "decision_review_eligible_api_v1_decision_review_eligible_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ReviewExport"
+                  },
+                  "title": "Response Decision Review Eligible Api V1 Decision Review Eligible Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Decision Review Eligible"
+      }
+    },
+    "/api/v1/decision-review/jobs": {
+      "post": {
+        "operationId": "review_decision_api_v1_decision_review_jobs_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewCommand-Input"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewRecord"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Review Decision"
+      }
+    },
+    "/api/v1/decision-review/meta": {
+      "post": {
+        "operationId": "decision_review_meta_api_v1_decision_review_meta_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MetaCaseCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalibrationView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Decision Review Meta"
+      }
+    },
+    "/api/v1/decision-review/reviews": {
+      "get": {
+        "operationId": "decision_reviews_api_v1_decision_review_reviews_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ReviewRecord"
+                  },
+                  "title": "Response Decision Reviews Api V1 Decision Review Reviews Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Decision Reviews"
+      }
+    },
+    "/api/v1/decision-review/reviews/{review_id}": {
+      "get": {
+        "operationId": "decision_review_api_v1_decision_review_reviews__review_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "review_id",
+            "required": true,
+            "schema": {
+              "title": "Review Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewRecord"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Decision Review"
+      }
+    },
+    "/api/v1/decision-review/reviews/{review_id}/revisions": {
+      "post": {
+        "operationId": "revise_decision_review_api_v1_decision_review_reviews__review_id__revisions_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "review_id",
+            "required": true,
+            "schema": {
+              "title": "Review Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HumanRevision-Input"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewRecord"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Revise Decision Review"
+      }
+    },
+    "/api/v1/decision-review/status": {
+      "get": {
+        "operationId": "decision_review_status_api_v1_decision_review_status_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Decision Review Status"
       }
     },
     "/api/v1/delegation": {

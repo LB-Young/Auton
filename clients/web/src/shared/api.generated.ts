@@ -399,6 +399,142 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/decision-review/calibrations': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Decision Review Calibrations */
+    get: operations['decision_review_calibrations_api_v1_decision_review_calibrations_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/decision-review/eligible': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Decision Review Eligible */
+    get: operations['decision_review_eligible_api_v1_decision_review_eligible_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/decision-review/jobs': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Review Decision */
+    post: operations['review_decision_api_v1_decision_review_jobs_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/decision-review/meta': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Decision Review Meta */
+    post: operations['decision_review_meta_api_v1_decision_review_meta_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/decision-review/reviews': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Decision Reviews */
+    get: operations['decision_reviews_api_v1_decision_review_reviews_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/decision-review/reviews/{review_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Decision Review */
+    get: operations['decision_review_api_v1_decision_review_reviews__review_id__get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/decision-review/reviews/{review_id}/revisions': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Revise Decision Review */
+    post: operations['revise_decision_review_api_v1_decision_review_reviews__review_id__revisions_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/decision-review/status': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Decision Review Status */
+    get: operations['decision_review_status_api_v1_decision_review_status_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/delegation': {
     parameters: {
       query?: never;
@@ -2255,6 +2391,53 @@ export interface components {
       /** Wilson Lower */
       wilson_lower: number | null;
     };
+    /** CalibrationView */
+    CalibrationView: {
+      /** Config Digest */
+      config_digest: string;
+      /**
+       * Coverage
+       * @default 0
+       */
+      coverage: number;
+      /**
+       * Eligible
+       * @default false
+       */
+      eligible: boolean;
+      /**
+       * Independent Families
+       * @default 0
+       */
+      independent_families: number;
+      /** Kappa */
+      kappa: number | null;
+      /** Keep Contamination Upper */
+      keep_contamination_upper: number | null;
+      /**
+       * Keep Errors
+       * @default 0
+       */
+      keep_errors: number;
+      /** Per Verdict */
+      per_verdict: {
+        [key: string]: number;
+      };
+      /**
+       * Predicted Keep
+       * @default 0
+       */
+      predicted_keep: number;
+      /**
+       * Protected Review Ids
+       * @default []
+       */
+      protected_review_ids: string[];
+      /** Reasons */
+      reasons: string[];
+      /** Reviewer Signature */
+      reviewer_signature: string | null;
+    };
     /** CaseBank */
     CaseBank: {
       /** Cases */
@@ -2657,6 +2840,28 @@ export interface components {
       expected_version: number;
       /** Request Id */
       request_id: string;
+    };
+    /** Contribution */
+    Contribution: {
+      /**
+       * Causal Support
+       * @enum {string}
+       */
+      causal_support: 'controlled' | 'corrective_chain' | 'observational' | 'none';
+      /**
+       * Efficiency
+       * @enum {string}
+       */
+      efficiency: 'beneficial' | 'avoidable_detour' | 'necessary_exploration' | 'unknown';
+      /** Evidence Refs */
+      evidence_refs: string[];
+      /** Explanation */
+      explanation: string;
+      /**
+       * Verdict
+       * @enum {string}
+       */
+      verdict: 'beneficial' | 'harmful' | 'environment_only' | 'unknown';
     };
     /** CreateRun */
     'CreateRun-Input': {
@@ -3344,6 +3549,19 @@ export interface components {
        */
       trust: 'untrusted';
     };
+    /** EvidenceFact */
+    EvidenceFact: {
+      /** Cursor */
+      cursor: number;
+      /** Digest */
+      digest: string;
+      /** Id */
+      id: string;
+      /** Kind */
+      kind: string;
+      /** Text */
+      text: string;
+    };
     /** EvolutionStatus */
     EvolutionStatus: {
       /**
@@ -3501,6 +3719,50 @@ export interface components {
        */
       status: 'ready' | 'starting' | 'stopped';
     };
+    /** HumanRevision */
+    'HumanRevision-Input': {
+      /** Evidence Refs */
+      evidence_refs: string[];
+      /** Expected Version */
+      expected_version: number;
+      /**
+       * Proposed Verdict
+       * @enum {string}
+       */
+      proposed_verdict: 'KEEP' | 'DROP' | 'HOLD';
+      /** Reason */
+      reason: string;
+      /** Request Id */
+      request_id: string;
+      /**
+       * Source
+       * @default user_observation
+       * @constant
+       */
+      source: 'user_observation';
+    };
+    /** HumanRevision */
+    'HumanRevision-Output': {
+      /** Evidence Refs */
+      evidence_refs: string[];
+      /** Expected Version */
+      expected_version: number;
+      /**
+       * Proposed Verdict
+       * @enum {string}
+       */
+      proposed_verdict: 'KEEP' | 'DROP' | 'HOLD';
+      /** Reason */
+      reason: string;
+      /** Request Id */
+      request_id: string;
+      /**
+       * Source
+       * @default user_observation
+       * @constant
+       */
+      source: 'user_observation';
+    };
     /** IdentityInfo */
     IdentityInfo: {
       /** Expires At */
@@ -3614,6 +3876,46 @@ export interface components {
       /** State */
       state: string;
     };
+    /** JudgmentRequest */
+    JudgmentRequest: {
+      /**
+       * Data Domain
+       * @default local-only
+       * @enum {string}
+       */
+      data_domain: 'public' | 'local-only' | 'secret';
+      /** Goal Id */
+      goal_id: string;
+      /**
+       * Goal Revision
+       * @default 1
+       */
+      goal_revision: number;
+      principal: components['schemas']['Principal'];
+      /** Questions */
+      questions: components['schemas']['Question'][];
+      /** Request Id */
+      request_id: string;
+      /**
+       * Required Capabilities
+       * @default [
+       *       "text"
+       *     ]
+       */
+      required_capabilities: ('text' | 'tools' | 'json')[];
+      /**
+       * Required Context Tokens
+       * @default 0
+       */
+      required_context_tokens: number;
+      /** State */
+      state: string;
+      /**
+       * State Cutoff
+       * @default 0
+       */
+      state_cutoff: number;
+    };
     /** JudgmentResult */
     JudgmentResult: {
       /**
@@ -3656,6 +3958,39 @@ export interface components {
        * @enum {string}
        */
       role: 'user' | 'assistant';
+    };
+    /** MetaCaseCommand */
+    MetaCaseCommand: {
+      /**
+       * Confirm Independent Human Annotation
+       * @default false
+       */
+      confirm_independent_human_annotation: boolean;
+      /** Evidence Refs */
+      evidence_refs: string[];
+      /** Expected Review Version */
+      expected_review_version: number;
+      /** Explanation */
+      explanation: string;
+      /** Family */
+      family: string;
+      /**
+       * Gold
+       * @enum {string}
+       */
+      gold: 'KEEP' | 'DROP' | 'HOLD';
+      /**
+       * Label Source
+       * @default human_annotation
+       * @constant
+       */
+      label_source: 'human_annotation';
+      /** Origin Group */
+      origin_group: string;
+      /** Request Id */
+      request_id: string;
+      /** Review Id */
+      review_id: string;
     };
     /** Metrics */
     Metrics: {
@@ -3912,6 +4247,13 @@ export interface components {
        */
       split: 'train' | 'development';
     };
+    /** Option */
+    Option: {
+      /** Description */
+      description: string;
+      /** Id */
+      id: string;
+    };
     /** PendingOperation */
     PendingOperation: {
       /** Operation Id */
@@ -4099,6 +4441,51 @@ export interface components {
       /** Version */
       version: string;
     };
+    /** Question */
+    Question: {
+      /** Id */
+      id: string;
+      /** Instructions */
+      instructions: string;
+      /**
+       * Options
+       * @default []
+       */
+      options: components['schemas']['Option'][];
+      /**
+       * Point
+       * @enum {string}
+       */
+      point: 'information_sufficiency' | 'executor_tier' | 'tool_domain' | 'skill_match';
+      /**
+       * Revision
+       * @default auton-question-v1
+       */
+      revision: string;
+      /**
+       * Type
+       * @default choice
+       * @enum {string}
+       */
+      type: 'choice' | 'boolean' | 'score';
+    };
+    /** Reasonableness */
+    Reasonableness: {
+      /** Evidence Refs */
+      evidence_refs: string[];
+      /** Explanation */
+      explanation: string;
+      /**
+       * Knowledge At Time
+       * @enum {string}
+       */
+      knowledge_at_time: 'sufficient' | 'insufficient' | 'unknown';
+      /**
+       * Verdict
+       * @enum {string}
+       */
+      verdict: 'supported' | 'unreasonable' | 'unknown';
+    };
     /** RecoveryCommand */
     RecoveryCommand: {
       /** Checkpoint Event Id */
@@ -4157,6 +4544,235 @@ export interface components {
       public: boolean;
       /** Request Id */
       request_id: string;
+    };
+    /** ReviewCommand */
+    'ReviewCommand-Input': {
+      /** Assessment Report Id */
+      assessment_report_id?: string | null;
+      /** Expected Run Version */
+      expected_run_version: number;
+      /** Judgment Id */
+      judgment_id: string;
+      /** Project Id */
+      project_id: string;
+      /**
+       * Public
+       * @default false
+       */
+      public: boolean;
+      /** Question Id */
+      question_id: string;
+      /** Request Id */
+      request_id: string;
+      /** Run Id */
+      run_id: string;
+    };
+    /** ReviewCommand */
+    'ReviewCommand-Output': {
+      /** Assessment Report Id */
+      assessment_report_id: string | null;
+      /** Expected Run Version */
+      expected_run_version: number;
+      /** Judgment Id */
+      judgment_id: string;
+      /** Project Id */
+      project_id: string;
+      /**
+       * Public
+       * @default false
+       */
+      public: boolean;
+      /** Question Id */
+      question_id: string;
+      /** Request Id */
+      request_id: string;
+      /** Run Id */
+      run_id: string;
+    };
+    /** ReviewExport */
+    ReviewExport: {
+      /** Id */
+      id: string;
+      /** Input */
+      input: {
+        [key: string]: components['schemas']['JsonValue'];
+      };
+      /** Qualification Signature */
+      qualification_signature: string;
+      /** Source Digest */
+      source_digest: string;
+      /** Target */
+      target: {
+        [key: string]: components['schemas']['JsonValue'];
+      };
+      /**
+       * Verdict
+       * @default KEEP
+       * @constant
+       */
+      verdict: 'KEEP';
+      /** Version */
+      version: number;
+    };
+    /** ReviewRecord */
+    ReviewRecord: {
+      /**
+       * Audit Retained
+       * @default true
+       * @constant
+       */
+      audit_retained: true;
+      command: components['schemas']['ReviewCommand-Output'];
+      /** Config Digest */
+      config_digest: string;
+      /**
+       * Evidence Current
+       * @default true
+       */
+      evidence_current: boolean;
+      /**
+       * Human Revisions
+       * @default []
+       */
+      human_revisions: components['schemas']['HumanRevision-Output'][];
+      /** Id */
+      id: string;
+      /**
+       * Positive Training Eligible
+       * @default false
+       */
+      positive_training_eligible: boolean;
+      /**
+       * Proposed Verdict
+       * @default HOLD
+       * @enum {string}
+       */
+      proposed_verdict: 'KEEP' | 'DROP' | 'HOLD';
+      /** Qualification Signature */
+      qualification_signature: string | null;
+      /**
+       * Reason Codes
+       * @default []
+       */
+      reason_codes: string[];
+      stage_a: components['schemas']['StageReceipt'] | null;
+      stage_b: components['schemas']['StageReceipt'] | null;
+      /**
+       * Status
+       * @default pending
+       * @enum {string}
+       */
+      status: 'pending' | 'stage_a' | 'stage_b' | 'complete' | 'blocked';
+      subject: components['schemas']['ReviewSubject'];
+      /**
+       * Verdict
+       * @default HOLD
+       * @enum {string}
+       */
+      verdict: 'KEEP' | 'DROP' | 'HOLD';
+      /**
+       * Version
+       * @default 0
+       */
+      version: number;
+    };
+    /** ReviewStatus */
+    ReviewStatus: {
+      /**
+       * Automatic Admission
+       * @default requires_human_meta_calibration
+       * @constant
+       */
+      automatic_admission: 'requires_human_meta_calibration';
+      /** Config Digest */
+      config_digest: string;
+      /**
+       * Online Adoption
+       * @default unchanged
+       * @constant
+       */
+      online_adoption: 'unchanged';
+      /**
+       * Positive Rule
+       * @default current_calibrated_adopted_beneficial_KEEP_only
+       * @constant
+       */
+      positive_rule: 'current_calibrated_adopted_beneficial_KEEP_only';
+      /** Reviewer Model */
+      reviewer_model: string;
+      /** Rubric Revision */
+      rubric_revision: string;
+    };
+    /** ReviewSubject */
+    ReviewSubject: {
+      /**
+       * Actual Fingerprints
+       * @default []
+       */
+      actual_fingerprints: string[];
+      /**
+       * Actual Model Ids
+       * @default []
+       */
+      actual_model_ids: string[];
+      /** After Evidence */
+      after_evidence: components['schemas']['EvidenceFact'][];
+      answer: components['schemas']['Answer'];
+      /**
+       * Assessment Current
+       * @default false
+       */
+      assessment_current: boolean;
+      /**
+       * Assessment Passed
+       * @default false
+       */
+      assessment_passed: boolean;
+      /** Assessment Report Id */
+      assessment_report_id: string | null;
+      /** Before Evidence */
+      before_evidence: components['schemas']['EvidenceFact'][];
+      /** Blockers */
+      blockers: string[];
+      /**
+       * Causal Link Verified
+       * @default false
+       */
+      causal_link_verified: boolean;
+      /** Checkpoint Digest */
+      checkpoint_digest: string;
+      /** Checkpoint Id */
+      checkpoint_id: string;
+      decision: components['schemas']['JudgmentResult'];
+      /**
+       * Efficiency Comparison Verified
+       * @default false
+       */
+      efficiency_comparison_verified: boolean;
+      /**
+       * Environment Failure
+       * @default false
+       */
+      environment_failure: boolean;
+      /**
+       * Goal Changed
+       * @default false
+       */
+      goal_changed: boolean;
+      /** Goal Revision */
+      goal_revision: number;
+      /** Interaction Group */
+      interaction_group: string | null;
+      request: components['schemas']['JudgmentRequest'];
+      /** Run Version */
+      run_version: number;
+      /**
+       * Source
+       * @enum {string}
+       */
+      source: 'runtime' | 'test';
+      /** Source Digest */
+      source_digest: string;
     };
     /** Revision */
     Revision: {
@@ -4513,6 +5129,51 @@ export interface components {
       source: string;
       /** Start Character */
       start_character: number;
+    };
+    /** StageReceipt */
+    StageReceipt: {
+      /**
+       * Cost Microusd
+       * @default 0
+       */
+      cost_microusd: number | null;
+      /**
+       * Dispatch
+       * @default not_dispatched
+       * @enum {string}
+       */
+      dispatch: 'confirmed' | 'not_dispatched' | 'unknown';
+      /**
+       * Evidence Refs
+       * @default []
+       */
+      evidence_refs: string[];
+      /** Fingerprint */
+      fingerprint: string | null;
+      /** Input Digest */
+      input_digest: string;
+      /** Model Declaration Digest */
+      model_declaration_digest: string | null;
+      /** Reason */
+      reason: string;
+      /** Reported Model */
+      reported_model: string | null;
+      /** Request Id */
+      request_id: string;
+      /**
+       * Source
+       * @default unavailable
+       * @enum {string}
+       */
+      source: 'runtime' | 'test' | 'unavailable';
+      /**
+       * Tokens
+       * @default 0
+       */
+      tokens: number | null;
+      /** Verdict */
+      verdict:
+        components['schemas']['Reasonableness'] | components['schemas']['Contribution'] | null;
     };
     /** StopRun */
     StopRun: {
@@ -7971,6 +8632,906 @@ export interface operations {
           'application/json': {
             [key: string]: unknown;
           };
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  decision_review_calibrations_api_v1_decision_review_calibrations_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['CalibrationView'][];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  decision_review_eligible_api_v1_decision_review_eligible_get: {
+    parameters: {
+      query: {
+        project_id: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ReviewExport'][];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  review_decision_api_v1_decision_review_jobs_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ReviewCommand-Input'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ReviewRecord'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  decision_review_meta_api_v1_decision_review_meta_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['MetaCaseCommand'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['CalibrationView'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  decision_reviews_api_v1_decision_review_reviews_get: {
+    parameters: {
+      query: {
+        project_id: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ReviewRecord'][];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  decision_review_api_v1_decision_review_reviews__review_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        review_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ReviewRecord'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  revise_decision_review_api_v1_decision_review_reviews__review_id__revisions_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        review_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['HumanRevision-Input'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ReviewRecord'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  decision_review_status_api_v1_decision_review_status_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ReviewStatus'];
         };
       };
       /** @description Unauthorized */

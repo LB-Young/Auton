@@ -34,7 +34,9 @@ def main(reuse: bool) -> None:
         "assess",
         "delegation",
         "evolve",
+        "decision_review",
         "evolve",
+        "decision_review",
         "kernel",
     ):
         field = "data_directory" if section == "kernel" else "directory"
