@@ -269,6 +269,7 @@ class EvalStore:
                 CaseInfo(
                     id=case.id,
                     family=case.family,
+                    origin_group=case.origin_group,
                     split=case.split,
                     kind=case.kind,
                     critical=case.critical,

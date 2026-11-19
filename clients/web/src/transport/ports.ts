@@ -29,6 +29,7 @@ import type {
 } from '../shared/contracts';
 
 export interface ApiClient {
+  releases: ReleaseApi;
   decisionTraining: DecisionTrainingApi;
   training: TrainingApi;
   datasets: DatasetsApi;
@@ -251,4 +252,25 @@ export interface DecisionTrainingApi extends TrainingApi {
     project: string,
     id: string,
   ): Promise<import('../shared/contracts').ShadowEvaluation>;
+}
+
+type ReleaseSchema = import('../shared/api.generated').components['schemas'];
+export interface ReleaseApi {
+  status(): Promise<ReleaseSchema['ReleaseStatus']>;
+  list(project: string): Promise<ReleaseSchema['ReleaseRecord'][]>;
+  plan(command: ReleaseSchema['ReleasePlanCommand-Input']): Promise<ReleaseSchema['ReleaseRecord']>;
+  approve(
+    id: string,
+    command: ReleaseSchema['ReleaseApproval'],
+  ): Promise<ReleaseSchema['ReleaseRecord']>;
+  control(
+    id: string,
+    command: ReleaseSchema['ReleaseControl'],
+  ): Promise<ReleaseSchema['ReleaseRecord']>;
+  observe(
+    id: string,
+    command: ReleaseSchema['ReleaseObservation'],
+  ): Promise<ReleaseSchema['ReleaseRecord']>;
+  validation(id: string): Promise<ReleaseSchema['ReleaseRecord']>;
+  validationRun(id: string, command: ReleaseSchema['ReleaseValidationRun']): Promise<AgentRun>;
 }

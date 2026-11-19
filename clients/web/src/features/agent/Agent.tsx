@@ -250,6 +250,9 @@ export function Agent({
               disabled={busy}
               onChange={(e) => setModel(e.target.value)}
             >
+              {models.some((m) => m.provider === 'local') && (
+                <option value="project_default">项目批准的灰度策略</option>
+              )}
               {models.map((m) => (
                 <option key={m.id} value={m.id}>
                   {m.id}

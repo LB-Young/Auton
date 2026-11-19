@@ -1,9 +1,12 @@
+from collections.abc import Awaitable, Callable
 from typing import Protocol
 
 from auton.constitution.config import Principal
 from auton.genome.contracts import (
     ArenaSnapshotCommand,
     Asset,
+    AssetReleaseCommand,
+    AssetReleaseState,
     Project,
     Revision,
     Snapshot,
@@ -13,6 +16,14 @@ from auton.kernel.ports import LifecycleHandle
 
 
 class AssetReadPort(Protocol):
+    async def resolve_for_goal(
+        self,
+        principal: Principal,
+        project_id: str,
+        goal_id: str,
+        goal_text: str = "",
+        data_domain: str = "local-only",
+    ) -> Snapshot: ...
     async def diff(
         self, principal: Principal, project_id: str, asset_id: str, revision: str
     ) -> str: ...
@@ -23,7 +34,12 @@ class AssetReadPort(Protocol):
     ) -> list[VersionInfo]: ...
     async def resolve(self, principal: Principal, project_id: str) -> Snapshot: ...
     async def snapshot(
-        self, principal: Principal, project_id: str, snapshot_id: str
+        self,
+        principal: Principal,
+        project_id: str,
+        snapshot_id: str,
+        goal_text: str | None = None,
+        data_domain: str | None = None,
     ) -> Snapshot: ...
 
 
@@ -57,7 +73,28 @@ class AssetPublishPort(Protocol):
     ) -> Revision: ...
 
 
+class AssetReleasePort(Protocol):
+    def bind_release_guard(self, guard: Callable[[Principal, str], Awaitable[None]]) -> None: ...
+    async def release_asset(
+        self, principal: Principal, command: AssetReleaseCommand
+    ) -> AssetReleaseState: ...
+    async def control_release_asset(
+        self,
+        principal: Principal,
+        project_id: str,
+        release_id: str,
+        action: str,
+        expected_version: int,
+    ) -> AssetReleaseState: ...
+
+
 class GenomePort(
-    LifecycleHandle, AssetReadPort, AssetArenaPort, AssetProposalPort, AssetPublishPort, Protocol
+    LifecycleHandle,
+    AssetReadPort,
+    AssetArenaPort,
+    AssetProposalPort,
+    AssetPublishPort,
+    AssetReleasePort,
+    Protocol,
 ):
     pass

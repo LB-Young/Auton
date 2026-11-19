@@ -273,7 +273,7 @@ class RouterCurator:
                         "dataset_router_catalog_changed",
                         "Original candidate declaration differs",
                     )
-                if run.command.model_id not in {
+                if (run.resolved_model_id or run.command.model_id) not in {
                     str(m.get("id")) for m in run.decision_candidate_catalog
                 }:
                     raise ApplicationError(
@@ -323,7 +323,8 @@ class RouterCurator:
                 )
             if (
                 condition(left) != condition(right)
-                or a.command.model_id == b.command.model_id
+                or (a.resolved_model_id or a.command.model_id)
+                == (b.resolved_model_id or b.command.model_id)
                 or left.ref.split != right.ref.split
             ):
                 raise ApplicationError(
@@ -368,7 +369,7 @@ class RouterCurator:
                 )
             winner = min((a, b), key=lambda r: (r.cost_microusd, r.tokens_used))
             target: dict[str, JsonValue] = {
-                "model_id": winner.command.model_id,
+                "model_id": winner.resolved_model_id or winner.command.model_id,
                 "basis": "observed_file_success_then_actual_cost",
             }
             inputs: dict[str, JsonValue] = {

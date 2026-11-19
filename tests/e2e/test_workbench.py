@@ -1134,3 +1134,31 @@ def test_decision_training_is_separate_and_preserves_teacher_only(page: Page) ->
     page.set_viewport_size({"width": 390, "height": 844})
     assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
     screenshot(page, "M19-decision-training-mobile.png")
+
+
+def test_release_control_empty_errors_reload_and_mobile(page: Page) -> None:
+    import json
+    from uuid import uuid4
+
+    project = "release-" + uuid4().hex[:10]
+    seed_workbench(page, project)
+    page.goto(BASE + "?view=release")
+    expect(page.get_by_role("heading", name="发布与回滚", exact=True)).to_be_visible()
+    page.get_by_label("发布项目", exact=True).select_option(project)
+    expect(page.get_by_text("当前项目还没有发布报告。", exact=True)).to_be_visible()
+    expect(page.get_by_text("自动批准：关闭", exact=False)).to_be_visible()
+    editor = page.get_by_label("发布计划 JSON", exact=True)
+    expect(editor).not_to_have_value("")
+    command = json.loads(editor.input_value())
+    assert command["mode"] == "canary" and command["percentage"] == 5
+    command["kind"] = "executor_model"
+    command["source_id"] = "0" * 64
+    editor.fill(json.dumps(command))
+    page.get_by_role("button", name="检查发布证据", exact=True).click()
+    expect(page.get_by_role("alert")).to_contain_text("No owned immutable training candidate")
+    screenshot(page, "M20-release-desktop.png")
+    page.reload()
+    expect(page.get_by_role("heading", name="发布与回滚", exact=True)).to_be_visible()
+    page.set_viewport_size({"width": 390, "height": 844})
+    assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+    screenshot(page, "M20-release-mobile.png")

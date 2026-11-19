@@ -598,7 +598,21 @@ class ExecutorTraining:
         for value in await self.store.list("bundle", principal.owner):
             if value["project_id"] == project:
                 bundle = TrainingBundle.model_validate(value)
-                plan = await self.load_plan(principal, bundle.plan_id)
+                source_valid = False
+                try:
+                    plan_value = await self.store.get("plan", principal.owner, bundle.plan_id)
+                    if plan_value is not None:
+                        original = TrainingPlan.model_validate(plan_value)
+                        _, manifests, _, _ = await self.data.read(principal, original.command)
+                        base_digest = await self.data.base(
+                            self.base(original.command.base_model_id)
+                        )
+                        source_valid = (
+                            manifests == original.dataset_manifests
+                            and base_digest == original.base_manifest_digest
+                        )
+                except (ApplicationError, OSError, ValueError):
+                    pass
                 intact = False
                 try:
                     job = await self.load(principal, bundle.job_id)
@@ -606,15 +620,7 @@ class ExecutorTraining:
                     intact = checkpoint is not None and checkpoint.files == bundle.files
                 except (ApplicationError, OSError, ValueError):
                     pass
-                output.append(
-                    bundle.model_copy(
-                        update={
-                            "source_current": plan.current_evidence_valid
-                            and plan.status == "ready"
-                            and intact
-                        }
-                    )
-                )
+                output.append(bundle.model_copy(update={"source_current": source_valid and intact}))
         return tuple(output)
 
     async def control(

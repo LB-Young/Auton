@@ -1,3 +1,4 @@
+import { ReleaseFeatureFactory } from '../features/release/factory';
 import {
   DecisionTrainingFeatureFactory,
   ExecutorTrainingFeatureFactory,
@@ -27,6 +28,7 @@ export function createApplication() {
   const events = new EventStreamFactory().create();
   return {
     projects,
+    releases: new ReleaseFeatureFactory().create({ api }),
     decisionTraining: new DecisionTrainingFeatureFactory().create({ api }),
     training: new ExecutorTrainingFeatureFactory().create({ api }),
     datasets: new DatasetsFeatureFactory().create({ api }),

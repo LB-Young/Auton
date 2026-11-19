@@ -21,6 +21,7 @@ from auton.decision_review.contracts import DecisionReviewConfig
 from auton.evolve.contracts import EvolutionConfig
 from auton.kernel.ports import ApplicationError, RuntimeDependencies
 from auton.model.contracts import ModelChunk, ModelRequest
+from auton.release.contracts import ReleaseConfig
 from auton.server.commands import CommandHandler
 from auton.server.identity import IdentityFactory, ServerSettings
 from auton.server.run_events import EventStreamFactory, RunEventStream
@@ -342,6 +343,7 @@ def test_persistent_http_identity_and_upload_survive_application_restart(
     config = ApplicationConfig(
         datasets=DatasetConfig(directory=tmp_path / "datasets"),
         training=TrainingConfig(directory=tmp_path / "training"),
+        release=ReleaseConfig(directory=tmp_path / "release"),
         decision_training=DecisionTrainingConfig(directory=tmp_path / "decision-training"),
         decision_review=DecisionReviewConfig(directory=tmp_path / "decision-review"),
         evolve=EvolutionConfig(directory=tmp_path / "evolve"),

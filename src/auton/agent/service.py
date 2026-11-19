@@ -199,12 +199,23 @@ class AgentRuntime:
                 for field, value in command.limits.model_dump().items()
             ):
                 raise ApplicationError(403, "run_limit_escalation", "Run limits exceed host grant")
+            proposed_identity = self.runs.create(principal.owner, command, "runtime").id
             if command.asset_snapshot_id:
-                await self.deps.assets.snapshot(
-                    runtime, command.project_id, command.asset_snapshot_id
+                initial_assets = await self.deps.assets.snapshot(
+                    runtime,
+                    command.project_id,
+                    command.asset_snapshot_id,
+                    command.goal,
+                    command.data_domain,
                 )
             else:
-                await self.deps.assets.resolve(runtime, command.project_id)
+                initial_assets = await self.deps.assets.resolve_for_goal(
+                    runtime,
+                    command.project_id,
+                    "agent-goal-" + proposed_identity,
+                    command.goal,
+                    command.data_domain,
+                )
             workspace = await self.deps.tools.workspace(runtime, command.workspace_id)
             if workspace.read_only and any(
                 t in {"file.write", "process.run"} for t in command.allowed_tools
@@ -212,7 +223,17 @@ class AgentRuntime:
                 raise ApplicationError(
                     403, "workspace_read_only", "Workspace does not permit requested effects"
                 )
-            model = next((m for m in self.deps.models.catalog() if m.id == command.model_id), None)
+            proposed = self.runs.create(principal.owner, command, "runtime")
+            resolved = await self.deps.models.resolve_model(
+                principal,
+                command.project_id,
+                "agent-goal-" + proposed.id,
+                command.model_id,
+                command.digest,
+                command.goal,
+                command.data_domain,
+            )
+            model = next((m for m in self.deps.models.catalog(principal) if m.id == resolved), None)
             if model is None:
                 raise ApplicationError(
                     409, "agent_model_unknown", "Choose a registered executor explicitly"
@@ -220,9 +241,15 @@ class AgentRuntime:
             run = self.runs.create(
                 principal.owner, command, "test" if model.provider == "mock" else "runtime"
             )
+            assignment = self.deps.models.runtime_assignment(principal, "agent-goal-" + run.id)
             # Session identity is scoped and stable; no public identity grants ownership.
             run = run.model_copy(
                 update={
+                    "resolved_model_id": resolved,
+                    "model_release_id": assignment.release_id if assignment else None,
+                    "model_assignment_purpose": assignment.purpose if assignment else "operational",
+                    "input_asset_snapshot_id": initial_assets.id,
+                    "input_asset_release_ids": initial_assets.release_ids,
                     "session_id": self.sessions.create(principal.owner, command.project_id),
                     "executor_spec": model.model_dump(mode="json"),
                     "budget_limits": command.limits.model_dump()
@@ -630,7 +657,7 @@ class AgentRuntime:
                     if run.decision_catalog_goal_revision == run.goal_revision
                     else tuple(
                         m.model_dump(mode="json", exclude={"health"})
-                        for m in self.deps.models.catalog()
+                        for m in self.deps.models.catalog(principal)
                     ),
                     decision_catalog_cutoff=run.decision_catalog_cutoff
                     if run.decision_catalog_goal_revision == run.goal_revision
@@ -700,8 +727,8 @@ class AgentRuntime:
                     goal_id="agent-goal-" + identity,
                     goal_revision=run.goal_revision,
                     state_cutoff=run.version,
-                    asset_snapshot_id=run.command.asset_snapshot_id,
-                    model_id=run.command.model_id,
+                    asset_snapshot_id=run.input_asset_snapshot_id or run.command.asset_snapshot_id,
+                    model_id=run.resolved_model_id or run.command.model_id,
                     state=TaskState(
                         goal=run.command.goal,
                         boundaries=(
@@ -740,7 +767,11 @@ class AgentRuntime:
                         or snapshot.asset_snapshot_id,
                         reason="context:" + ",".join(snapshot.reasons),
                     )
-                spec = next(m for m in self.deps.models.catalog() if m.id == run.command.model_id)
+                spec = next(
+                    m
+                    for m in self.deps.models.catalog(principal)
+                    if m.id == (run.resolved_model_id or run.command.model_id)
+                )
                 estimated_cost = (
                     (snapshot.admission_tokens or 0) * spec.input_microusd_per_million
                     + self.limit(run, "max_output_tokens") * spec.output_microusd_per_million
@@ -793,7 +824,7 @@ class AgentRuntime:
                 return await self._boundary(principal, current)
         assert run.model_request_id
         request = ModelRequest(
-            model_id=run.command.model_id,
+            model_id=run.resolved_model_id or run.command.model_id,
             request_id=run.model_request_id,
             principal=principal,
             goal_id="agent-goal-" + identity,

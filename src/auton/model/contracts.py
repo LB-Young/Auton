@@ -133,7 +133,7 @@ class ModelResult(Contract):
     tool_calls: tuple[ToolCall, ...] = ()
     finish_reason: Literal["stop", "tool_calls", "length"]
     usage: ModelUsage
-    source: Literal["remote", "test"]
+    source: Literal["remote", "local", "test"]
     latency_ms: int
 
 

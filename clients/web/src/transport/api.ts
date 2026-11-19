@@ -54,6 +54,18 @@ export class ApiClientFactory {
       return (await response.json()) as T;
     }
     return {
+      releases: {
+        status: () => request('/releases/status'),
+        list: (project) => request(`/releases?project_id=${encodeURIComponent(project)}`),
+        plan: (command) => request('/releases', command),
+        approve: (id, command) => request(`/releases/${encodeURIComponent(id)}/approvals`, command),
+        control: (id, command) => request(`/releases/${encodeURIComponent(id)}/commands`, command),
+        observe: (id, command) =>
+          request(`/releases/${encodeURIComponent(id)}/observations`, command),
+        validation: (id) => request(`/releases/${encodeURIComponent(id)}/validation`, {}),
+        validationRun: (id, command) =>
+          request(`/releases/${encodeURIComponent(id)}/validation/runs`, command),
+      },
       training: {
         status: () => request('/training/status'),
         plans: (project) => request(`/training/plans?project_id=${encodeURIComponent(project)}`),

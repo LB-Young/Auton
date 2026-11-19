@@ -71,9 +71,11 @@ class FixtureBackend:
             files[name] = hashlib.sha256(content).hexdigest()
         checkpoint = {"step": step, "files": files, "manifest_digest": job.plan_digest}
         (output / "baseline.json").write_text("{}")
-        (output / "progress.json").write_text(
-            json.dumps({"checkpoint": checkpoint, "folder": folder_name})
-        )
+        # Match the real worker's atomic progress publication: the service reads in
+        # a separate I/O thread and must never observe a partially written fixture.
+        temporary = output / "progress.json.tmp"
+        temporary.write_text(json.dumps({"checkpoint": checkpoint, "folder": folder_name}))
+        temporary.replace(output / "progress.json")
         if complete:
             (output / "result.json").write_text(
                 json.dumps(

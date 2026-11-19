@@ -127,7 +127,7 @@ def finalize(
         tool_calls=tuple(calls),
         finish_reason=cast(Literal["stop", "tool_calls", "length"], state.finish),
         usage=state.usage,
-        source="remote",
+        source="local" if spec.provider == "local" else "remote",
         latency_ms=int((time.monotonic() - started) * 1000),
     )
 

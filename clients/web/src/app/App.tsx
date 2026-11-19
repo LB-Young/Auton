@@ -1,3 +1,4 @@
+import { Releases } from '../features/release/Releases';
 import { Training } from '../features/training/Training';
 import { Datasets } from '../features/datasets/Datasets';
 import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from 'react';
@@ -819,6 +820,8 @@ export function App({ application }: { application: Application }) {
               <Training feature={application.decisionTraining} />
             ) : view === 'training' ? (
               <Training feature={application.training} />
+            ) : view === 'release' ? (
+              <Releases feature={application.releases} />
             ) : view === 'datasets' ? (
               <Datasets feature={application.datasets} />
             ) : view === 'evolve' ? (

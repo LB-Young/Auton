@@ -21,6 +21,7 @@ from auton.kernel.config import KernelConfig
 from auton.kernel.modules import ModuleDescriptor, resolve_modules
 from auton.kernel.ports import ModuleFactory, RuntimeDependencies
 from auton.model.config import ModelConfig
+from auton.release.contracts import ReleaseConfig
 from auton.server.identity import ServerSettings
 from auton.training.contracts import DecisionTrainingConfig, TrainingConfig
 
@@ -33,6 +34,7 @@ def test_factory_swap_has_identical_http_and_event_contract(
         ApplicationConfig(
             datasets=DatasetConfig(directory=tmp_path / "datasets"),
             training=TrainingConfig(directory=tmp_path / "training"),
+            release=ReleaseConfig(directory=tmp_path / "release"),
             decision_training=DecisionTrainingConfig(directory=tmp_path / "decision-training"),
             decision_review=DecisionReviewConfig(directory=tmp_path / "decision-review"),
             evolve=EvolutionConfig(directory=tmp_path / "evolve"),
@@ -106,6 +108,7 @@ def test_real_profile_never_uses_demo(deps: RuntimeDependencies, tmp_path: Path)
         ApplicationConfig(
             datasets=DatasetConfig(directory=tmp_path / "datasets"),
             training=TrainingConfig(directory=tmp_path / "training"),
+            release=ReleaseConfig(directory=tmp_path / "release"),
             decision_training=DecisionTrainingConfig(directory=tmp_path / "decision-training"),
             decision_review=DecisionReviewConfig(directory=tmp_path / "decision-review"),
             evolve=EvolutionConfig(directory=tmp_path / "evolve"),

@@ -24,6 +24,7 @@ from auton.kernel.events import StorageInfo
 from auton.kernel.modules import ModuleDescriptor
 from auton.kernel.storage import EventLogPort
 from auton.model.ports import ModelGatewayPort
+from auton.release.ports import ReleasePort
 from auton.server.commands import CommandHandlerPort
 from auton.server.feedback import FeedbackPort
 from auton.server.identity import IdentityInfo, IdentityPort
@@ -61,6 +62,7 @@ class ServerDependencies:
     commands: CommandHandlerPort
     identity: IdentityPort
     events: EventLogPort
+    release: ReleasePort
     decision_training: DecisionTrainingPort
     training: ExecutorTrainingPort
     datasets: DatasetPort

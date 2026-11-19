@@ -149,7 +149,7 @@ async def test_private_decision_can_run_locally_but_remote_route_is_filtered(
 ) -> None:
     original = service.deps.models.catalog
     registry = ModelRegistryFactory().create(ModelConfig())
-    service.deps.models.catalog = lambda: registry.catalog(True)  # type: ignore[method-assign]
+    service.deps.models.catalog = lambda principal=None: registry.catalog(True)  # type: ignore[method-assign]
     result = await service.decide(request())
     assert result.route.status == "blocked"
     assert set(result.route.excluded.values()) == {"data_egress_denied"}

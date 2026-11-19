@@ -97,6 +97,15 @@ from auton.judgment.contracts import JudgmentInfo, JudgmentRequest, JudgmentResu
 from auton.judgment.questions import JudgmentQuestionsFactory
 from auton.kernel.ports import ApplicationError
 from auton.model.contracts import ModelInfo, ModelMessage, ModelRequest, ModelResult
+from auton.release.contracts import (
+    ReleaseApproval,
+    ReleaseControl,
+    ReleaseObservation,
+    ReleasePlanCommand,
+    ReleaseRecord,
+    ReleaseStatus,
+    ReleaseValidationRun,
+)
 from auton.server.config import ServerConfig
 from auton.server.feedback import FeedbackCommand, FeedbackReceipt
 from auton.server.identity import IdentityInfo
@@ -477,6 +486,61 @@ class ServerFactory:
         ) -> AgentRun:
             return await deps.commands.recover(
                 Principal(owner=owner(request), role="user"), project_id, run_id, command
+            )
+
+        @app.get("/api/v1/releases/status")
+        async def release_status(request: Request) -> ReleaseStatus:
+            owner(request)
+            return deps.release.status()
+
+        @app.get("/api/v1/releases")
+        async def releases(request: Request, project_id: str) -> tuple[ReleaseRecord, ...]:
+            return await deps.release.list(Principal(owner=owner(request), role="user"), project_id)
+
+        @app.post("/api/v1/releases", status_code=201)
+        async def release_plan(request: Request, command: ReleasePlanCommand) -> ReleaseRecord:
+            return await deps.release.plan(Principal(owner=owner(request), role="user"), command)
+
+        @app.get("/api/v1/releases/{release_id}")
+        async def release_get(request: Request, release_id: str) -> ReleaseRecord:
+            return await deps.release.get(Principal(owner=owner(request), role="user"), release_id)
+
+        @app.post("/api/v1/releases/{release_id}/approvals")
+        async def release_approve(
+            request: Request, release_id: str, command: ReleaseApproval
+        ) -> ReleaseRecord:
+            return await deps.release.approve(
+                Principal(owner=owner(request), role="user"), release_id, command
+            )
+
+        @app.post("/api/v1/releases/{release_id}/commands")
+        async def release_control(
+            request: Request, release_id: str, command: ReleaseControl
+        ) -> ReleaseRecord:
+            return await deps.release.control(
+                Principal(owner=owner(request), role="user"), release_id, command
+            )
+
+        @app.post("/api/v1/releases/{release_id}/observations")
+        async def release_observe(
+            request: Request, release_id: str, command: ReleaseObservation
+        ) -> ReleaseRecord:
+            return await deps.release.observe(
+                Principal(owner=owner(request), role="user"), release_id, command
+            )
+
+        @app.post("/api/v1/releases/{release_id}/validation")
+        async def release_validate(request: Request, release_id: str) -> ReleaseRecord:
+            return await deps.release.prepare_validation(
+                Principal(owner=owner(request), role="user"), release_id
+            )
+
+        @app.post("/api/v1/releases/{release_id}/validation/runs", status_code=201)
+        async def release_validation_run(
+            request: Request, release_id: str, command: ReleaseValidationRun
+        ) -> AgentRun:
+            return await deps.release.validation_run(
+                Principal(owner=owner(request), role="user"), release_id, command
             )
 
         @app.get("/api/v1/training/status")
@@ -1118,7 +1182,7 @@ class ServerFactory:
         @app.get("/api/v1/models")
         async def models(request: Request) -> list[ModelInfo]:
             owner(request)
-            return deps.models.catalog()
+            return deps.models.catalog(Principal(owner=owner(request), role="user"))
 
         @app.post("/api/v1/models/{model_id}/probe")
         async def probe_model(request: Request, model_id: str, command: ModelProbe) -> ModelResult:

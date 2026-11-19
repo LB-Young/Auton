@@ -159,3 +159,11 @@ export type TrainingBundle = components['schemas']['TrainingBundle'];
 export type DecisionEvaluation = components['schemas']['DecisionEvaluation'];
 export type DecisionEvaluationCommand = components['schemas']['DecisionEvaluationCommand-Input'];
 export type ShadowEvaluation = components['schemas']['ShadowEvaluation'];
+
+export type ReleaseRecord = components['schemas']['ReleaseRecord'];
+export type ReleaseStatus = components['schemas']['ReleaseStatus'];
+export type ReleasePlanCommand = components['schemas']['ReleasePlanCommand-Input'];
+export type ReleaseApproval = components['schemas']['ReleaseApproval'];
+export type ReleaseControl = components['schemas']['ReleaseControl'];
+export type ReleaseObservation = components['schemas']['ReleaseObservation'];
+export type ReleaseValidationRun = components['schemas']['ReleaseValidationRun'];

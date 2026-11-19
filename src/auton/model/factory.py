@@ -5,8 +5,10 @@ import httpx
 from auton.constitution.secrets import SecretStorePort
 from auton.model.config import ModelConfig
 from auton.model.gateway import GatewayDependencies, ModelGateway
+from auton.model.local_provider import LocalRuntimeProvider
 from auton.model.ports import ModelGatewayPort, ProviderPort
 from auton.model.provider import DeepSeekProvider, MockProvider
+from auton.model.publications import ModelPublications
 from auton.model.registry import ModelRegistryFactory
 
 
@@ -33,10 +35,17 @@ class ProviderFactory:
 
 
 class ModelGatewayFactory:
-    def create(self, config: ModelConfig, deps: GatewayDependencies) -> ModelGatewayPort:
+    def create(
+        self,
+        config: ModelConfig,
+        deps: GatewayDependencies,
+        publications: ModelPublications | None = None,
+    ) -> ModelGatewayPort:
         return ModelGateway(
             config,
-            ModelRegistryFactory().create(config),
-            ProviderFactory().create(config, deps.secrets),
+            ModelRegistryFactory().create(config, publications),
+            LocalRuntimeProvider(ProviderFactory().create(config, deps.secrets), deps.secrets)
+            if config.local_targets
+            else ProviderFactory().create(config, deps.secrets),
             deps,
         )

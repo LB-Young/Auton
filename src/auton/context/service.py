@@ -70,8 +70,8 @@ class ContextEngine:
             (self.config.model_dump_json() + json.dumps(BINDINGS, sort_keys=True)).encode()
         ).hexdigest()
 
-    def model(self, identity: str) -> ModelInfo:
-        model = next((m for m in self.deps.models.catalog() if m.id == identity), None)
+    def model(self, identity: str, principal: Principal | None = None) -> ModelInfo:
+        model = next((m for m in self.deps.models.catalog(principal) if m.id == identity), None)
         if model is None:
             raise ApplicationError(409, "context_model_unknown", "Selected model is not registered")
         return model
@@ -192,7 +192,11 @@ class ContextEngine:
                     data_domain=request.data_domain,
                     max_output_tokens=request.max_output_tokens,
                 )
-                count, revision = counter.count(draft)
+                count, revision = (
+                    anyio.from_thread.run(self.deps.models.count_local_tokens, draft)
+                    if model.provider == "local"
+                    else counter.count(draft)
+                )
                 # Native count is exact for the pinned local encoding, not a claim about a
                 # hosted server's private prefix. Also preserve the M04 conservative gate.
                 admission = max(
@@ -272,14 +276,26 @@ class ContextEngine:
             raise ApplicationError(
                 403, "context_scope_mismatch", "Context belongs to another project"
             )
-        await self.deps.assets.snapshot(principal, project_id, result.asset_snapshot_id)
+        goal_text = None
+        if len(result.messages) > 1:
+            goal_text = str(
+                json.loads(result.messages[1].content or "{}").get("state", {}).get("goal", "")
+            )
+        await self.deps.assets.snapshot(
+            principal, project_id, result.asset_snapshot_id, goal_text, result.data_domain
+        )
         for identity, digest in result.receipt_digests.items():
             receipt = await self.deps.tools.receipt(principal, identity)
             if hashlib.sha256(receipt.model_dump_json().encode()).hexdigest() != digest:
                 raise ApplicationError(
                     409, "context_receipt_changed", "Operation outcome changed; rebuild context"
                 )
-        model = self.model(result.model_id)
+        model = self.model(result.model_id, principal)
+        if model.provider == "local":
+            state = json.loads(result.messages[1].content or "{}")
+            await self.deps.models.validate_runtime(
+                principal, model.id, result.goal_id, str(state["state"]["goal"]), result.data_domain
+            )
         if (
             result.configuration_digest != self.configuration_digest()
             or result.policy_version != self.deps.policy.public().version
@@ -315,7 +331,7 @@ class ContextEngine:
                 )
             old = ContextSnapshot.model_validate(existing.event.payload["snapshot"])
             return await self.snapshot(request.principal, request.project_id, old.id)
-        model = self.model(request.model_id)
+        model = self.model(request.model_id, request.principal)
         if request.previous_context_id:
             previous = await self.snapshot(
                 request.principal, request.project_id, request.previous_context_id
@@ -332,10 +348,20 @@ class ContextEngine:
                 )
         assets = (
             await self.deps.assets.snapshot(
-                request.principal, request.project_id, request.asset_snapshot_id
+                request.principal,
+                request.project_id,
+                request.asset_snapshot_id,
+                request.state.goal,
+                request.data_domain,
             )
             if request.asset_snapshot_id
-            else await self.deps.assets.resolve(request.principal, request.project_id)
+            else await self.deps.assets.resolve_for_goal(
+                request.principal,
+                request.project_id,
+                request.goal_id,
+                request.state.goal,
+                request.data_domain,
+            )
         )
         receipts = []
         for pending in request.state.pending:

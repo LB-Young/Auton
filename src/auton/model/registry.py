@@ -1,10 +1,15 @@
+from auton.constitution.config import Principal
 from auton.model.config import ModelConfig, ModelSpec
 from auton.model.contracts import ModelInfo, ModelRequest
 from auton.model.ports import ModelError
+from auton.model.publications import ModelPublications
 
 
 class ModelRegistry:
-    def __init__(self, models: tuple[ModelSpec, ...]) -> None:
+    def __init__(
+        self, models: tuple[ModelSpec, ...], publications: ModelPublications | None = None
+    ) -> None:
+        self.publications = publications
         self.models = {model.id: model for model in models}
         self.health: dict[str, str] = {}
 
@@ -12,6 +17,12 @@ class ModelRegistry:
         spec = self.models.get(request.model_id)
         if spec is None:
             raise ModelError("model_not_found", "The selected model is not registered")
+        if spec.provider == "local":
+            if self.publications is None:
+                raise ModelError(
+                    "model_release_unavailable", "Local executor needs an approved runtime binding"
+                )
+            self.publications.authorize(request.principal, spec.id, request.goal_id)
         required = {"text"}
         if request.tools:
             required.add("tools")
@@ -32,7 +43,7 @@ class ModelRegistry:
             )
         return spec, input_estimate
 
-    def catalog(self, credentials: bool) -> list[ModelInfo]:
+    def catalog(self, credentials: bool, principal: Principal | None = None) -> list[ModelInfo]:
         return [
             ModelInfo.model_validate(
                 {
@@ -41,7 +52,7 @@ class ModelRegistry:
                     if spec.provider == "mock"
                     else (
                         self.health.get(spec.id, "not_checked")
-                        if credentials
+                        if credentials or spec.provider == "local"
                         else "credential_missing"
                     ),
                     "capability_source": "test-fixture"
@@ -50,11 +61,19 @@ class ModelRegistry:
                 }
             )
             for spec in self.models.values()
+            if spec.provider != "local"
+            or (
+                principal is not None
+                and self.publications is not None
+                and self.publications.visible(principal.owner, spec.id)
+            )
         ]
 
 
 class ModelRegistryFactory:
-    def create(self, config: ModelConfig) -> ModelRegistry:
+    def create(
+        self, config: ModelConfig, publications: ModelPublications | None = None
+    ) -> ModelRegistry:
         if config.backend == "mock":
             return ModelRegistry(
                 (
@@ -90,4 +109,6 @@ class ModelRegistryFactory:
                     output_microusd_per_million=3960000,
                 ),
             )
+            + config.local_targets,
+            publications,
         )

@@ -1,0 +1,5 @@
+# Resolve/freeze in the deployment environment, then approve the built image digest.
+torch>=2.6,<3
+transformers>=4.51,<5
+peft>=0.17,<0.18
+safetensors>=0.5,<1

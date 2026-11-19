@@ -37,6 +37,9 @@ from auton.kernel.modules import resolve_modules
 from auton.kernel.ports import LifecycleHandle, ModuleFactory, RuntimeDependencies
 from auton.model.factory import ModelGatewayFactory
 from auton.model.gateway import GatewayDependencies
+from auton.model.publications import ModelPublications
+from auton.release.dependencies import ReleaseDependencies
+from auton.release.factory import ReleaseFactory
 from auton.server.commands import CommandHandlerFactory
 from auton.server.config import ServerConfig
 from auton.server.factory import ServerFactory
@@ -80,9 +83,17 @@ class ApplicationFactory:
         control = ConstitutionFactory().create(
             config.constitution, ConstitutionDependencies(kernel.events, deps)
         )
+        model_publications = ModelPublications(
+            config.kernel.data_directory / "model-publications",
+            kernel.events,
+            deps,
+            bool(config.models.local_targets),
+            config.profile == "test",
+        )
         models = ModelGatewayFactory().create(
             config.models,
             GatewayDependencies(control, kernel.events, deps, SecretStoreFactory().create()),
+            model_publications,
         )
         judgment = JudgmentFactory().create(
             config.judgment, JudgmentDependencies(control, control, kernel.events, deps, models)
@@ -208,6 +219,27 @@ class ApplicationFactory:
             ),
             DecisionEvaluationDependencies(agent, assess),
         )
+        release = ReleaseFactory().create(
+            config.release,
+            ReleaseDependencies(
+                genome,
+                genome,
+                model_publications,
+                agent,
+                assess,
+                evolve,
+                training,
+                decision_training,
+                kernel.events,
+                deps,
+                tools,
+                SecretStoreFactory().create(),
+                config.models.local_targets,
+                config.profile == "test",
+            ),
+        )
+        model_publications.bind_guard(release.verify_runtime_source)
+        genome.bind_release_guard(release.verify_runtime_source)
         identity = IdentityFactory().create(config.server, deps)
         commands = CommandHandlerFactory().create(agent, experience)
         uploads = UploadFactory().create(config.server, genome, deps)
@@ -226,6 +258,7 @@ class ApplicationFactory:
             [
                 kernel,
                 control,
+                model_publications,
                 models,
                 judgment,
                 tools,
@@ -244,6 +277,7 @@ class ApplicationFactory:
                 datasets,
                 training,
                 decision_training,
+                release,
                 identity,
                 commands,
                 uploads,
@@ -253,6 +287,7 @@ class ApplicationFactory:
             else [
                 kernel,
                 control,
+                model_publications,
                 models,
                 judgment,
                 tools,
@@ -271,6 +306,7 @@ class ApplicationFactory:
                 datasets,
                 training,
                 decision_training,
+                release,
                 identity,
                 commands,
                 uploads,
@@ -305,6 +341,7 @@ class ApplicationFactory:
                 datasets=datasets,
                 training=training,
                 decision_training=decision_training,
+                release=release,
                 identity=identity,
                 commands=commands,
                 feedback=FeedbackFactory().create(agent, kernel.events, deps),

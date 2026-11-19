@@ -65,6 +65,7 @@ class ArenaSnapshotCommand(Contract):
 
 
 class Snapshot(Contract):
+    release_ids: tuple[str, ...] = ()
     purpose: Literal["runtime", "optimization_arena"] = "runtime"
     parent_snapshot_id: str | None = None
     arena_asset_id: str | None = None
@@ -84,3 +85,29 @@ class VersionInfo(Contract):
     status: str
     origin: str
     digest: str
+
+
+class AssetReleaseCommand(Contract):
+    languages: tuple[str, ...] = ("zh", "en", "mixed", "other")
+    data_domains: tuple[str, ...] = ("public", "local-only")
+    release_id: str
+    project_id: str
+    asset_id: str
+    candidate_id: str
+    candidates_revision: str
+    expected_revision: str
+    content_sha256: str
+    percentage: int = Field(ge=1, le=100)
+    approval_event_id: str
+
+
+class AssetReleaseState(Contract):
+    sequence: int = 0
+    id: str
+    version: int = 0
+    project_id: str
+    command: AssetReleaseCommand
+    parent: Asset
+    target: Asset
+    status: Literal["active", "paused", "revoked"] = "active"
+    applied_revision: str | None = None

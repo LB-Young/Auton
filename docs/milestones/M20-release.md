@@ -1,6 +1,6 @@
 # M20：统一发布控制面、灰度与回滚
 
-> 状态：计划中。当前仅建立开发计划，未实现本里程碑。
+> 状态：发布控制面与真实运行消费链路工程实现；真实模型上线和生产质量需在目标部署环境验收。证据见 [M20](./evidence/M20.md)。
 
 ## 目标与前置依赖
 
@@ -14,11 +14,11 @@ ReleaseFactory、GenomeReleaseFactory、ModelReleaseFactory、RolloutPolicyFacto
 
 ## 开发任务
 
-- [ ] 分开定义 Genome 与 Model 状态机/写权限，复用发布报告、批准、范围、审计和监控 Port。
-- [ ] 发布不可变 bundle；校验模型、state builder、schema、校准与策略相容，预热成功才原子切指针。
-- [ ] 决策模型按判断点和固定 goal 分组灰度；批准前保持 Jev-only，不按难度/置信度逐请求切换。
-- [ ] 实现门槛监控、暂停/回滚、安全 checkpoint 对账；回到 Jev 仍须满足隐私与可用性。
-- [ ] 本地接手后保留获准 Jev 控制任务与只读抽样，actor/teacher/reviewer 来源严格区分。
+- [x] 分开定义 Genome 与 Model 状态机/写权限，复用发布报告、批准、范围、审计和监控 Port。
+- [x] 发布不可变 bundle；校验模型、state builder、schema、校准与策略相容，预热成功才原子切指针。
+- [x] 执行模型使用固定 goal 分组灰度；决策学生仅 offline 登记，线上保持 teacher-only，生产接手待新授权及四层实证。
+- [x] 实现门槛监控、暂停/回滚、安全 checkpoint 对账；回到 Jev 仍须满足隐私与可用性。
+- [ ] 决策学生未来接手后的 Jev 控制任务/live shadow：当前不启用，四层实证和明确接手授权仍缺失。actor/teacher/reviewer 来源继续区分。
 
 ## 前端交付
 
@@ -39,3 +39,5 @@ ReleaseFactory、GenomeReleaseFactory、ModelReleaseFactory、RolloutPolicyFacto
 后续自动晋升只可在另行授权政策内启用；不把本里程碑完成等同已授权上线某模型。
 
 交付实现、相关检查结果、接口/配置/迁移说明和页面演示；由验收证据更新 [总表](./README.md)，不以 Mock 通过替代真实模块完成。
+
+通用部署、API、冻结范围、独立验证、暂停/回滚步骤见 [运行说明](../local-runtime-and-release.md)。本机不承担训练/真实模型上线实验。

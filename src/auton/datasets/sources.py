@@ -201,7 +201,7 @@ class DatasetSourceReader:
                 received != result
                 or request.digest != started.event.payload.get("request_digest")
                 or request.digest != completed.event.payload.get("request_digest")
-                or request.model_id != run.command.model_id
+                or request.model_id != (run.resolved_model_id or run.command.model_id)
                 or request.principal.owner != principal.owner
                 or request.goal_id != "agent-goal-" + run.id
                 or request.model_id != result.model_id
@@ -354,7 +354,7 @@ class DatasetSourceReader:
             source_digest=digest(
                 {
                     "checkpoint": checkpoint.event.digest(),
-                    "asset": assets.model_dump(mode="json"),
+                    "asset": assets.model_dump(mode="json", exclude_unset=True),
                     "report": report.model_dump(mode="json") if report else None,
                     "events": event_refs,
                     "feedback": [(e.event.event_id, e.event.digest()) for e in feedback],

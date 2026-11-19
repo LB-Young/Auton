@@ -77,6 +77,7 @@ class EvalCase(Contract):
 
 class CaseInfo(Contract):
     id: str
+    origin_group: str = ""
     family: str
     split: Split
     kind: str

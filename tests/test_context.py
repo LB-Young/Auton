@@ -214,7 +214,9 @@ async def test_critical_state_never_silently_removed_and_empty_search(
     )
     assert result.status == "blocked" and "critical_context_limit" in result.reasons
     assert result.dropped_history_groups == 0 and not result.evidence
-    normal = await context.prepare(request(request_id="nohit", state={"goal": "Unmatched query"}))
+    normal = await context.prepare(
+        request(request_id="nohit", goal_id="nohit-goal", state={"goal": "Unmatched query"})
+    )
     assert normal.status == "ready" and not normal.evidence
 
 
@@ -372,7 +374,7 @@ async def test_remote_privacy_denial_and_missing_tokenizer_block_real_model(
     from auton.model.registry import ModelRegistryFactory
 
     class Catalog:
-        def catalog(self) -> list[ModelInfo]:
+        def catalog(self, principal: Principal | None = None) -> list[ModelInfo]:
             return ModelRegistryFactory().create(ModelConfig()).catalog(True)
 
     from typing import cast
@@ -428,7 +430,7 @@ async def test_message_limit_removes_optional_sources_before_latest_turn(
     for number in range(6):
         await publish(context, f"notes-{number}", f"context retrieval evidence {number}")
     info = context.deps.models.catalog()[0].model_copy(update={"context_tokens": 32768})
-    monkeypatch.setattr(context.deps.models, "catalog", lambda: [info])
+    monkeypatch.setattr(context.deps.models, "catalog", lambda *_args: [info])
     history = (ModelMessage(role="user", content="Latest revision"),) + (
         ModelMessage(role="assistant", content="still in current turn"),
     ) * 93

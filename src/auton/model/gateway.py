@@ -1,5 +1,6 @@
 import asyncio
 import hashlib
+import json
 from collections.abc import AsyncGenerator
 from contextlib import aclosing
 from dataclasses import dataclass
@@ -7,7 +8,7 @@ from dataclasses import dataclass
 from anyio import CancelScope
 from pydantic import JsonValue
 
-from auton.constitution.config import ActionRequest, Usage
+from auton.constitution.config import ActionRequest, Principal, Usage
 from auton.constitution.ports import ExecutionControlPort
 from auton.constitution.secrets import Redactor, SecretStorePort, StreamingRedactor
 from auton.kernel.events import Event, EventScope
@@ -15,7 +16,9 @@ from auton.kernel.ports import ApplicationError, RuntimeDependencies
 from auton.kernel.storage import EventLogPort
 from auton.model.config import ModelConfig
 from auton.model.contracts import ModelChunk, ModelInfo, ModelRequest, ModelResult, ModelUsage
+from auton.model.local_provider import LocalRuntimeProvider
 from auton.model.ports import ModelError, ProviderPort
+from auton.model.publication_contracts import ModelAssignment
 from auton.model.registry import ModelRegistry
 
 
@@ -53,14 +56,107 @@ class ModelGateway:
         await asyncio.gather(*tasks, return_exceptions=True)
         await self.provider.close()
 
-    def catalog(self) -> list[ModelInfo]:
+    def catalog(self, principal: Principal | None = None) -> list[ModelInfo]:
         credentials = True
         if self.config.backend != "mock":
             try:
                 self.deps.secrets.get(self.config.secret_reference)
             except ApplicationError:
                 credentials = False
-        return self.registry.catalog(credentials)
+        return self.registry.catalog(credentials, principal)
+
+    def runtime_assignment(self, principal: Principal, goal_id: str) -> ModelAssignment | None:
+        publications = self.registry.publications
+        return publications.assignments.get((principal.owner, goal_id)) if publications else None
+
+    async def resolve_model(
+        self,
+        principal: Principal,
+        project: str,
+        goal: str,
+        requested: str,
+        creation_digest: str = "",
+        goal_text: str = "",
+        data_domain: str = "local-only",
+    ) -> str:
+        if self.registry.publications is None:
+            return requested
+        result = await self.registry.publications.resolve(
+            principal, project, goal, requested, creation_digest, goal_text, data_domain
+        )
+        spec = self.registry.models.get(result)
+        if (
+            requested == "project_default"
+            and spec is not None
+            and spec.location == "remote"
+            and data_domain != "public"
+        ):
+            raise ApplicationError(
+                403,
+                "release_fallback_privacy_denied",
+                "Fallback cannot send this goal to a remote model",
+            )
+        return result
+
+    @staticmethod
+    def request_goal(request: ModelRequest) -> str:
+        if len(request.messages) < 2 or request.messages[1].content is None:
+            raise ApplicationError(
+                409, "local_host_state_missing", "Local runtime requires the pinned host task state"
+            )
+        try:
+            value = json.loads(request.messages[1].content)
+            if value["source"] != "host-task-state" or not isinstance(value["state"]["goal"], str):
+                raise ValueError()
+            return str(value["state"]["goal"])
+        except (ValueError, TypeError, KeyError) as error:
+            raise ApplicationError(
+                409, "local_host_state_missing", "Local runtime requires the pinned host task state"
+            ) from error
+
+    async def validate_runtime(
+        self,
+        principal: Principal,
+        model_id: str,
+        goal_id: str,
+        goal_text: str = "",
+        data_domain: str = "local-only",
+    ) -> None:
+        spec = self.registry.models.get(model_id)
+        if spec is not None and spec.provider == "local":
+            if self.registry.publications is None:
+                raise ApplicationError(
+                    409, "model_release_unavailable", "No approved model runtime binding"
+                )
+            await self.registry.publications.validate(
+                principal, model_id, goal_id, spec, goal_text, data_domain
+            )
+
+    async def count_local_tokens(self, request: ModelRequest) -> tuple[int, str]:
+        spec = self.registry.models.get(request.model_id)
+        if spec is None:
+            raise ModelError("model_not_found", "No registered local model")
+        if self.registry.publications is None:
+            raise ModelError("model_release_unavailable", "No approved runtime profile")
+        await self.validate_runtime(
+            request.principal,
+            spec.id,
+            request.goal_id,
+            self.request_goal(request),
+            request.data_domain,
+        )
+        if spec.provider != "local" or not isinstance(self.provider, LocalRuntimeProvider):
+            raise ModelError("local_tokenizer_unavailable", "No local runtime tokenization binding")
+        if (
+            Redactor(
+                (self.deps.secrets.get(spec.local_secret_reference or "MISSING_LOCAL_SECRET"),)
+            ).text(request.model_dump_json())
+            != request.model_dump_json()
+        ):
+            raise ApplicationError(
+                403, "credential_in_input", "Credentials cannot enter tokenization"
+            )
+        return await self.provider.count(request, spec)
 
     @staticmethod
     def _key(request: ModelRequest) -> str:
@@ -161,6 +257,14 @@ class ModelGateway:
             yield ModelChunk(kind="completed", result=cached)
             return
         spec, input_estimate = self.registry.select(request)
+        if spec.provider == "local":
+            await self.validate_runtime(
+                request.principal,
+                spec.id,
+                request.goal_id,
+                self.request_goal(request),
+                request.data_domain,
+            )
         if spec.location == "remote" and request.data_domain != "public":
             raise ApplicationError(
                 403, "data_egress_denied", "Private data cannot leave the machine"
@@ -168,7 +272,9 @@ class ModelGateway:
         try:
             known_secrets = (
                 (self.deps.secrets.get(self.config.secret_reference),)
-                if self.config.backend == "deepseek"
+                if spec.provider == "deepseek"
+                else (self.deps.secrets.get(spec.local_secret_reference or "MISSING_LOCAL_SECRET"),)
+                if spec.provider == "local"
                 else ()
             )
         except ApplicationError as error:
