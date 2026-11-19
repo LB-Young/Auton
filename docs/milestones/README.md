@@ -39,7 +39,7 @@
 | [M18 本地执行模型训练](./M18-executor-training.md) | M04、M13、M17 | ExecutorTrainingFactory、TrainingBackendFactory、TrainingJobFactory | 同一数据与配置可复现并恢复训练，失败不触发重复昂贵 job。 | 通用流程工程完成，目标环境效果待验（[证据](./evidence/M18.md)） |
 | [M19 本地类 Jev 训练与四层评估](./M19-decision-training.md) | M05、M13、M17 | DecisionTrainingFactory、DecisionBackendFactory、ShadowEvaluatorFactory | 新模型不靠只测 KEEP、只看一致率或几乎全弃权取得通过。 | 通用流程/描述性评估已实现，四层实证待验（[证据](./evidence/M19.md)） |
 | [M20 统一发布控制面、灰度与回滚](./M20-release.md) | M13、M15；模型发布另需 M18 或 M19 | ReleaseFactory、GenomeReleaseFactory、ModelReleaseFactory、RolloutPolicyFactory | 未经批准或报告范围不匹配的候选不能激活；自动训练不获得发布权。 | 控制面与运行链路工程实现，生产效果待验（[证据](./evidence/M20.md)） |
-| [M21 后台调度、运行监控与长期验证](./M21-scheduler-operations.md) | M10、M15、M17、M18/M19、M20 | SchedulerFactory、JobQueueFactory、TelemetryFactory、RetentionPolicyFactory | 进程重启不重复训练或发布，worker 失联可恢复且不会双重执行。 | 计划中 |
+| [M21 后台调度、运行监控与长期验证](./M21-scheduler-operations.md) | M10、M15、M17、M18/M19、M20 | SchedulerFactory、JobQueueFactory、TelemetryFactory、RetentionPolicyFactory | 进程重启不重复训练或发布，worker 失联可恢复且不会双重执行。 | 通用调度与恢复工程实现，长期效果待验（[证据](./evidence/M21.md)） |
 
 ## 3. 用户可见的交付节奏
 

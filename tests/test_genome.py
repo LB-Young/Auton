@@ -318,3 +318,26 @@ async def test_evolution_candidate_cannot_use_generic_manual_promotion(
     assert (await genome.resolve(READER, "project")).assets[
         0
     ].content == "# Skill\nOriginal verified steps.\n"
+
+
+async def test_concurrent_readers_publish_one_snapshot_and_pin_one_goal(
+    genome: GenomeService,
+) -> None:
+    import asyncio
+
+    await publish(genome, asset())
+    snapshots = await asyncio.gather(*(genome.resolve(USER, "project") for _ in range(8)))
+    assert len({s.id for s in snapshots}) == 1
+    pinned = await asyncio.gather(
+        *(
+            genome.resolve_for_goal(USER, "project", "concurrent-goal", "Hello", "public")
+            for _ in range(8)
+        )
+    )
+    assert len({s.id for s in pinned}) == 1
+    events = await genome.deps.events.read(limit=1000)
+    assert sum(e.event.kind == "genome.asset_used" for e in events) == 1
+    with pytest.raises(ApplicationError, match="immutable"):
+        await genome.resolve_for_goal(
+            USER, "project", "concurrent-goal", "Different scope", "public"
+        )

@@ -88,7 +88,7 @@ export function Releases({ feature }: { feature: ReleaseFeature }) {
     }
   }
   return (
-    <section className="module-page" aria-label="发布控制面">
+    <section className="module-page control-page" aria-label="发布控制面">
       <p className="eyebrow">M20 · 独立批准与运行版本</p>
       <h1>发布与回滚</h1>
       <p className="module-description">

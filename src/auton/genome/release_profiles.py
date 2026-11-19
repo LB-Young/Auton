@@ -1,5 +1,6 @@
 """Goal-sticky asset rollout metadata, independent of the untrusted learning branch."""
 
+import asyncio
 from collections.abc import Awaitable, Callable
 from pathlib import Path
 
@@ -23,6 +24,7 @@ class AssetProfileConfig(Contract):
 
 class AssetReleaseProfiles:
     def __init__(self, directory: Path, events: EventLogPort, runtime: RuntimeDependencies) -> None:
+        self.selection_lock = asyncio.Lock()
         self.guard: Callable[[Principal, str], Awaitable[None]] | None = None
         self.store = VersionedDocumentStore(
             AssetProfileConfig(directory=directory), events, runtime, False, "asset_profiles"
@@ -55,6 +57,17 @@ class AssetReleaseProfiles:
         )
 
     async def selected(
+        self,
+        principal: Principal,
+        project: str,
+        goal: str,
+        goal_text: str = "",
+        data_domain: str = "local-only",
+    ) -> tuple[AssetReleaseState, ...]:
+        async with self.selection_lock:
+            return await self._selected(principal, project, goal, goal_text, data_domain)
+
+    async def _selected(
         self,
         principal: Principal,
         project: str,

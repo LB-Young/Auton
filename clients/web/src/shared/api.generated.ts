@@ -1189,6 +1189,194 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/operations/alerts': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Operations Alerts */
+    get: operations['operations_alerts_api_v1_operations_alerts_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/operations/backups': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Operations Backup */
+    post: operations['operations_backup_api_v1_operations_backups_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/operations/control': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Operations Control */
+    post: operations['operations_control_api_v1_operations_control_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/operations/jobs': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Operations Jobs */
+    get: operations['operations_jobs_api_v1_operations_jobs_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/operations/jobs/{job_id}/commands': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Operations Job Control */
+    post: operations['operations_job_control_api_v1_operations_jobs__job_id__commands_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/operations/restores': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Operations Restore */
+    post: operations['operations_restore_api_v1_operations_restores_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/operations/samples': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Operations Samples */
+    get: operations['operations_samples_api_v1_operations_samples_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/operations/schedules': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Operations Schedules */
+    get: operations['operations_schedules_api_v1_operations_schedules_get'];
+    put?: never;
+    /** Operations Schedule */
+    post: operations['operations_schedule_api_v1_operations_schedules_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/operations/schedules/{schedule_id}/commands': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Operations Schedule Control */
+    post: operations['operations_schedule_control_api_v1_operations_schedules__schedule_id__commands_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/operations/status': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Operations Status */
+    get: operations['operations_status_api_v1_operations_status_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/operations/tick': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Operations Tick */
+    post: operations['operations_tick_api_v1_operations_tick_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/policy': {
     parameters: {
       query?: never;
@@ -2773,6 +2961,120 @@ export interface components {
        */
       training_use_confirmed_by_user: boolean;
     };
+    /** BackgroundJob */
+    BackgroundJob: {
+      /**
+       * Actual Cost Microusd
+       * @default 0
+       */
+      actual_cost_microusd: number | null;
+      /**
+       * Attempts
+       * @default 0
+       */
+      attempts: number;
+      /** Created At */
+      created_at: number;
+      /** Cycle */
+      cycle: number;
+      /**
+       * Dispatched
+       * @default false
+       */
+      dispatched: boolean;
+      /** External Id */
+      external_id: string | null;
+      /**
+       * Failures
+       * @default 0
+       */
+      failures: number;
+      /** Id */
+      id: string;
+      /** Lease Token */
+      lease_token: string | null;
+      /**
+       * Lease Until
+       * @default 0
+       */
+      lease_until: number;
+      /** Next Due */
+      next_due: number;
+      /** Operation */
+      operation:
+        | components['schemas']['ReviewOperation-Output']
+        | components['schemas']['DatasetOperation-Output']
+        | components['schemas']['ExportOperation-Output']
+        | components['schemas']['WithdrawOperation-Output']
+        | components['schemas']['TrainingOperation-Output']
+        | components['schemas']['MaintenanceOperation'];
+      /** Project Id */
+      project_id: string;
+      /**
+       * Reason
+       * @default queued
+       */
+      reason: string;
+      /**
+       * Reserved Cost Microusd
+       * @default 0
+       */
+      reserved_cost_microusd: number;
+      /** Result Digest */
+      result_digest: string | null;
+      /**
+       * Sample Keys
+       * @default []
+       */
+      sample_keys: string[];
+      /** Schedule Id */
+      schedule_id: string;
+      /**
+       * Status
+       * @default queued
+       * @enum {string}
+       */
+      status:
+        | 'queued'
+        | 'leased'
+        | 'waiting'
+        | 'paused'
+        | 'succeeded'
+        | 'failed'
+        | 'cancelled'
+        | 'attention';
+      /**
+       * Version
+       * @default 0
+       */
+      version: number;
+    };
+    /** BackupCommand */
+    BackupCommand: {
+      /** Request Id */
+      request_id: string;
+    };
+    /** BackupManifest */
+    BackupManifest: {
+      /** Bytes */
+      bytes: number;
+      /** Config Digest */
+      config_digest: string;
+      /** Created At */
+      created_at: number;
+      /** Id */
+      id: string;
+      /** Records */
+      records: number;
+      /**
+       * Scope
+       * @default owned_operations_state_only
+       * @constant
+       */
+      scope: 'owned_operations_state_only';
+      /** Sha256 */
+      sha256: string;
+    };
     /** BatchEvaluation */
     BatchEvaluation: {
       /** Bank Revision */
@@ -3670,6 +3972,24 @@ export interface components {
       /** Subjects */
       subjects: components['schemas']['SubjectRef-Output'][];
     };
+    /** DatasetOperation */
+    'DatasetOperation-Input': {
+      command: components['schemas']['DatasetBuild-Input'];
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: 'dataset';
+    };
+    /** DatasetOperation */
+    'DatasetOperation-Output': {
+      command: components['schemas']['DatasetBuild-Output'];
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: 'dataset';
+    };
     /** DatasetSnapshot */
     DatasetSnapshot: {
       /**
@@ -3757,7 +4077,7 @@ export interface components {
       training: 'separate_worker_capability';
     };
     /** DatasetWithdrawal */
-    DatasetWithdrawal: {
+    'DatasetWithdrawal-Input': {
       /** Grant Id */
       grant_id?: string | null;
       /** Project Id */
@@ -3768,6 +4088,19 @@ export interface components {
       request_id: string;
       /** Run Id */
       run_id?: string | null;
+    };
+    /** DatasetWithdrawal */
+    'DatasetWithdrawal-Output': {
+      /** Grant Id */
+      grant_id: string | null;
+      /** Project Id */
+      project_id: string;
+      /** Reason */
+      reason: string;
+      /** Request Id */
+      request_id: string;
+      /** Run Id */
+      run_id: string | null;
     };
     /** DecisionEvaluation */
     DecisionEvaluation: {
@@ -4534,6 +4867,28 @@ export interface components {
        */
       split: 'train' | 'validation';
     };
+    /** ExportOperation */
+    'ExportOperation-Input': {
+      command: components['schemas']['ExportCommand-Input'];
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: 'export';
+      /** Snapshot Id */
+      snapshot_id: string;
+    };
+    /** ExportOperation */
+    'ExportOperation-Output': {
+      command: components['schemas']['ExportCommand-Output'];
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: 'export';
+      /** Snapshot Id */
+      snapshot_id: string;
+    };
     /** FeedbackCommand */
     FeedbackCommand: {
       /**
@@ -4898,6 +5253,14 @@ export interface components {
       /** Project Id */
       project_id: string;
     };
+    /** MaintenanceOperation */
+    MaintenanceOperation: {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: 'retention' | 'telemetry';
+    };
     /** Message */
     Message: {
       /** Content */
@@ -5163,6 +5526,78 @@ export interface components {
        */
       version: string;
     };
+    /** OperationsAlert */
+    OperationsAlert: {
+      /** Active */
+      active: boolean;
+      /** Changed At */
+      changed_at: number;
+      /** Code */
+      code: string;
+      /**
+       * Delivery
+       * @default local_control_panel_only
+       * @constant
+       */
+      delivery: 'local_control_panel_only';
+      /** Id */
+      id: string;
+      /** Project Id */
+      project_id: string;
+      /** Sample Id */
+      sample_id: string | null;
+      /**
+       * Version
+       * @default 0
+       */
+      version: number;
+    };
+    /** OperationsControl */
+    OperationsControl: {
+      /**
+       * Action
+       * @enum {string}
+       */
+      action: 'pause' | 'resume' | 'cancel';
+      /** Expected Version */
+      expected_version: number;
+      /** Request Id */
+      request_id: string;
+    };
+    /** OperationsStatus */
+    OperationsStatus: {
+      /** Config Digest */
+      config_digest: string;
+      /**
+       * Coordinator
+       * @default single_process_fenced_leases
+       * @constant
+       */
+      coordinator: 'single_process_fenced_leases';
+      /** Enabled */
+      enabled: boolean;
+      /**
+       * Last Error
+       * @default
+       */
+      last_error: string;
+      /**
+       * Observer Only
+       * @default false
+       */
+      observer_only: boolean;
+      /**
+       * Owner Paused
+       * @default false
+       */
+      owner_paused: boolean;
+      /**
+       * Publication Authority
+       * @default false
+       * @constant
+       */
+      publication_authority: false;
+    };
     /**
      * OptimizationTask
      * @description Executable train/dev input, with no meta human answer or calibration label.
@@ -5204,6 +5639,11 @@ export interface components {
       description: string;
       /** Id */
       id: string;
+    };
+    /** OwnerPause */
+    OwnerPause: {
+      /** Paused */
+      paused: boolean;
     };
     /** PendingOperation */
     PendingOperation: {
@@ -5807,6 +6247,44 @@ export interface components {
       /** Request Id */
       request_id: string;
     };
+    /** ResourceWindow */
+    'ResourceWindow-Input': {
+      /**
+       * End Hour Utc
+       * @default 24
+       */
+      end_hour_utc: number;
+      /**
+       * Start Hour Utc
+       * @default 0
+       */
+      start_hour_utc: number;
+    };
+    /** ResourceWindow */
+    'ResourceWindow-Output': {
+      /**
+       * End Hour Utc
+       * @default 24
+       */
+      end_hour_utc: number;
+      /**
+       * Start Hour Utc
+       * @default 0
+       */
+      start_hour_utc: number;
+    };
+    /** RestoreCommand */
+    RestoreCommand: {
+      /** Backup Id */
+      backup_id: string;
+      /**
+       * Confirm Empty Target
+       * @default false
+       */
+      confirm_empty_target: boolean;
+      /** Expected Sha256 */
+      expected_sha256: string;
+    };
     /** ReviewCommand */
     'ReviewCommand-Input': {
       /** Assessment Report Id */
@@ -5875,6 +6353,24 @@ export interface components {
       verdict: 'KEEP';
       /** Version */
       version: number;
+    };
+    /** ReviewOperation */
+    'ReviewOperation-Input': {
+      command: components['schemas']['ReviewCommand-Input'];
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: 'review';
+    };
+    /** ReviewOperation */
+    'ReviewOperation-Output': {
+      command: components['schemas']['ReviewCommand-Output'];
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: 'review';
     };
     /** ReviewRecord */
     ReviewRecord: {
@@ -6176,6 +6672,131 @@ export interface components {
       cursor: number;
       run: components['schemas']['AgentRun'];
       transient: components['schemas']['TransientProgress'] | null;
+    };
+    /** Schedule */
+    Schedule: {
+      command: components['schemas']['ScheduleCommand-Output'];
+      /** Config Digest */
+      config_digest: string;
+      /**
+       * Cycle
+       * @default 0
+       */
+      cycle: number;
+      /** Enabled */
+      enabled: boolean;
+      /** Id */
+      id: string;
+      /** Next Due */
+      next_due: number;
+      /** Project Id */
+      project_id: string;
+      /**
+       * Reason
+       * @default user_disabled
+       */
+      reason: string;
+      /**
+       * Version
+       * @default 0
+       */
+      version: number;
+    };
+    /** ScheduleCommand */
+    'ScheduleCommand-Input': {
+      /**
+       * Budget Microusd
+       * @default 0
+       */
+      budget_microusd: number;
+      /**
+       * Confirm Background Actions
+       * @default false
+       */
+      confirm_background_actions: boolean;
+      /**
+       * Depends On
+       * @default []
+       */
+      depends_on: string[];
+      /**
+       * Enabled
+       * @default false
+       */
+      enabled: boolean;
+      /** Expires At */
+      expires_at: number;
+      /**
+       * Interval Seconds
+       * @default 3600
+       */
+      interval_seconds: number;
+      /** Operation */
+      operation:
+        | components['schemas']['ReviewOperation-Input']
+        | components['schemas']['DatasetOperation-Input']
+        | components['schemas']['ExportOperation-Input']
+        | components['schemas']['WithdrawOperation-Input']
+        | components['schemas']['TrainingOperation-Input']
+        | components['schemas']['MaintenanceOperation'];
+      /** Project Id */
+      project_id: string;
+      /**
+       * Repeat
+       * @default false
+       */
+      repeat: boolean;
+      /** Request Id */
+      request_id: string;
+      window?: components['schemas']['ResourceWindow-Input'];
+    };
+    /** ScheduleCommand */
+    'ScheduleCommand-Output': {
+      /**
+       * Budget Microusd
+       * @default 0
+       */
+      budget_microusd: number;
+      /**
+       * Confirm Background Actions
+       * @default false
+       */
+      confirm_background_actions: boolean;
+      /**
+       * Depends On
+       * @default []
+       */
+      depends_on: string[];
+      /**
+       * Enabled
+       * @default false
+       */
+      enabled: boolean;
+      /** Expires At */
+      expires_at: number;
+      /**
+       * Interval Seconds
+       * @default 3600
+       */
+      interval_seconds: number;
+      /** Operation */
+      operation:
+        | components['schemas']['ReviewOperation-Output']
+        | components['schemas']['DatasetOperation-Output']
+        | components['schemas']['ExportOperation-Output']
+        | components['schemas']['WithdrawOperation-Output']
+        | components['schemas']['TrainingOperation-Output']
+        | components['schemas']['MaintenanceOperation'];
+      /** Project Id */
+      project_id: string;
+      /**
+       * Repeat
+       * @default false
+       */
+      repeat: boolean;
+      /** Request Id */
+      request_id: string;
+      window: components['schemas']['ResourceWindow-Output'];
     };
     /** SectionPatch */
     SectionPatch: {
@@ -6672,6 +7293,56 @@ export interface components {
        */
       training_use_confirmed_by_user: boolean;
     };
+    /** TelemetrySample */
+    TelemetrySample: {
+      /**
+       * Causal Benefit Verified
+       * @default false
+       * @constant
+       */
+      causal_benefit_verified: false;
+      /** Created At */
+      created_at: number;
+      /**
+       * Drift Advisory
+       * @default false
+       */
+      drift_advisory: boolean;
+      /** Failed */
+      failed: number;
+      /** Foreground Active */
+      foreground_active: number;
+      /** Id */
+      id: string;
+      /** Known Cost Microusd */
+      known_cost_microusd: number;
+      /** Operational Pass Rate */
+      operational_pass_rate: number | null;
+      /** Passed */
+      passed: number;
+      /** Project Id */
+      project_id: string;
+      /** Queue States */
+      queue_states: {
+        [key: string]: number;
+      };
+      /** Review Backlog */
+      review_backlog: number;
+      /** Runs */
+      runs: number;
+      /** Source Counts */
+      source_counts: {
+        [key: string]: number;
+      };
+      /** Training States */
+      training_states: {
+        [key: string]: number;
+      };
+      /** Unknown Charges */
+      unknown_charges: number;
+      /** Withdrawn Datasets */
+      withdrawn_datasets: number;
+    };
     /** ToolApproval */
     ToolApproval: {
       /** Expires At */
@@ -7149,6 +7820,34 @@ export interface components {
       /** Request Id */
       request_id: string;
     };
+    /** TrainingOperation */
+    'TrainingOperation-Input': {
+      /**
+       * Allow Checkpoint Resume
+       * @default false
+       */
+      allow_checkpoint_resume: boolean;
+      command: components['schemas']['TrainingJobCommand'];
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: 'decision_training' | 'executor_training';
+    };
+    /** TrainingOperation */
+    'TrainingOperation-Output': {
+      /**
+       * Allow Checkpoint Resume
+       * @default false
+       */
+      allow_checkpoint_resume: boolean;
+      command: components['schemas']['TrainingJobCommand'];
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: 'decision_training' | 'executor_training';
+    };
     /** TrainingPlan */
     TrainingPlan: {
       /**
@@ -7498,6 +8197,24 @@ export interface components {
       /** Used */
       used: number;
       window: components['schemas']['BlindWindow'];
+    };
+    /** WithdrawOperation */
+    'WithdrawOperation-Input': {
+      command: components['schemas']['DatasetWithdrawal-Input'];
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: 'withdraw';
+    };
+    /** WithdrawOperation */
+    'WithdrawOperation-Output': {
+      command: components['schemas']['DatasetWithdrawal-Output'];
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: 'withdraw';
     };
     /** WorkspaceView */
     WorkspaceView: {
@@ -11469,7 +12186,7 @@ export interface operations {
     };
     requestBody: {
       content: {
-        'application/json': components['schemas']['DatasetWithdrawal'];
+        'application/json': components['schemas']['DatasetWithdrawal-Input'];
       };
     };
     responses: {
@@ -16560,6 +17277,1362 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['ModelResult'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  operations_alerts_api_v1_operations_alerts_get: {
+    parameters: {
+      query: {
+        project_id: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['OperationsAlert'][];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  operations_backup_api_v1_operations_backups_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['BackupCommand'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['BackupManifest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  operations_control_api_v1_operations_control_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['OwnerPause'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': boolean;
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  operations_jobs_api_v1_operations_jobs_get: {
+    parameters: {
+      query: {
+        project_id: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['BackgroundJob'][];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  operations_job_control_api_v1_operations_jobs__job_id__commands_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        job_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['OperationsControl'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['BackgroundJob'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  operations_restore_api_v1_operations_restores_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RestoreCommand'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['BackupManifest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  operations_samples_api_v1_operations_samples_get: {
+    parameters: {
+      query: {
+        project_id: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['TelemetrySample'][];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  operations_schedules_api_v1_operations_schedules_get: {
+    parameters: {
+      query: {
+        project_id: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Schedule'][];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  operations_schedule_api_v1_operations_schedules_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ScheduleCommand-Input'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Schedule'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  operations_schedule_control_api_v1_operations_schedules__schedule_id__commands_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        schedule_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['OperationsControl'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Schedule'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  operations_status_api_v1_operations_status_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['OperationsStatus'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  operations_tick_api_v1_operations_tick_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['BackgroundJob'][];
         };
       };
       /** @description Unauthorized */

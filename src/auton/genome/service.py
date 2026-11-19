@@ -41,6 +41,7 @@ class AssetResolver:
         self, repo: GitAssetRepository, policy: MemoryPolicy, deps: GenomeDependencies
     ) -> None:
         self.repo, self.policy, self.deps = repo, policy, deps
+        self.snapshot_lock = asyncio.Lock()
         self.profiles = AssetReleaseProfiles(
             repo.config.directory / "release-profiles", deps.events, deps.runtime
         )
@@ -169,37 +170,50 @@ class AssetResolver:
         )
         identity = hashlib.sha256(draft.model_dump_json().encode()).hexdigest()
         result = draft.model_copy(update={"id": identity})
-        event_id = self.event_id(principal, project_id, identity)
-        if await self.deps.events.lookup(event_id) is None:
-            await self.deps.events.append(
-                [
-                    Event(
-                        event_id=event_id,
-                        kind="genome.asset_used",
-                        source="runtime",
-                        timestamp=self.deps.runtime.now(),
-                        scope=EventScope(project_id=project_id),
-                        payload={
-                            "snapshot": result.model_dump(mode="json"),
-                            "asset_ids": [a.id for a in assets],
-                            "permission_scope": "single-owner-project",
-                        },
+        async with self.snapshot_lock:
+            pinned = (
+                await self.profiles.store.get("goal_snapshot", principal.owner, goal_key)
+                if goal_id
+                else None
+            )
+            if pinned:
+                if pinned["scope_digest"] != digest(
+                    {"goal": goal_text, "data_domain": data_domain}
+                ):
+                    raise error("asset_goal_scope_changed", "Pinned goal input scope is immutable")
+                identity = str(pinned["snapshot_id"])
+            else:
+                event_id = self.event_id(principal, project_id, identity)
+                if await self.deps.events.lookup(event_id) is None:
+                    await self.deps.events.append(
+                        [
+                            Event(
+                                event_id=event_id,
+                                kind="genome.asset_used",
+                                source="runtime",
+                                timestamp=self.deps.runtime.now(),
+                                scope=EventScope(project_id=project_id),
+                                payload={
+                                    "snapshot": result.model_dump(mode="json"),
+                                    "asset_ids": [a.id for a in assets],
+                                    "permission_scope": "single-owner-project",
+                                },
+                            )
+                        ]
                     )
-                ]
-            )
-        if goal_id:
-            await self.profiles.store.put(
-                "goal_snapshot",
-                principal.owner,
-                goal_key,
-                {
-                    "id": goal_key,
-                    "version": 0,
-                    "snapshot_id": identity,
-                    "scope_digest": digest({"goal": goal_text, "data_domain": data_domain}),
-                },
-                None,
-            )
+                if goal_id:
+                    await self.profiles.store.put(
+                        "goal_snapshot",
+                        principal.owner,
+                        goal_key,
+                        {
+                            "id": goal_key,
+                            "version": 0,
+                            "snapshot_id": identity,
+                            "scope_digest": digest({"goal": goal_text, "data_domain": data_domain}),
+                        },
+                        None,
+                    )
         return await self.snapshot(principal, project_id, identity)
 
 

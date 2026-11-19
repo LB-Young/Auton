@@ -1920,6 +1920,264 @@
         "title": "AssetUse",
         "type": "object"
       },
+      "BackgroundJob": {
+        "additionalProperties": false,
+        "properties": {
+          "actual_cost_microusd": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": 0,
+            "title": "Actual Cost Microusd"
+          },
+          "attempts": {
+            "default": 0,
+            "title": "Attempts",
+            "type": "integer"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "number"
+          },
+          "cycle": {
+            "title": "Cycle",
+            "type": "integer"
+          },
+          "dispatched": {
+            "default": false,
+            "title": "Dispatched",
+            "type": "boolean"
+          },
+          "external_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Id"
+          },
+          "failures": {
+            "default": 0,
+            "title": "Failures",
+            "type": "integer"
+          },
+          "id": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Id",
+            "type": "string"
+          },
+          "lease_token": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lease Token"
+          },
+          "lease_until": {
+            "default": 0,
+            "title": "Lease Until",
+            "type": "number"
+          },
+          "next_due": {
+            "title": "Next Due",
+            "type": "number"
+          },
+          "operation": {
+            "discriminator": {
+              "mapping": {
+                "dataset": "#/components/schemas/DatasetOperation-Output",
+                "decision_training": "#/components/schemas/TrainingOperation-Output",
+                "executor_training": "#/components/schemas/TrainingOperation-Output",
+                "export": "#/components/schemas/ExportOperation-Output",
+                "retention": "#/components/schemas/MaintenanceOperation",
+                "review": "#/components/schemas/ReviewOperation-Output",
+                "telemetry": "#/components/schemas/MaintenanceOperation",
+                "withdraw": "#/components/schemas/WithdrawOperation-Output"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ReviewOperation-Output"
+              },
+              {
+                "$ref": "#/components/schemas/DatasetOperation-Output"
+              },
+              {
+                "$ref": "#/components/schemas/ExportOperation-Output"
+              },
+              {
+                "$ref": "#/components/schemas/WithdrawOperation-Output"
+              },
+              {
+                "$ref": "#/components/schemas/TrainingOperation-Output"
+              },
+              {
+                "$ref": "#/components/schemas/MaintenanceOperation"
+              }
+            ],
+            "title": "Operation"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "reason": {
+            "default": "queued",
+            "title": "Reason",
+            "type": "string"
+          },
+          "reserved_cost_microusd": {
+            "default": 0,
+            "title": "Reserved Cost Microusd",
+            "type": "integer"
+          },
+          "result_digest": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Result Digest"
+          },
+          "sample_keys": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Sample Keys",
+            "type": "array"
+          },
+          "schedule_id": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Schedule Id",
+            "type": "string"
+          },
+          "status": {
+            "default": "queued",
+            "enum": [
+              "queued",
+              "leased",
+              "waiting",
+              "paused",
+              "succeeded",
+              "failed",
+              "cancelled",
+              "attention"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "version": {
+            "default": 0,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "project_id",
+          "schedule_id",
+          "cycle",
+          "operation",
+          "status",
+          "reason",
+          "created_at",
+          "next_due",
+          "attempts",
+          "failures",
+          "lease_token",
+          "lease_until",
+          "external_id",
+          "dispatched",
+          "reserved_cost_microusd",
+          "actual_cost_microusd",
+          "sample_keys",
+          "result_digest"
+        ],
+        "title": "BackgroundJob",
+        "type": "object"
+      },
+      "BackupCommand": {
+        "additionalProperties": false,
+        "properties": {
+          "request_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Request Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id"
+        ],
+        "title": "BackupCommand",
+        "type": "object"
+      },
+      "BackupManifest": {
+        "additionalProperties": false,
+        "properties": {
+          "bytes": {
+            "title": "Bytes",
+            "type": "integer"
+          },
+          "config_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Config Digest",
+            "type": "string"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "number"
+          },
+          "id": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Id",
+            "type": "string"
+          },
+          "records": {
+            "title": "Records",
+            "type": "integer"
+          },
+          "scope": {
+            "const": "owned_operations_state_only",
+            "default": "owned_operations_state_only",
+            "title": "Scope",
+            "type": "string"
+          },
+          "sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Sha256",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "sha256",
+          "bytes",
+          "config_digest",
+          "records",
+          "created_at",
+          "scope"
+        ],
+        "title": "BackupManifest",
+        "type": "object"
+      },
       "BatchEvaluation": {
         "additionalProperties": false,
         "properties": {
@@ -4114,6 +4372,44 @@
         "title": "DatasetBuild",
         "type": "object"
       },
+      "DatasetOperation-Input": {
+        "additionalProperties": false,
+        "properties": {
+          "command": {
+            "$ref": "#/components/schemas/DatasetBuild-Input"
+          },
+          "kind": {
+            "const": "dataset",
+            "title": "Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "command"
+        ],
+        "title": "DatasetOperation",
+        "type": "object"
+      },
+      "DatasetOperation-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "command": {
+            "$ref": "#/components/schemas/DatasetBuild-Output"
+          },
+          "kind": {
+            "const": "dataset",
+            "title": "Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "command"
+        ],
+        "title": "DatasetOperation",
+        "type": "object"
+      },
       "DatasetSnapshot": {
         "additionalProperties": false,
         "properties": {
@@ -4271,7 +4567,7 @@
         "title": "DatasetStatus",
         "type": "object"
       },
-      "DatasetWithdrawal": {
+      "DatasetWithdrawal-Input": {
         "additionalProperties": false,
         "properties": {
           "grant_id": {
@@ -4319,6 +4615,61 @@
         "required": [
           "request_id",
           "project_id",
+          "reason"
+        ],
+        "title": "DatasetWithdrawal",
+        "type": "object"
+      },
+      "DatasetWithdrawal-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "grant_id": {
+            "anyOf": [
+              {
+                "pattern": "^[a-f0-9]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grant Id"
+          },
+          "project_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "reason": {
+            "maxLength": 2000,
+            "minLength": 10,
+            "title": "Reason",
+            "type": "string"
+          },
+          "request_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "run_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id"
+          }
+        },
+        "required": [
+          "request_id",
+          "project_id",
+          "run_id",
+          "grant_id",
           "reason"
         ],
         "title": "DatasetWithdrawal",
@@ -6224,6 +6575,56 @@
         "title": "ExportCommand",
         "type": "object"
       },
+      "ExportOperation-Input": {
+        "additionalProperties": false,
+        "properties": {
+          "command": {
+            "$ref": "#/components/schemas/ExportCommand-Input"
+          },
+          "kind": {
+            "const": "export",
+            "title": "Kind",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "snapshot_id",
+          "command"
+        ],
+        "title": "ExportOperation",
+        "type": "object"
+      },
+      "ExportOperation-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "command": {
+            "$ref": "#/components/schemas/ExportCommand-Output"
+          },
+          "kind": {
+            "const": "export",
+            "title": "Kind",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "snapshot_id",
+          "command"
+        ],
+        "title": "ExportOperation",
+        "type": "object"
+      },
       "FeedbackCommand": {
         "additionalProperties": false,
         "properties": {
@@ -7145,6 +7546,24 @@
         "title": "LegacyIdentityCommand",
         "type": "object"
       },
+      "MaintenanceOperation": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "enum": [
+              "telemetry",
+              "retention"
+            ],
+            "title": "Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind"
+        ],
+        "title": "MaintenanceOperation",
+        "type": "object"
+      },
       "Message": {
         "additionalProperties": false,
         "properties": {
@@ -7807,6 +8226,149 @@
         "title": "ModuleDescriptor",
         "type": "object"
       },
+      "OperationsAlert": {
+        "additionalProperties": false,
+        "properties": {
+          "active": {
+            "title": "Active",
+            "type": "boolean"
+          },
+          "changed_at": {
+            "title": "Changed At",
+            "type": "number"
+          },
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "delivery": {
+            "const": "local_control_panel_only",
+            "default": "local_control_panel_only",
+            "title": "Delivery",
+            "type": "string"
+          },
+          "id": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Id",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "sample_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sample Id"
+          },
+          "version": {
+            "default": 0,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "project_id",
+          "code",
+          "active",
+          "changed_at",
+          "sample_id",
+          "delivery"
+        ],
+        "title": "OperationsAlert",
+        "type": "object"
+      },
+      "OperationsControl": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "enum": [
+              "pause",
+              "resume",
+              "cancel"
+            ],
+            "title": "Action",
+            "type": "string"
+          },
+          "expected_version": {
+            "minimum": 0.0,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "request_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Request Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "expected_version",
+          "action"
+        ],
+        "title": "OperationsControl",
+        "type": "object"
+      },
+      "OperationsStatus": {
+        "additionalProperties": false,
+        "properties": {
+          "config_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Config Digest",
+            "type": "string"
+          },
+          "coordinator": {
+            "const": "single_process_fenced_leases",
+            "default": "single_process_fenced_leases",
+            "title": "Coordinator",
+            "type": "string"
+          },
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "last_error": {
+            "default": "",
+            "title": "Last Error",
+            "type": "string"
+          },
+          "observer_only": {
+            "default": false,
+            "title": "Observer Only",
+            "type": "boolean"
+          },
+          "owner_paused": {
+            "default": false,
+            "title": "Owner Paused",
+            "type": "boolean"
+          },
+          "publication_authority": {
+            "const": false,
+            "default": false,
+            "title": "Publication Authority",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "observer_only",
+          "owner_paused",
+          "enabled",
+          "config_digest",
+          "coordinator",
+          "publication_authority",
+          "last_error"
+        ],
+        "title": "OperationsStatus",
+        "type": "object"
+      },
       "OptimizationTask": {
         "additionalProperties": false,
         "description": "Executable train/dev input, with no meta human answer or calibration label.",
@@ -7901,6 +8463,20 @@
           "description"
         ],
         "title": "Option",
+        "type": "object"
+      },
+      "OwnerPause": {
+        "additionalProperties": false,
+        "properties": {
+          "paused": {
+            "title": "Paused",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "paused"
+        ],
+        "title": "OwnerPause",
         "type": "object"
       },
       "PendingOperation": {
@@ -9399,6 +9975,78 @@
         "title": "ReleaseValidationRun",
         "type": "object"
       },
+      "ResourceWindow-Input": {
+        "additionalProperties": false,
+        "properties": {
+          "end_hour_utc": {
+            "default": 24,
+            "maximum": 24.0,
+            "minimum": 1.0,
+            "title": "End Hour Utc",
+            "type": "integer"
+          },
+          "start_hour_utc": {
+            "default": 0,
+            "maximum": 23.0,
+            "minimum": 0.0,
+            "title": "Start Hour Utc",
+            "type": "integer"
+          }
+        },
+        "title": "ResourceWindow",
+        "type": "object"
+      },
+      "ResourceWindow-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "end_hour_utc": {
+            "default": 24,
+            "maximum": 24.0,
+            "minimum": 1.0,
+            "title": "End Hour Utc",
+            "type": "integer"
+          },
+          "start_hour_utc": {
+            "default": 0,
+            "maximum": 23.0,
+            "minimum": 0.0,
+            "title": "Start Hour Utc",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "start_hour_utc",
+          "end_hour_utc"
+        ],
+        "title": "ResourceWindow",
+        "type": "object"
+      },
+      "RestoreCommand": {
+        "additionalProperties": false,
+        "properties": {
+          "backup_id": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Backup Id",
+            "type": "string"
+          },
+          "confirm_empty_target": {
+            "default": false,
+            "title": "Confirm Empty Target",
+            "type": "boolean"
+          },
+          "expected_sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Expected Sha256",
+            "type": "string"
+          }
+        },
+        "required": [
+          "backup_id",
+          "expected_sha256"
+        ],
+        "title": "RestoreCommand",
+        "type": "object"
+      },
       "ReviewCommand-Input": {
         "additionalProperties": false,
         "properties": {
@@ -9580,6 +10228,44 @@
           "verdict"
         ],
         "title": "ReviewExport",
+        "type": "object"
+      },
+      "ReviewOperation-Input": {
+        "additionalProperties": false,
+        "properties": {
+          "command": {
+            "$ref": "#/components/schemas/ReviewCommand-Input"
+          },
+          "kind": {
+            "const": "review",
+            "title": "Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "command"
+        ],
+        "title": "ReviewOperation",
+        "type": "object"
+      },
+      "ReviewOperation-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "command": {
+            "$ref": "#/components/schemas/ReviewCommand-Output"
+          },
+          "kind": {
+            "const": "review",
+            "title": "Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "command"
+        ],
+        "title": "ReviewOperation",
         "type": "object"
       },
       "ReviewRecord": {
@@ -10365,6 +11051,283 @@
           "transient"
         ],
         "title": "RunSnapshot",
+        "type": "object"
+      },
+      "Schedule": {
+        "additionalProperties": false,
+        "properties": {
+          "command": {
+            "$ref": "#/components/schemas/ScheduleCommand-Output"
+          },
+          "config_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Config Digest",
+            "type": "string"
+          },
+          "cycle": {
+            "default": 0,
+            "title": "Cycle",
+            "type": "integer"
+          },
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "id": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Id",
+            "type": "string"
+          },
+          "next_due": {
+            "title": "Next Due",
+            "type": "number"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "reason": {
+            "default": "user_disabled",
+            "title": "Reason",
+            "type": "string"
+          },
+          "version": {
+            "default": 0,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "command",
+          "project_id",
+          "config_digest",
+          "enabled",
+          "next_due",
+          "cycle",
+          "reason"
+        ],
+        "title": "Schedule",
+        "type": "object"
+      },
+      "ScheduleCommand-Input": {
+        "additionalProperties": false,
+        "properties": {
+          "budget_microusd": {
+            "default": 0,
+            "maximum": 100000000.0,
+            "minimum": 0.0,
+            "title": "Budget Microusd",
+            "type": "integer"
+          },
+          "confirm_background_actions": {
+            "default": false,
+            "title": "Confirm Background Actions",
+            "type": "boolean"
+          },
+          "depends_on": {
+            "default": [],
+            "items": {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            "maxItems": 8,
+            "title": "Depends On",
+            "type": "array"
+          },
+          "enabled": {
+            "default": false,
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "expires_at": {
+            "exclusiveMinimum": 0.0,
+            "title": "Expires At",
+            "type": "number"
+          },
+          "interval_seconds": {
+            "default": 3600,
+            "maximum": 604800.0,
+            "minimum": 30.0,
+            "title": "Interval Seconds",
+            "type": "integer"
+          },
+          "operation": {
+            "discriminator": {
+              "mapping": {
+                "dataset": "#/components/schemas/DatasetOperation-Input",
+                "decision_training": "#/components/schemas/TrainingOperation-Input",
+                "executor_training": "#/components/schemas/TrainingOperation-Input",
+                "export": "#/components/schemas/ExportOperation-Input",
+                "retention": "#/components/schemas/MaintenanceOperation",
+                "review": "#/components/schemas/ReviewOperation-Input",
+                "telemetry": "#/components/schemas/MaintenanceOperation",
+                "withdraw": "#/components/schemas/WithdrawOperation-Input"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ReviewOperation-Input"
+              },
+              {
+                "$ref": "#/components/schemas/DatasetOperation-Input"
+              },
+              {
+                "$ref": "#/components/schemas/ExportOperation-Input"
+              },
+              {
+                "$ref": "#/components/schemas/WithdrawOperation-Input"
+              },
+              {
+                "$ref": "#/components/schemas/TrainingOperation-Input"
+              },
+              {
+                "$ref": "#/components/schemas/MaintenanceOperation"
+              }
+            ],
+            "title": "Operation"
+          },
+          "project_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "repeat": {
+            "default": false,
+            "title": "Repeat",
+            "type": "boolean"
+          },
+          "request_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "window": {
+            "$ref": "#/components/schemas/ResourceWindow-Input"
+          }
+        },
+        "required": [
+          "request_id",
+          "project_id",
+          "operation",
+          "expires_at"
+        ],
+        "title": "ScheduleCommand",
+        "type": "object"
+      },
+      "ScheduleCommand-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "budget_microusd": {
+            "default": 0,
+            "maximum": 100000000.0,
+            "minimum": 0.0,
+            "title": "Budget Microusd",
+            "type": "integer"
+          },
+          "confirm_background_actions": {
+            "default": false,
+            "title": "Confirm Background Actions",
+            "type": "boolean"
+          },
+          "depends_on": {
+            "default": [],
+            "items": {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            "maxItems": 8,
+            "title": "Depends On",
+            "type": "array"
+          },
+          "enabled": {
+            "default": false,
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "expires_at": {
+            "exclusiveMinimum": 0.0,
+            "title": "Expires At",
+            "type": "number"
+          },
+          "interval_seconds": {
+            "default": 3600,
+            "maximum": 604800.0,
+            "minimum": 30.0,
+            "title": "Interval Seconds",
+            "type": "integer"
+          },
+          "operation": {
+            "discriminator": {
+              "mapping": {
+                "dataset": "#/components/schemas/DatasetOperation-Output",
+                "decision_training": "#/components/schemas/TrainingOperation-Output",
+                "executor_training": "#/components/schemas/TrainingOperation-Output",
+                "export": "#/components/schemas/ExportOperation-Output",
+                "retention": "#/components/schemas/MaintenanceOperation",
+                "review": "#/components/schemas/ReviewOperation-Output",
+                "telemetry": "#/components/schemas/MaintenanceOperation",
+                "withdraw": "#/components/schemas/WithdrawOperation-Output"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ReviewOperation-Output"
+              },
+              {
+                "$ref": "#/components/schemas/DatasetOperation-Output"
+              },
+              {
+                "$ref": "#/components/schemas/ExportOperation-Output"
+              },
+              {
+                "$ref": "#/components/schemas/WithdrawOperation-Output"
+              },
+              {
+                "$ref": "#/components/schemas/TrainingOperation-Output"
+              },
+              {
+                "$ref": "#/components/schemas/MaintenanceOperation"
+              }
+            ],
+            "title": "Operation"
+          },
+          "project_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "repeat": {
+            "default": false,
+            "title": "Repeat",
+            "type": "boolean"
+          },
+          "request_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "window": {
+            "$ref": "#/components/schemas/ResourceWindow-Output"
+          }
+        },
+        "required": [
+          "request_id",
+          "project_id",
+          "operation",
+          "enabled",
+          "confirm_background_actions",
+          "expires_at",
+          "interval_seconds",
+          "repeat",
+          "window",
+          "depends_on",
+          "budget_microusd"
+        ],
+        "title": "ScheduleCommand",
         "type": "object"
       },
       "SectionPatch": {
@@ -11635,6 +12598,120 @@
         "title": "TeacherUse",
         "type": "object"
       },
+      "TelemetrySample": {
+        "additionalProperties": false,
+        "properties": {
+          "causal_benefit_verified": {
+            "const": false,
+            "default": false,
+            "title": "Causal Benefit Verified",
+            "type": "boolean"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "number"
+          },
+          "drift_advisory": {
+            "default": false,
+            "title": "Drift Advisory",
+            "type": "boolean"
+          },
+          "failed": {
+            "title": "Failed",
+            "type": "integer"
+          },
+          "foreground_active": {
+            "title": "Foreground Active",
+            "type": "integer"
+          },
+          "id": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Id",
+            "type": "string"
+          },
+          "known_cost_microusd": {
+            "title": "Known Cost Microusd",
+            "type": "integer"
+          },
+          "operational_pass_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operational Pass Rate"
+          },
+          "passed": {
+            "title": "Passed",
+            "type": "integer"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "queue_states": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Queue States",
+            "type": "object"
+          },
+          "review_backlog": {
+            "title": "Review Backlog",
+            "type": "integer"
+          },
+          "runs": {
+            "title": "Runs",
+            "type": "integer"
+          },
+          "source_counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Source Counts",
+            "type": "object"
+          },
+          "training_states": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Training States",
+            "type": "object"
+          },
+          "unknown_charges": {
+            "title": "Unknown Charges",
+            "type": "integer"
+          },
+          "withdrawn_datasets": {
+            "title": "Withdrawn Datasets",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "project_id",
+          "created_at",
+          "source_counts",
+          "runs",
+          "foreground_active",
+          "passed",
+          "failed",
+          "operational_pass_rate",
+          "known_cost_microusd",
+          "unknown_charges",
+          "review_backlog",
+          "withdrawn_datasets",
+          "training_states",
+          "queue_states",
+          "drift_advisory",
+          "causal_benefit_verified"
+        ],
+        "title": "TelemetrySample",
+        "type": "object"
+      },
       "ToolApproval": {
         "additionalProperties": false,
         "properties": {
@@ -12685,6 +13762,61 @@
         "title": "TrainingJobCommand",
         "type": "object"
       },
+      "TrainingOperation-Input": {
+        "additionalProperties": false,
+        "properties": {
+          "allow_checkpoint_resume": {
+            "default": false,
+            "title": "Allow Checkpoint Resume",
+            "type": "boolean"
+          },
+          "command": {
+            "$ref": "#/components/schemas/TrainingJobCommand"
+          },
+          "kind": {
+            "enum": [
+              "executor_training",
+              "decision_training"
+            ],
+            "title": "Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "command"
+        ],
+        "title": "TrainingOperation",
+        "type": "object"
+      },
+      "TrainingOperation-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "allow_checkpoint_resume": {
+            "default": false,
+            "title": "Allow Checkpoint Resume",
+            "type": "boolean"
+          },
+          "command": {
+            "$ref": "#/components/schemas/TrainingJobCommand"
+          },
+          "kind": {
+            "enum": [
+              "executor_training",
+              "decision_training"
+            ],
+            "title": "Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "command",
+          "allow_checkpoint_resume"
+        ],
+        "title": "TrainingOperation",
+        "type": "object"
+      },
       "TrainingPlan": {
         "additionalProperties": false,
         "properties": {
@@ -13504,6 +14636,44 @@
           "current"
         ],
         "title": "WindowView",
+        "type": "object"
+      },
+      "WithdrawOperation-Input": {
+        "additionalProperties": false,
+        "properties": {
+          "command": {
+            "$ref": "#/components/schemas/DatasetWithdrawal-Input"
+          },
+          "kind": {
+            "const": "withdraw",
+            "title": "Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "command"
+        ],
+        "title": "WithdrawOperation",
+        "type": "object"
+      },
+      "WithdrawOperation-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "command": {
+            "$ref": "#/components/schemas/DatasetWithdrawal-Output"
+          },
+          "kind": {
+            "const": "withdraw",
+            "title": "Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "command"
+        ],
+        "title": "WithdrawOperation",
         "type": "object"
       },
       "WorkspaceView": {
@@ -18039,7 +19209,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/DatasetWithdrawal"
+                "$ref": "#/components/schemas/DatasetWithdrawal-Input"
               }
             }
           },
@@ -23985,6 +25155,1567 @@
           }
         },
         "summary": "Probe Model"
+      }
+    },
+    "/api/v1/operations/alerts": {
+      "get": {
+        "operationId": "operations_alerts_api_v1_operations_alerts_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/OperationsAlert"
+                  },
+                  "title": "Response Operations Alerts Api V1 Operations Alerts Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Operations Alerts"
+      }
+    },
+    "/api/v1/operations/backups": {
+      "post": {
+        "operationId": "operations_backup_api_v1_operations_backups_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BackupCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackupManifest"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Operations Backup"
+      }
+    },
+    "/api/v1/operations/control": {
+      "post": {
+        "operationId": "operations_control_api_v1_operations_control_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OwnerPause"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Operations Control Api V1 Operations Control Post",
+                  "type": "boolean"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Operations Control"
+      }
+    },
+    "/api/v1/operations/jobs": {
+      "get": {
+        "operationId": "operations_jobs_api_v1_operations_jobs_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/BackgroundJob"
+                  },
+                  "title": "Response Operations Jobs Api V1 Operations Jobs Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Operations Jobs"
+      }
+    },
+    "/api/v1/operations/jobs/{job_id}/commands": {
+      "post": {
+        "operationId": "operations_job_control_api_v1_operations_jobs__job_id__commands_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OperationsControl"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackgroundJob"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Operations Job Control"
+      }
+    },
+    "/api/v1/operations/restores": {
+      "post": {
+        "operationId": "operations_restore_api_v1_operations_restores_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RestoreCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackupManifest"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Operations Restore"
+      }
+    },
+    "/api/v1/operations/samples": {
+      "get": {
+        "operationId": "operations_samples_api_v1_operations_samples_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TelemetrySample"
+                  },
+                  "title": "Response Operations Samples Api V1 Operations Samples Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Operations Samples"
+      }
+    },
+    "/api/v1/operations/schedules": {
+      "get": {
+        "operationId": "operations_schedules_api_v1_operations_schedules_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Schedule"
+                  },
+                  "title": "Response Operations Schedules Api V1 Operations Schedules Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Operations Schedules"
+      },
+      "post": {
+        "operationId": "operations_schedule_api_v1_operations_schedules_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScheduleCommand-Input"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Schedule"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Operations Schedule"
+      }
+    },
+    "/api/v1/operations/schedules/{schedule_id}/commands": {
+      "post": {
+        "operationId": "operations_schedule_control_api_v1_operations_schedules__schedule_id__commands_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "schedule_id",
+            "required": true,
+            "schema": {
+              "title": "Schedule Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OperationsControl"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Schedule"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Operations Schedule Control"
+      }
+    },
+    "/api/v1/operations/status": {
+      "get": {
+        "operationId": "operations_status_api_v1_operations_status_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OperationsStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Operations Status"
+      }
+    },
+    "/api/v1/operations/tick": {
+      "post": {
+        "operationId": "operations_tick_api_v1_operations_tick_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/BackgroundJob"
+                  },
+                  "title": "Response Operations Tick Api V1 Operations Tick Post",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Operations Tick"
       }
     },
     "/api/v1/policy": {

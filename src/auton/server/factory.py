@@ -97,6 +97,19 @@ from auton.judgment.contracts import JudgmentInfo, JudgmentRequest, JudgmentResu
 from auton.judgment.questions import JudgmentQuestionsFactory
 from auton.kernel.ports import ApplicationError
 from auton.model.contracts import ModelInfo, ModelMessage, ModelRequest, ModelResult
+from auton.operations.contracts import (
+    BackgroundJob,
+    BackupCommand,
+    BackupManifest,
+    OperationsAlert,
+    OperationsControl,
+    OperationsStatus,
+    OwnerPause,
+    RestoreCommand,
+    Schedule,
+    ScheduleCommand,
+    TelemetrySample,
+)
 from auton.release.contracts import (
     ReleaseApproval,
     ReleaseControl,
@@ -486,6 +499,85 @@ class ServerFactory:
         ) -> AgentRun:
             return await deps.commands.recover(
                 Principal(owner=owner(request), role="user"), project_id, run_id, command
+            )
+
+        @app.get("/api/v1/operations/status")
+        async def operations_status(request: Request) -> OperationsStatus:
+            principal = Principal(owner=owner(request), role="user")
+            return deps.operations.status().model_copy(
+                update={"owner_paused": await deps.operations.paused(principal)}
+            )
+
+        @app.get("/api/v1/operations/schedules")
+        async def operations_schedules(request: Request, project_id: str) -> tuple[Schedule, ...]:
+            return await deps.operations.schedules(
+                Principal(owner=owner(request), role="user"), project_id
+            )
+
+        @app.post("/api/v1/operations/schedules", status_code=201)
+        async def operations_schedule(request: Request, command: ScheduleCommand) -> Schedule:
+            return await deps.operations.schedule(
+                Principal(owner=owner(request), role="user"), command
+            )
+
+        @app.post("/api/v1/operations/schedules/{schedule_id}/commands")
+        async def operations_schedule_control(
+            request: Request, schedule_id: str, command: OperationsControl
+        ) -> Schedule:
+            return await deps.operations.control_schedule(
+                Principal(owner=owner(request), role="user"), schedule_id, command
+            )
+
+        @app.post("/api/v1/operations/control")
+        async def operations_control(request: Request, command: OwnerPause) -> bool:
+            return await deps.operations.control_owner(
+                Principal(owner=owner(request), role="user"), command.paused
+            )
+
+        @app.get("/api/v1/operations/jobs")
+        async def operations_jobs(request: Request, project_id: str) -> tuple[BackgroundJob, ...]:
+            return await deps.operations.jobs(
+                Principal(owner=owner(request), role="user"), project_id
+            )
+
+        @app.post("/api/v1/operations/jobs/{job_id}/commands")
+        async def operations_job_control(
+            request: Request, job_id: str, command: OperationsControl
+        ) -> BackgroundJob:
+            return await deps.operations.control_job(
+                Principal(owner=owner(request), role="user"), job_id, command
+            )
+
+        @app.post("/api/v1/operations/tick")
+        async def operations_tick(request: Request) -> tuple[BackgroundJob, ...]:
+            return await deps.operations.tick(Principal(owner=owner(request), role="user"))
+
+        @app.get("/api/v1/operations/samples")
+        async def operations_samples(
+            request: Request, project_id: str
+        ) -> tuple[TelemetrySample, ...]:
+            return await deps.operations.samples(
+                Principal(owner=owner(request), role="user"), project_id
+            )
+
+        @app.get("/api/v1/operations/alerts")
+        async def operations_alerts(
+            request: Request, project_id: str
+        ) -> tuple[OperationsAlert, ...]:
+            return await deps.operations.alerts(
+                Principal(owner=owner(request), role="user"), project_id
+            )
+
+        @app.post("/api/v1/operations/backups", status_code=201)
+        async def operations_backup(request: Request, command: BackupCommand) -> BackupManifest:
+            return await deps.operations.backup(
+                Principal(owner=owner(request), role="user"), command
+            )
+
+        @app.post("/api/v1/operations/restores")
+        async def operations_restore(request: Request, command: RestoreCommand) -> BackupManifest:
+            return await deps.operations.restore(
+                Principal(owner=owner(request), role="user"), command
             )
 
         @app.get("/api/v1/releases/status")

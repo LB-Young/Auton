@@ -29,6 +29,7 @@ import type {
 } from '../shared/contracts';
 
 export interface ApiClient {
+  operations: OperationsApi;
   releases: ReleaseApi;
   decisionTraining: DecisionTrainingApi;
   training: TrainingApi;
@@ -273,4 +274,26 @@ export interface ReleaseApi {
   ): Promise<ReleaseSchema['ReleaseRecord']>;
   validation(id: string): Promise<ReleaseSchema['ReleaseRecord']>;
   validationRun(id: string, command: ReleaseSchema['ReleaseValidationRun']): Promise<AgentRun>;
+}
+
+type OpsSchema = import('../shared/api.generated').components['schemas'];
+export interface OperationsApi {
+  status(): Promise<OpsSchema['OperationsStatus']>;
+  schedules(project: string): Promise<OpsSchema['Schedule'][]>;
+  schedule(command: OpsSchema['ScheduleCommand-Input']): Promise<OpsSchema['Schedule']>;
+  controlSchedule(
+    id: string,
+    command: OpsSchema['OperationsControl'],
+  ): Promise<OpsSchema['Schedule']>;
+  pause(paused: boolean): Promise<boolean>;
+  jobs(project: string): Promise<OpsSchema['BackgroundJob'][]>;
+  controlJob(
+    id: string,
+    command: OpsSchema['OperationsControl'],
+  ): Promise<OpsSchema['BackgroundJob']>;
+  tick(): Promise<OpsSchema['BackgroundJob'][]>;
+  samples(project: string): Promise<OpsSchema['TelemetrySample'][]>;
+  alerts(project: string): Promise<OpsSchema['OperationsAlert'][]>;
+  backup(request: string): Promise<OpsSchema['BackupManifest']>;
+  restore(command: OpsSchema['RestoreCommand']): Promise<OpsSchema['BackupManifest']>;
 }

@@ -1,3 +1,4 @@
+import { Operations } from '../features/operations/Operations';
 import { Releases } from '../features/release/Releases';
 import { Training } from '../features/training/Training';
 import { Datasets } from '../features/datasets/Datasets';
@@ -52,6 +53,12 @@ import { Models } from '../features/models/Models';
 import { Markdown } from '../shared/Markdown';
 
 const workspaces = [
+  {
+    id: 'operations',
+    label: '后台运行',
+    icon: Workflow,
+    description: '管理资源窗口、队列、监控和恢复。',
+  },
   {
     id: 'decision_training',
     label: '决策训练',
@@ -820,6 +827,8 @@ export function App({ application }: { application: Application }) {
               <Training feature={application.decisionTraining} />
             ) : view === 'training' ? (
               <Training feature={application.training} />
+            ) : view === 'operations' ? (
+              <Operations feature={application.operations} />
             ) : view === 'release' ? (
               <Releases feature={application.releases} />
             ) : view === 'datasets' ? (

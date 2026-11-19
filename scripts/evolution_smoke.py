@@ -49,6 +49,7 @@ def main(reuse: bool) -> None:
         "training",
         "decision_training",
         "release",
+        "operations",
         "kernel",
     ):
         config[section] = {

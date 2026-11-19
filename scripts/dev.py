@@ -167,6 +167,7 @@ def e2e() -> None:
             '[judgment]\nbackend = "mock"\n'
             f"[tools]\ndirectory = {json.dumps(str(Path(directory) / 'tools'))}\n"
             '[server]\nidentity_backend = "memory"\n'
+            f"[operations]\ndirectory = {json.dumps(str(Path(directory) / 'operations'))}\n"
             f"[release]\ndirectory = {json.dumps(str(Path(directory) / 'release'))}\n"
             "[decision_training]\n"
             f"directory = {json.dumps(str(Path(directory) / 'decision-training'))}\n"

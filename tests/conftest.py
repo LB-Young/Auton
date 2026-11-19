@@ -20,6 +20,7 @@ from auton.judgment.config import JudgmentConfig
 from auton.kernel.config import KernelConfig
 from auton.kernel.ports import RuntimeDependencies
 from auton.model.config import ModelConfig
+from auton.operations.contracts import OperationsConfig
 from auton.release.contracts import ReleaseConfig
 from auton.server.identity import ServerSettings
 from auton.tools.config import ToolConfig
@@ -38,6 +39,7 @@ def client(deps: RuntimeDependencies, tmp_path: Path) -> Iterator[TestClient]:
             datasets=DatasetConfig(directory=tmp_path / "datasets"),
             training=TrainingConfig(directory=tmp_path / "training"),
             release=ReleaseConfig(directory=tmp_path / "release"),
+            operations=OperationsConfig(directory=tmp_path / "operations"),
             decision_training=DecisionTrainingConfig(directory=tmp_path / "decision-training"),
             decision_review=DecisionReviewConfig(directory=tmp_path / "decision-review"),
             evolve=EvolutionConfig(directory=tmp_path / "evolve"),

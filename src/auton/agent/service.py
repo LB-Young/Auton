@@ -89,6 +89,9 @@ class AgentRuntime:
         self._lease: int | None = None
         self.ready = False
 
+    def foreground_active(self) -> int:
+        return sum(not task.done() for task in self._tasks.values()) + len(self._pending)
+
     async def start(self) -> None:
         if self.ready:
             return

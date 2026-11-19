@@ -264,3 +264,5 @@ M10 及更早版本的 Cookie 只有在原浏览器/CLI 私有文件仍保留时
 `?view=decision_training` 与执行训练分开。`DecisionTrainingFactory` 只接受当前合格 Decision 数据，参考后端是可配置 HF encoder 的选项排序训练；LLM JSON 读出另有数据导出适配。指标分别记录覆盖率、校准、各判断点与来源组，不把 teacher KEEP 一致率当独立金标准确率。
 
 四层评估只消费已登记候选与真实引用，缺少 gold、champion、完整隔离 Agent 或部署证据时保持 HOLD。离线预测回放标明不是实时影子，永不影响在线动作。本次没有在开发电脑训练模型，线上 student 路由保持关闭。见 [M19 工程与待验范围](./docs/milestones/evidence/M19.md)。
+
+后台调度与运维见 [通用后台运行说明](docs/background-operations.md)，部署配置示例为 `config/operations.example.toml`。默认关闭自动后台工作；训练继续使用最终部署环境的通用流程，发布需走独立批准。

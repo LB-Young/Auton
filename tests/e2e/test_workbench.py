@@ -36,6 +36,10 @@ def page(browser: Browser) -> Iterator[Page]:
 
 
 def screenshot(page: Page, name: str) -> None:
+    # Commit responsive layout/compositor frames before capturing resized views.
+    page.evaluate(
+        "() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))"
+    )
     EVIDENCE.mkdir(parents=True, exist_ok=True)
     page.screenshot(path=str(EVIDENCE / name), full_page=True, animations="disabled")
 
@@ -1162,3 +1166,32 @@ def test_release_control_empty_errors_reload_and_mobile(page: Page) -> None:
     page.set_viewport_size({"width": 390, "height": 844})
     assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
     screenshot(page, "M20-release-mobile.png")
+
+
+def test_background_operations_disabled_plan_pause_backup_and_mobile(page: Page) -> None:
+    import json
+    from uuid import uuid4
+
+    project = "operations-" + uuid4().hex[:10]
+    seed_workbench(page, project)
+    page.goto(BASE + "?view=operations")
+    expect(page.get_by_role("heading", name="后台运行与监控", exact=True)).to_be_visible()
+    page.get_by_label("后台项目", exact=True).select_option(project)
+    expect(page.get_by_text("宿主调度未启用。", exact=False)).to_be_visible()
+    editor = page.get_by_label("后台计划 JSON", exact=True)
+    expect(editor).not_to_have_value("")
+    command = json.loads(editor.input_value())
+    assert command["enabled"] is False and command["confirm_background_actions"] is False
+    page.get_by_role("button", name="保存后台计划", exact=True).click()
+    expect(page.get_by_role("heading", name="telemetry · 暂停", exact=True)).to_be_visible()
+    expect(page.get_by_role("button", name="恢复计划", exact=True)).to_be_disabled()
+    page.get_by_role("button", name="暂停当前身份调度", exact=True).click()
+    expect(page.get_by_role("button", name="恢复当前身份调度", exact=True)).to_be_visible()
+    page.get_by_role("button", name="创建调度备份", exact=True).click()
+    expect(page.get_by_text('"scope": "owned_operations_state_only"', exact=False)).to_be_visible()
+    screenshot(page, "M21-operations-desktop.png")
+    page.reload()
+    expect(page.get_by_role("button", name="恢复当前身份调度", exact=True)).to_be_visible()
+    page.set_viewport_size({"width": 390, "height": 844})
+    assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+    screenshot(page, "M21-operations-mobile.png")

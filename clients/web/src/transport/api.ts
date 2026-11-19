@@ -54,6 +54,25 @@ export class ApiClientFactory {
       return (await response.json()) as T;
     }
     return {
+      operations: {
+        status: () => request('/operations/status'),
+        schedules: (project) =>
+          request(`/operations/schedules?project_id=${encodeURIComponent(project)}`),
+        schedule: (command) => request('/operations/schedules', command),
+        controlSchedule: (id, command) =>
+          request(`/operations/schedules/${encodeURIComponent(id)}/commands`, command),
+        pause: (paused) => request('/operations/control', { paused }),
+        jobs: (project) => request(`/operations/jobs?project_id=${encodeURIComponent(project)}`),
+        controlJob: (id, command) =>
+          request(`/operations/jobs/${encodeURIComponent(id)}/commands`, command),
+        tick: () => request('/operations/tick', {}),
+        samples: (project) =>
+          request(`/operations/samples?project_id=${encodeURIComponent(project)}`),
+        alerts: (project) =>
+          request(`/operations/alerts?project_id=${encodeURIComponent(project)}`),
+        backup: (request_id) => request('/operations/backups', { request_id }),
+        restore: (command) => request('/operations/restores', command),
+      },
       releases: {
         status: () => request('/releases/status'),
         list: (project) => request(`/releases?project_id=${encodeURIComponent(project)}`),

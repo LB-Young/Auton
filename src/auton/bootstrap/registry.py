@@ -1,6 +1,6 @@
 from auton.kernel.modules import ModuleDescriptor
 
-PLANNED = (("operations", "后台调度与监控", "M21"),)
+PLANNED: tuple[tuple[str, str, str], ...] = ()
 
 
 def module_catalog(demo: bool) -> list[ModuleDescriptor]:
@@ -242,6 +242,25 @@ def module_catalog(demo: bool) -> list[ModuleDescriptor]:
             ),
             factory_entry="release.ReleaseFactory",
             config_schema="ReleaseConfig",
+        ),
+        ModuleDescriptor(
+            id="operations",
+            title="后台调度与运行监控",
+            milestone="M21",
+            status="ready",
+            provides=("operations",),
+            requires=(
+                "assets",
+                "agent",
+                "assessment",
+                "decision_review",
+                "datasets",
+                "executor_training",
+                "decision_training",
+                "event_log",
+            ),
+            factory_entry="operations.SchedulerFactory",
+            config_schema="OperationsConfig",
         ),
         *[
             ModuleDescriptor(id=key, title=title, milestone=milestone, status="planned")

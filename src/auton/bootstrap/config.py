@@ -19,6 +19,7 @@ from auton.genome.contracts import GenomeConfig
 from auton.judgment.config import JudgmentConfig
 from auton.kernel.config import KernelConfig
 from auton.model.config import ModelConfig
+from auton.operations.contracts import OperationsConfig
 from auton.release.contracts import ReleaseConfig
 from auton.server.identity import ServerSettings
 from auton.tools.config import ToolConfig
@@ -26,6 +27,7 @@ from auton.training.contracts import DecisionTrainingConfig, TrainingConfig
 
 
 class ApplicationConfig(BaseModel):
+    operations: OperationsConfig = Field(default_factory=OperationsConfig)
     release: ReleaseConfig = Field(default_factory=ReleaseConfig)
     decision_training: DecisionTrainingConfig = Field(default_factory=DecisionTrainingConfig)
     training: TrainingConfig = Field(default_factory=TrainingConfig)

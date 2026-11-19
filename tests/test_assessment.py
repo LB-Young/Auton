@@ -33,6 +33,7 @@ from auton.model.config import ModelConfig
 from auton.model.contracts import ModelRequest, ModelResult, ToolCall
 from auton.model.factory import ModelGatewayFactory
 from auton.model.gateway import GatewayDependencies
+from auton.operations.contracts import OperationsConfig
 from auton.release.contracts import ReleaseConfig
 from auton.training.contracts import DecisionTrainingConfig, TrainingConfig
 
@@ -870,6 +871,7 @@ async def test_http_protected_gold_and_judge_prompts_only_reach_private_journal(
         datasets=DatasetConfig(directory=tmp_path / "datasets"),
         training=TrainingConfig(directory=tmp_path / "training"),
         release=ReleaseConfig(directory=tmp_path / "release"),
+        operations=OperationsConfig(directory=tmp_path / "operations"),
         decision_training=DecisionTrainingConfig(directory=tmp_path / "decision-training"),
         decision_review=DecisionReviewConfig(directory=tmp_path / "decision-review"),
         evolve=EvolutionConfig(directory=tmp_path / "evolve"),

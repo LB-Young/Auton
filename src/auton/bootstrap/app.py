@@ -38,6 +38,8 @@ from auton.kernel.ports import LifecycleHandle, ModuleFactory, RuntimeDependenci
 from auton.model.factory import ModelGatewayFactory
 from auton.model.gateway import GatewayDependencies
 from auton.model.publications import ModelPublications
+from auton.operations.dependencies import OperationsDependencies
+from auton.operations.factory import SchedulerFactory
 from auton.release.dependencies import ReleaseDependencies
 from auton.release.factory import ReleaseFactory
 from auton.server.commands import CommandHandlerFactory
@@ -240,6 +242,22 @@ class ApplicationFactory:
         )
         model_publications.bind_guard(release.verify_runtime_source)
         genome.bind_release_guard(release.verify_runtime_source)
+        operations = SchedulerFactory().create(
+            config.operations,
+            OperationsDependencies(
+                genome,
+                agent,
+                assess,
+                decision_review,
+                datasets,
+                training,
+                decision_training,
+                kernel.events,
+                deps,
+                2 * config.decision_review.max_stage_cost_microusd,
+                config.profile == "test",
+            ),
+        )
         identity = IdentityFactory().create(config.server, deps)
         commands = CommandHandlerFactory().create(agent, experience)
         uploads = UploadFactory().create(config.server, genome, deps)
@@ -278,6 +296,7 @@ class ApplicationFactory:
                 training,
                 decision_training,
                 release,
+                operations,
                 identity,
                 commands,
                 uploads,
@@ -307,6 +326,7 @@ class ApplicationFactory:
                 training,
                 decision_training,
                 release,
+                operations,
                 identity,
                 commands,
                 uploads,
@@ -342,6 +362,7 @@ class ApplicationFactory:
                 training=training,
                 decision_training=decision_training,
                 release=release,
+                operations=operations,
                 identity=identity,
                 commands=commands,
                 feedback=FeedbackFactory().create(agent, kernel.events, deps),

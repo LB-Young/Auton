@@ -4,7 +4,7 @@ PROJECT_ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 PYTHON ?= python3
 DEV_PYTHON ?= $(PROJECT_ROOT).venv/bin/python
 
-.PHONY: help setup dev api web check contracts decision-review-smoke evolution-smoke delegation-smoke workbench-smoke agent-smoke context-setup context-smoke judgment-setup judgment-smoke browser-install e2e clean clean-preview clean-cache clean-build clean-empty
+.PHONY: operations-smoke help setup dev api web check contracts decision-review-smoke evolution-smoke delegation-smoke workbench-smoke agent-smoke context-setup context-smoke judgment-setup judgment-smoke browser-install e2e clean clean-preview clean-cache clean-build clean-empty
 
 help:
 	@printf '%s\n' \
@@ -96,3 +96,6 @@ decision-review-smoke:
 
 dataset-smoke:
 	@"$(DEV_PYTHON)" "$(PROJECT_ROOT)scripts/dataset_smoke.py"
+
+operations-smoke:
+	@"$(DEV_PYTHON)" "$(PROJECT_ROOT)scripts/operations_smoke.py"

@@ -144,7 +144,7 @@ export type DataGrant = components['schemas']['DataGrant'];
 export type DataGrantCommand = components['schemas']['DataGrantCommand-Input'];
 export type DatasetBuild = components['schemas']['DatasetBuild-Input'];
 export type DatasetSnapshot = components['schemas']['DatasetSnapshot'];
-export type DatasetWithdrawal = components['schemas']['DatasetWithdrawal'];
+export type DatasetWithdrawal = components['schemas']['DatasetWithdrawal-Input'];
 export type ExportCommand = components['schemas']['ExportCommand-Input'];
 export type DatasetArtifact = components['schemas']['DatasetArtifact'];
 
@@ -167,3 +167,13 @@ export type ReleaseApproval = components['schemas']['ReleaseApproval'];
 export type ReleaseControl = components['schemas']['ReleaseControl'];
 export type ReleaseObservation = components['schemas']['ReleaseObservation'];
 export type ReleaseValidationRun = components['schemas']['ReleaseValidationRun'];
+
+export type Schedule = components['schemas']['Schedule'];
+export type ScheduleCommand = components['schemas']['ScheduleCommand-Input'];
+export type BackgroundJob = components['schemas']['BackgroundJob'];
+export type OperationsStatus = components['schemas']['OperationsStatus'];
+export type OperationsControl = components['schemas']['OperationsControl'];
+export type TelemetrySample = components['schemas']['TelemetrySample'];
+export type OperationsAlert = components['schemas']['OperationsAlert'];
+export type BackupManifest = components['schemas']['BackupManifest'];
+export type RestoreCommand = components['schemas']['RestoreCommand'];

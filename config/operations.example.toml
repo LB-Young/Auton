@@ -1,0 +1,19 @@
+# Merge into the FINAL deployment configuration after reviewing resource limits.
+# This does not select a model, inspect the development computer, or start training.
+[operations]
+enabled = false
+observer_only = false # true: isolated namespace, telemetry/monitor retention ONLY
+directory = ".auton_local/operations"
+poll_seconds = 5
+lease_seconds = 120
+dispatch_timeout_seconds = 30
+max_jobs_per_tick = 2
+max_queued_jobs = 200
+max_attempts = 3
+backoff_seconds = 30
+owner_budget_microusd = 1000000
+min_new_training_examples = 20
+preempt_training = true
+sample_retention_days = 30
+max_samples = 1000
+max_documents = 100000
