@@ -1,7 +1,14 @@
 from typing import Protocol
 
 from auton.constitution.config import Principal
-from auton.genome.contracts import Asset, Project, Revision, Snapshot, VersionInfo
+from auton.genome.contracts import (
+    ArenaSnapshotCommand,
+    Asset,
+    Project,
+    Revision,
+    Snapshot,
+    VersionInfo,
+)
 from auton.kernel.ports import LifecycleHandle
 
 
@@ -17,6 +24,12 @@ class AssetReadPort(Protocol):
     async def resolve(self, principal: Principal, project_id: str) -> Snapshot: ...
     async def snapshot(
         self, principal: Principal, project_id: str, snapshot_id: str
+    ) -> Snapshot: ...
+
+
+class AssetArenaPort(Protocol):
+    async def arena_snapshot(
+        self, principal: Principal, project_id: str, command: ArenaSnapshotCommand
     ) -> Snapshot: ...
 
 
@@ -44,5 +57,7 @@ class AssetPublishPort(Protocol):
     ) -> Revision: ...
 
 
-class GenomePort(LifecycleHandle, AssetReadPort, AssetProposalPort, AssetPublishPort, Protocol):
+class GenomePort(
+    LifecycleHandle, AssetReadPort, AssetArenaPort, AssetProposalPort, AssetPublishPort, Protocol
+):
     pass

@@ -104,3 +104,26 @@ export type ContrastCommand = components['schemas']['ContrastCommand'];
 export type SingleMultiContrast = components['schemas']['SingleMultiContrast'];
 
 export type DelegationCreate = components['schemas']['DelegationCreate-Input'];
+
+export type EvolutionStatus = components['schemas']['EvolutionStatus'];
+
+export type Diagnosis = components['schemas']['Diagnosis'];
+
+export type DiagnoseCommand = components['schemas']['DiagnoseCommand'];
+
+export type Proposal = components['schemas']['Proposal'];
+
+export type ProposalCommand = components['schemas']['ProposalCommand'];
+
+export type GenerationRecord = components['schemas']['GenerationRecord'];
+
+export type PlaybookEntry = components['schemas']['PlaybookEntry'];
+
+export type ArenaView = components['schemas']['ArenaView'];
+
+export type ArenaControl = components['schemas']['ArenaControl'];
+
+export type SubmitProposal = components['schemas']['SubmitProposal'];
+
+export type ArenaCommand = components['schemas']['ArenaCommand-Input'];
+export type ReflectCommand = components['schemas']['ReflectCommand-Input'];

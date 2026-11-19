@@ -37,6 +37,8 @@ def main(reuse_completed: bool = False, assess: bool = False) -> None:
         ("experience", "experience"),
         ("assess", "assess"),
         ("delegation", "delegation"),
+        ("evolve", "evolve"),
+        ("evolve", "evolve"),
     ]:
         field = "data_directory" if section == "kernel" else "directory"
         text += f"[{section}]\n{field} = {json.dumps(str(root / folder))}\n"
@@ -117,21 +119,38 @@ def main(reuse_completed: bool = False, assess: bool = False) -> None:
             assessment_reports = []
             if assess:
                 for semantic in (False, True):
-                    response = page.request.post(
-                        base + "/api/v1/assessment/jobs",
-                        headers={"X-Auton-Client": "web", "Origin": base},
-                        data={
-                            "request_id": "native-assess-" + str(semantic) + "-" + run_id[:48],
-                            "project_id": "browser-smoke",
-                            "run_id": run_id,
-                            "expected_version": run["version"],
-                            "semantic": semantic,
-                            "repeats": 2 if semantic else 1,
-                        },
-                        timeout=150000,
-                    )
-                    assert response.ok, response.text()
-                    report = response.json()["report"]
+                    if reuse_completed:
+                        existing = page.request.get(
+                            base + "/api/v1/assessment/reports?project_id=browser-smoke"
+                        ).json()
+                        report = next(
+                            (
+                                item
+                                for item in existing
+                                if item["request_id"]
+                                == "native-assess-" + str(semantic) + "-" + run_id[:48]
+                            ),
+                            None,
+                        )
+                        assert report, (
+                            "No saved assessment exists; reuse never starts new judge calls"
+                        )
+                    else:
+                        response = page.request.post(
+                            base + "/api/v1/assessment/jobs",
+                            headers={"X-Auton-Client": "web", "Origin": base},
+                            data={
+                                "request_id": "native-assess-" + str(semantic) + "-" + run_id[:48],
+                                "project_id": "browser-smoke",
+                                "run_id": run_id,
+                                "expected_version": run["version"],
+                                "semantic": semantic,
+                                "repeats": 2 if semantic else 1,
+                            },
+                            timeout=150000,
+                        )
+                        assert response.ok, response.text()
+                        report = response.json()["report"]
                     assert report and report["source"] == "runtime"
                     assert not report["quality_release_eligible"]
                     if not semantic:

@@ -239,3 +239,81 @@ def test_asset_http_does_not_leak_owner_and_revoked_snapshots_are_denied(
     assert (
         client.get("/api/v1/projects/http-project/snapshots/" + snapshot["id"]).status_code == 409
     )
+
+
+async def test_skill_arena_isolates_patch_and_ablation_without_formal_promotion(
+    genome: GenomeService,
+) -> None:
+    import hashlib
+
+    from auton.genome.contracts import ArenaSnapshotCommand
+
+    await publish(genome, asset("skill", "# Steps\nWrite a draft.\n", kind="skill"))
+    await publish(genome, asset("reference", "Unchanged project evidence.", kind="document"))
+    original = await genome.resolve(READER, "project")
+    target = next(a for a in original.assets if a.id == "skill")
+    digest = hashlib.sha256(target.content.encode()).hexdigest()
+    command = ArenaSnapshotCommand(
+        base_snapshot_id=original.id,
+        asset_id=target.id,
+        expected_content_sha256=digest,
+        mode="patch",
+        replacement_content="# Steps\nVerify the delivery.\n",
+    )
+    shadow = await genome.arena_snapshot(EVOLUTION, "project", command)
+    assert shadow.purpose == "optimization_arena" and shadow.parent_snapshot_id == original.id
+    assert shadow.id != original.id and shadow.revision == original.revision
+    assert next(a for a in shadow.assets if a.id == "skill").content == command.replacement_content
+    assert next(a for a in shadow.assets if a.id == "reference") == next(
+        a for a in original.assets if a.id == "reference"
+    )
+    assert await genome.resolve(READER, "project") == original
+    assert not (await genome.view(USER, "project")).candidates
+    ablated = await genome.arena_snapshot(
+        EVOLUTION,
+        "project",
+        command.model_copy(update={"mode": "ablation", "replacement_content": None}),
+    )
+    assert {a.id for a in ablated.assets} == {"reference"}
+    assert (await genome.arena_snapshot(EVOLUTION, "project", command)).id == shadow.id
+    with pytest.raises(ApplicationError):
+        await genome.arena_snapshot(READER, "project", command)
+    with pytest.raises(ApplicationError):
+        await genome.arena_snapshot(
+            EVOLUTION, "project", command.model_copy(update={"base_snapshot_id": shadow.id})
+        )
+    current = await genome.view(USER, "project")
+    assert current.revision
+    await genome.revoke(USER, "project", "skill", current.revision)
+    for identity in (original.id, shadow.id, ablated.id):
+        with pytest.raises(ApplicationError) as revoked:
+            await genome.snapshot(READER, "project", identity)
+        assert revoked.value.code == "snapshot_revoked"
+
+
+async def test_evolution_candidate_cannot_use_generic_manual_promotion(
+    genome: GenomeService,
+) -> None:
+    await publish(genome, asset("skill", "# Skill\nOriginal verified steps.\n", kind="skill"))
+    state = await genome.view(USER, "project")
+    pending = await genome.propose(
+        EVOLUTION,
+        "project",
+        asset(
+            "skill",
+            "# Skill\nCandidate steps.\n",
+            kind="skill",
+            origin="inferred",
+            source="evolution-proposal:" + "1" * 64,
+        ),
+        state.candidates_revision,
+    )
+    assert pending.revision and pending.candidates_revision
+    with pytest.raises(ApplicationError) as denied:
+        await genome.promote(
+            USER, "project", "skill", pending.revision, pending.candidates_revision
+        )
+    assert denied.value.code == "release_control_required"
+    assert (await genome.resolve(READER, "project")).assets[
+        0
+    ].content == "# Skill\nOriginal verified steps.\n"

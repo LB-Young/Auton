@@ -770,3 +770,224 @@ def test_delegation_private_dag_approvals_conflict_and_mobile(page: Page) -> Non
     page.context.clear_cookies()
     page.request.get(BASE + "/api/v1/bootstrap")
     assert page.request.get(BASE + f"/api/v1/delegation/{parent_id}").status == 404
+
+
+def test_evolution_local_patch_arena_gate_failure_restart_and_mobile(page: Page) -> None:
+    import hashlib
+    import json
+    import time
+    from typing import Any, cast
+    from uuid import uuid4
+
+    identity = "evolution-" + uuid4().hex[:12]
+    seed_workbench(page, identity)
+    headers = {"X-Auton-Client": "web", "Origin": BASE}
+
+    def post(path: str, body: object) -> dict[str, Any]:
+        response = page.request.post(BASE + "/api/v1" + path, headers=headers, data=body)
+        assert response.ok, response.text()
+        return cast(dict[str, Any], response.json())
+
+    content = (
+        "# Skill\nPreserve project and user boundaries.\n\n"
+        "## Execution\nRead the goal.\nWrite once.\nReport the receipt.\n\n"
+        "## Safety\nNever expand granted permissions or invent evidence.\n"
+    )
+    assets = page.request.get(BASE + f"/api/v1/projects/{identity}/assets").json()
+    pending = post(
+        f"/projects/{identity}/candidates",
+        {
+            "asset": {
+                "id": "skill",
+                "name": "Skill",
+                "kind": "skill",
+                "content": content,
+                "origin": "user_explicit",
+                "source": "public browser synthetic test",
+            },
+            "expected": assets["candidates_revision"],
+        },
+    )
+    post(
+        f"/projects/{identity}/assets/skill/promote",
+        {"expected": pending["revision"], "candidates_revision": pending["candidates_revision"]},
+    )
+    snapshot = post(f"/projects/{identity}/snapshots", {})
+    workspace = "evo-source-" + uuid4().hex[:8]
+    post("/tools/workspaces", {"id": workspace, "title": "Synthetic source", "read_only": False})
+    goal = "Write hello followed by a newline to notes.md. Report only the observed tool receipt."
+    sha = hashlib.sha256(b"hello\n").hexdigest()
+    run = post(
+        "/agent/runs",
+        {
+            "request_id": uuid4().hex,
+            "project_id": identity,
+            "workspace_id": workspace,
+            "model_id": "fixture-model",
+            "goal": goal,
+            "allowed_tools": ["file.write"],
+            "acceptance": {"kind": "file", "path": "notes.md", "sha256": sha},
+        },
+    )
+    deadline = time.monotonic() + 30
+    while run["status"] != "succeeded":
+        if run["status"] == "waiting_approval":
+            post(
+                "/agent/runs/" + run["id"] + "/commands",
+                {
+                    "request_id": uuid4().hex,
+                    "expected_goal_revision": 1,
+                    "expected_version": run["version"],
+                    "action": "approve",
+                },
+            )
+        assert run["status"] not in {"failed", "blocked", "cancelled"}, run["reason"]
+        assert time.monotonic() < deadline
+        page.wait_for_timeout(100)
+        run = page.request.get(BASE + "/api/v1/agent/runs/" + run["id"]).json()
+    report = post(
+        "/assessment/jobs",
+        {
+            "request_id": uuid4().hex,
+            "project_id": identity,
+            "run_id": run["id"],
+            "expected_version": run["version"],
+        },
+    )["report"]
+    page.goto(BASE + "?view=evolve")
+    expect(page.get_by_role("heading", name="资产进化", exact=True)).to_be_visible()
+    page.get_by_label("进化项目", exact=True).select_option(identity)
+    page.get_by_label("进化命令 JSON", exact=True).fill(
+        json.dumps(
+            {
+                "request_id": uuid4().hex,
+                "project_id": identity,
+                "asset_id": "skill",
+                "report_ids": [report["id"]],
+            }
+        )
+    )
+    page.get_by_role("button", name="诊断证据", exact=True).click()
+    expect(page.get_by_text("最近操作结果", exact=True)).to_be_visible()
+    diagnosis = json.loads(
+        page.locator("details")
+        .filter(has=page.locator("summary", has_text="最近操作结果"))
+        .locator("pre")
+        .inner_text()
+    )
+    body = "Read the goal.\nWrite once.\nReport the receipt.\n\n"
+    page.get_by_label("进化操作", exact=True).select_option("propose")
+    page.get_by_label("进化命令 JSON", exact=True).fill(
+        json.dumps(
+            {
+                "request_id": uuid4().hex,
+                "project_id": identity,
+                "diagnosis_id": diagnosis["id"],
+                "base_snapshot_id": snapshot["id"],
+                "asset_id": "skill",
+                "expected_content_sha256": hashlib.sha256(content.encode()).hexdigest(),
+                "direction": "Improve receipt verification within existing permissions.",
+                "rationale": "A bounded engineering hypothesis.",
+                "patch": {
+                    "heading": "## Execution",
+                    "before": body,
+                    "after": body.replace("Write once.", "Write once and verify the receipt."),
+                },
+            }
+        )
+    )
+    page.get_by_role("button", name="提出局部补丁", exact=True).click()
+    expect(page.get_by_label("候选差异", exact=True)).to_contain_text("+Write once and verify")
+    screenshot(page, "M15-evolution-diff-desktop.png")
+    proposal = page.request.get(BASE + f"/api/v1/evolution/proposals?project_id={identity}").json()[
+        0
+    ]
+    bank = page.request.get(BASE + "/api/v1/assessment/bank").json()
+    core = "core-" + uuid4().hex[:8]
+    dev = "dev-" + uuid4().hex[:8]
+    bank = post(
+        "/assessment/bank",
+        {
+            "request_id": uuid4().hex,
+            "expected_revision": bank["revision"],
+            "cases": [
+                {
+                    "id": i,
+                    "family": i,
+                    "origin_group": i,
+                    "split": split,
+                    "prompt": prompt,
+                    "kind": "file",
+                    "target_path": "notes.md",
+                    "expected_sha256": sha,
+                    "source": "test_fixture",
+                }
+                for i, split, prompt in (
+                    (core, "train", goal),
+                    (
+                        dev,
+                        "development",
+                        "Deliver hello and a final newline inside notes.md, "
+                        "then report the tool outcome.",
+                    ),
+                )
+            ],
+        },
+    )
+    arena = post(
+        "/evolution/arenas",
+        {
+            "request_id": uuid4().hex,
+            "proposal_id": proposal["id"],
+            "expected_proposal_version": proposal["version"],
+            "bank_revision": bank["revision"],
+            "train_cases": [core],
+            "development_cases": [dev],
+            "repeats": 1,
+            "model_id": "fixture-model",
+            "limits": {
+                "max_steps": 3,
+                "max_tokens": 8000,
+                "max_cost_microusd": 4000,
+                "max_tool_calls": 1,
+            },
+            "checkpoints": [{"name": "old-digest"}],
+        },
+    )
+    page.get_by_role("button", name="刷新进化记录", exact=True).click()
+    expect(page.get_by_role("button", name="开始隔离评测", exact=True)).to_be_enabled()
+    page.get_by_role("button", name="开始隔离评测", exact=True).click()
+    for _ in range(6):
+        approval = page.get_by_role("button", name="批准当前文件改动", exact=True)
+        expect(approval).to_be_enabled(timeout=30000)
+        approval.click()
+        # Wait for this exact approval to settle before selecting a later checkpoint.
+        expect(approval).to_be_disabled(timeout=10000)
+    deadline = time.monotonic() + 30
+    while True:
+        value = page.request.get(BASE + "/api/v1/evolution/arenas/" + arena["id"]).json()
+        if value["status"] == "complete":
+            break
+        assert value["status"] not in {"blocked", "cancelled"}, value["reason"]
+        assert time.monotonic() < deadline
+        page.wait_for_timeout(100)
+    page.get_by_role("button", name="刷新进化记录", exact=True).click()
+    expect(page.get_by_text("G3_repeated_validation：hold", exact=False).first).to_be_visible()
+    page.get_by_role("checkbox").check()
+    page.get_by_role("button", name="提交学习候选", exact=True).click()
+    # Mock executors have no independently observed provider fingerprint.
+    # All file checks passing must not bypass the frozen executor identity gate.
+    expect(page.get_by_role("alert")).to_contain_text(
+        "Failed structural, protocol or regression gates"
+    )
+    assert (
+        page.request.get(BASE + f"/api/v1/projects/{identity}/assets").json()["revision"]
+        == snapshot["revision"]
+    )
+    page.reload()
+    page.get_by_label("进化项目", exact=True).select_option(identity)
+    expect(page.get_by_label("候选差异", exact=True)).to_contain_text("+Write once and verify")
+    page.set_viewport_size({"width": 390, "height": 844})
+    page.get_by_role("heading", name="资产进化", exact=True).scroll_into_view_if_needed()
+    assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+    screenshot(page, "M15-evolution-mobile.png")

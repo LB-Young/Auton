@@ -26,6 +26,7 @@ from auton.assess.contracts import (
     ImportCases,
     JudgeObservation,
     Metrics,
+    OptimizationTask,
     SeedCommand,
     Signal,
     Verdict,
@@ -109,6 +110,7 @@ def candidate_revision(run: AgentRun) -> str:
                 }
             },
             "runtime": run.runtime_revision,
+            "input_asset_snapshot_id": run.input_asset_snapshot_id or run.command.asset_snapshot_id,
             "observed_models": identities,
         }
     )
@@ -264,6 +266,45 @@ class Assessment:
                 for case in bank.cases
                 if case.split == "train"
             ]
+        )
+
+    async def optimization_task(
+        self,
+        principal: Principal,
+        case_id: str,
+        revision: str,
+        split: Literal["train", "development"],
+    ) -> OptimizationTask:
+        if principal.role not in {"user", "evolution"} or (
+            split == "development" and principal.role != "user"
+        ):
+            raise ApplicationError(
+                403,
+                "optimization_case_role_denied",
+                "Generation can only read train; development execution requires user control",
+            )
+        case = await self.store.protected_case(principal.owner, case_id, revision)
+        if case.split != split or case.split not in {"train", "development"}:
+            raise ApplicationError(
+                403, "optimization_split_denied", "Protected test/meta are not optimization inputs"
+            )
+        if case.kind != "file" or not case.target_path or not case.expected_sha256:
+            raise ApplicationError(
+                422,
+                "optimization_case_unsupported",
+                "Initial arena requires deterministic file cases",
+            )
+        return OptimizationTask(
+            case_id=case.id,
+            family=case.family,
+            origin_group=case.origin_group,
+            split=split,
+            prompt=case.prompt,
+            path=case.target_path,
+            sha256=case.expected_sha256,
+            data_domain=case.data_domain,
+            source=case.source,
+            critical=case.critical,
         )
 
     async def open_window(self, principal: Principal, command: BlindWindowCommand) -> BlindWindow:
@@ -752,6 +793,7 @@ class Assessment:
             fresh_reasons.append("source_unavailable:" + error.code)
         return report.model_copy(
             update={
+                "current_evidence_valid": not fresh_reasons,
                 "quality_release_eligible": report.quality_release_eligible and not fresh_reasons,
                 "reasons": tuple(dict.fromkeys((*report.reasons, *fresh_reasons))),
             }
@@ -771,6 +813,8 @@ class Assessment:
         left = await self.report(principal, baseline)
         right = await self.report(principal, candidate)
         reasons = []
+        if not left.current_evidence_valid or not right.current_evidence_valid:
+            reasons.append("comparison_evidence_no_longer_current")
         if (
             left.checkpoint_event_id == right.checkpoint_event_id
             or left.candidate_revision == right.candidate_revision

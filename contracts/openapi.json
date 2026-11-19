@@ -306,6 +306,17 @@
             "title": "Id",
             "type": "string"
           },
+          "input_asset_snapshot_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input Asset Snapshot Id"
+          },
           "input_cutoff_unit": {
             "const": "run-checkpoint-version",
             "default": "run-checkpoint-version",
@@ -490,6 +501,7 @@
           "receipts",
           "approvals",
           "context_ids",
+          "input_asset_snapshot_id",
           "judgment_ids",
           "judgments",
           "input_cutoff_unit",
@@ -740,6 +752,637 @@
           "reason"
         ],
         "title": "Answer",
+        "type": "object"
+      },
+      "ArenaCommand-Input": {
+        "additionalProperties": false,
+        "properties": {
+          "bank_revision": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Bank Revision",
+            "type": "string"
+          },
+          "checkpoints": {
+            "items": {
+              "$ref": "#/components/schemas/ToolCheckpoint-Input"
+            },
+            "maxItems": 4,
+            "minItems": 1,
+            "title": "Checkpoints",
+            "type": "array"
+          },
+          "development_cases": {
+            "items": {
+              "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+              "type": "string"
+            },
+            "maxItems": 9,
+            "minItems": 1,
+            "title": "Development Cases",
+            "type": "array"
+          },
+          "expected_proposal_version": {
+            "minimum": 0.0,
+            "title": "Expected Proposal Version",
+            "type": "integer"
+          },
+          "limits": {
+            "$ref": "#/components/schemas/RunLimits-Input"
+          },
+          "model_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Model Id",
+            "type": "string"
+          },
+          "proposal_id": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Proposal Id",
+            "type": "string"
+          },
+          "public": {
+            "default": false,
+            "title": "Public",
+            "type": "boolean"
+          },
+          "repeats": {
+            "default": 3,
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Repeats",
+            "type": "integer"
+          },
+          "request_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "train_cases": {
+            "items": {
+              "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+              "type": "string"
+            },
+            "maxItems": 3,
+            "minItems": 1,
+            "title": "Train Cases",
+            "type": "array"
+          }
+        },
+        "required": [
+          "request_id",
+          "proposal_id",
+          "expected_proposal_version",
+          "bank_revision",
+          "train_cases",
+          "development_cases",
+          "model_id",
+          "limits",
+          "checkpoints"
+        ],
+        "title": "ArenaCommand",
+        "type": "object"
+      },
+      "ArenaCommand-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "bank_revision": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Bank Revision",
+            "type": "string"
+          },
+          "checkpoints": {
+            "items": {
+              "$ref": "#/components/schemas/ToolCheckpoint-Output"
+            },
+            "maxItems": 4,
+            "minItems": 1,
+            "title": "Checkpoints",
+            "type": "array"
+          },
+          "development_cases": {
+            "items": {
+              "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+              "type": "string"
+            },
+            "maxItems": 9,
+            "minItems": 1,
+            "title": "Development Cases",
+            "type": "array"
+          },
+          "expected_proposal_version": {
+            "minimum": 0.0,
+            "title": "Expected Proposal Version",
+            "type": "integer"
+          },
+          "limits": {
+            "$ref": "#/components/schemas/RunLimits-Output"
+          },
+          "model_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Model Id",
+            "type": "string"
+          },
+          "proposal_id": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Proposal Id",
+            "type": "string"
+          },
+          "public": {
+            "default": false,
+            "title": "Public",
+            "type": "boolean"
+          },
+          "repeats": {
+            "default": 3,
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Repeats",
+            "type": "integer"
+          },
+          "request_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "train_cases": {
+            "items": {
+              "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+              "type": "string"
+            },
+            "maxItems": 3,
+            "minItems": 1,
+            "title": "Train Cases",
+            "type": "array"
+          }
+        },
+        "required": [
+          "request_id",
+          "proposal_id",
+          "expected_proposal_version",
+          "bank_revision",
+          "train_cases",
+          "development_cases",
+          "repeats",
+          "model_id",
+          "limits",
+          "checkpoints",
+          "public"
+        ],
+        "title": "ArenaCommand",
+        "type": "object"
+      },
+      "ArenaControl": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "enum": [
+              "start",
+              "resume",
+              "approve_current",
+              "cancel"
+            ],
+            "title": "Action",
+            "type": "string"
+          },
+          "expected_version": {
+            "minimum": 0.0,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "request_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Request Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "expected_version",
+          "action"
+        ],
+        "title": "ArenaControl",
+        "type": "object"
+      },
+      "ArenaTrial": {
+        "additionalProperties": false,
+        "properties": {
+          "case_id": {
+            "title": "Case Id",
+            "type": "string"
+          },
+          "case_source": {
+            "default": "test_fixture",
+            "enum": [
+              "human_seed",
+              "benchmark",
+              "episode",
+              "test_fixture"
+            ],
+            "title": "Case Source",
+            "type": "string"
+          },
+          "checkpoints_followed": {
+            "default": false,
+            "title": "Checkpoints Followed",
+            "type": "boolean"
+          },
+          "comparison_signature": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comparison Signature"
+          },
+          "confirmed_calls": {
+            "default": 0,
+            "title": "Confirmed Calls",
+            "type": "integer"
+          },
+          "cost_microusd": {
+            "default": 0,
+            "title": "Cost Microusd",
+            "type": "integer"
+          },
+          "critical": {
+            "default": false,
+            "title": "Critical",
+            "type": "boolean"
+          },
+          "environment_verified": {
+            "default": false,
+            "title": "Environment Verified",
+            "type": "boolean"
+          },
+          "executor_signature": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Executor Signature"
+          },
+          "family": {
+            "title": "Family",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "independence_group": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Independence Group"
+          },
+          "outcome": {
+            "default": "incomplete",
+            "enum": [
+              "pass",
+              "fail",
+              "unknown",
+              "environment_error",
+              "incomplete"
+            ],
+            "title": "Outcome",
+            "type": "string"
+          },
+          "pending_preview": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pending Preview"
+          },
+          "reasons": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "repeat": {
+            "maximum": 4.0,
+            "minimum": 0.0,
+            "title": "Repeat",
+            "type": "integer"
+          },
+          "report_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Report Id"
+          },
+          "run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id"
+          },
+          "run_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Version"
+          },
+          "snapshot_id": {
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "source": {
+            "default": "test",
+            "enum": [
+              "runtime",
+              "test"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "split": {
+            "enum": [
+              "train",
+              "development"
+            ],
+            "title": "Split",
+            "type": "string"
+          },
+          "status": {
+            "default": "pending",
+            "title": "Status",
+            "type": "string"
+          },
+          "target_retained": {
+            "default": false,
+            "title": "Target Retained",
+            "type": "boolean"
+          },
+          "tokens": {
+            "default": 0,
+            "title": "Tokens",
+            "type": "integer"
+          },
+          "tool_calls": {
+            "default": 0,
+            "title": "Tool Calls",
+            "type": "integer"
+          },
+          "unknown_calls": {
+            "default": 0,
+            "title": "Unknown Calls",
+            "type": "integer"
+          },
+          "variant": {
+            "enum": [
+              "baseline",
+              "candidate",
+              "ablation"
+            ],
+            "title": "Variant",
+            "type": "string"
+          },
+          "workspace_id": {
+            "title": "Workspace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "case_id",
+          "family",
+          "independence_group",
+          "split",
+          "variant",
+          "repeat",
+          "snapshot_id",
+          "workspace_id",
+          "run_id",
+          "run_version",
+          "status",
+          "report_id",
+          "outcome",
+          "tokens",
+          "cost_microusd",
+          "confirmed_calls",
+          "unknown_calls",
+          "tool_calls",
+          "pending_preview",
+          "checkpoints_followed",
+          "target_retained",
+          "environment_verified",
+          "comparison_signature",
+          "executor_signature",
+          "source",
+          "case_source",
+          "critical",
+          "reasons"
+        ],
+        "title": "ArenaTrial",
+        "type": "object"
+      },
+      "ArenaView": {
+        "additionalProperties": false,
+        "properties": {
+          "approval_command_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approval Command Id"
+          },
+          "assessment_config_digest": {
+            "default": "",
+            "title": "Assessment Config Digest",
+            "type": "string"
+          },
+          "command": {
+            "$ref": "#/components/schemas/ArenaCommand-Output"
+          },
+          "config_digest": {
+            "title": "Config Digest",
+            "type": "string"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "number"
+          },
+          "current_trial": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Trial"
+          },
+          "frozen_tasks": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/OptimizationTask"
+            },
+            "title": "Frozen Tasks",
+            "type": "array"
+          },
+          "gates": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/GateSignal"
+            },
+            "title": "Gates",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "project_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "ready_for_release": {
+            "default": false,
+            "title": "Ready For Release",
+            "type": "boolean"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "resume_command_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resume Command Id"
+          },
+          "source": {
+            "enum": [
+              "runtime",
+              "test"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "status": {
+            "default": "draft",
+            "enum": [
+              "draft",
+              "running",
+              "waiting_approval",
+              "complete",
+              "blocked",
+              "cancelling",
+              "cancelled"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "total_cost_microusd": {
+            "default": 0,
+            "title": "Total Cost Microusd",
+            "type": "integer"
+          },
+          "total_model_calls": {
+            "default": 0,
+            "title": "Total Model Calls",
+            "type": "integer"
+          },
+          "total_tokens": {
+            "default": 0,
+            "title": "Total Tokens",
+            "type": "integer"
+          },
+          "total_tool_calls": {
+            "default": 0,
+            "title": "Total Tool Calls",
+            "type": "integer"
+          },
+          "trials": {
+            "items": {
+              "$ref": "#/components/schemas/ArenaTrial"
+            },
+            "title": "Trials",
+            "type": "array"
+          },
+          "unknown_model_calls": {
+            "default": 0,
+            "title": "Unknown Model Calls",
+            "type": "integer"
+          },
+          "version": {
+            "default": 0,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "frozen_tasks",
+          "assessment_config_digest",
+          "project_id",
+          "approval_command_id",
+          "resume_command_id",
+          "id",
+          "version",
+          "command",
+          "trials",
+          "status",
+          "reason",
+          "current_trial",
+          "config_digest",
+          "total_tokens",
+          "total_cost_microusd",
+          "total_model_calls",
+          "unknown_model_calls",
+          "total_tool_calls",
+          "source",
+          "created_at",
+          "gates",
+          "ready_for_release"
+        ],
+        "title": "ArenaView",
         "type": "object"
       },
       "Artifact": {
@@ -3246,6 +3889,123 @@
         "title": "DelegationView",
         "type": "object"
       },
+      "DiagnoseCommand": {
+        "additionalProperties": false,
+        "properties": {
+          "asset_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "project_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "report_ids": {
+            "items": {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            "maxItems": 12,
+            "minItems": 1,
+            "title": "Report Ids",
+            "type": "array"
+          },
+          "request_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Request Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "project_id",
+          "asset_id",
+          "report_ids"
+        ],
+        "title": "DiagnoseCommand",
+        "type": "object"
+      },
+      "Diagnosis": {
+        "additionalProperties": false,
+        "properties": {
+          "asset_id": {
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "category": {
+            "enum": [
+              "asset_hypothesis",
+              "tool_environment",
+              "execution_capability",
+              "missing_information",
+              "mixed",
+              "unknown"
+            ],
+            "title": "Category",
+            "type": "string"
+          },
+          "conclusion_scope": {
+            "const": "diagnostic-hypothesis-only",
+            "default": "diagnostic-hypothesis-only",
+            "title": "Conclusion Scope",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "report_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Report Ids",
+            "type": "array"
+          },
+          "suggested_action": {
+            "enum": [
+              "inspect_tools",
+              "inspect_executor",
+              "collect_evidence",
+              "review_local_patch"
+            ],
+            "title": "Suggested Action",
+            "type": "string"
+          },
+          "usable_train_reports": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Usable Train Reports",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "project_id",
+          "asset_id",
+          "report_ids",
+          "category",
+          "conclusion_scope",
+          "reasons",
+          "suggested_action",
+          "usable_train_reports"
+        ],
+        "title": "Diagnosis",
+        "type": "object"
+      },
       "EpisodeSummary": {
         "additionalProperties": false,
         "properties": {
@@ -3757,6 +4517,11 @@
             "title": "Config Digest",
             "type": "string"
           },
+          "current_evidence_valid": {
+            "default": true,
+            "title": "Current Evidence Valid",
+            "type": "boolean"
+          },
           "environment_verified": {
             "default": false,
             "title": "Environment Verified",
@@ -3901,6 +4666,7 @@
           }
         },
         "required": [
+          "current_evidence_valid",
           "id",
           "request_id",
           "project_id",
@@ -4169,6 +4935,52 @@
         "title": "Evidence",
         "type": "object"
       },
+      "EvolutionStatus": {
+        "additionalProperties": false,
+        "properties": {
+          "activation": {
+            "const": "release_control_only",
+            "default": "release_control_only",
+            "title": "Activation",
+            "type": "string"
+          },
+          "config_digest": {
+            "title": "Config Digest",
+            "type": "string"
+          },
+          "gate_revision": {
+            "title": "Gate Revision",
+            "type": "string"
+          },
+          "max_arena_model_calls": {
+            "title": "Max Arena Model Calls",
+            "type": "integer"
+          },
+          "min_development_families": {
+            "title": "Min Development Families",
+            "type": "integer"
+          },
+          "min_repeats": {
+            "title": "Min Repeats",
+            "type": "integer"
+          },
+          "reflection_model": {
+            "title": "Reflection Model",
+            "type": "string"
+          }
+        },
+        "required": [
+          "config_digest",
+          "reflection_model",
+          "gate_revision",
+          "min_development_families",
+          "min_repeats",
+          "max_arena_model_calls",
+          "activation"
+        ],
+        "title": "EvolutionStatus",
+        "type": "object"
+      },
       "FeedbackCommand": {
         "additionalProperties": false,
         "properties": {
@@ -4257,6 +5069,202 @@
           "verified_quality"
         ],
         "title": "FeedbackReceipt",
+        "type": "object"
+      },
+      "GateSignal": {
+        "additionalProperties": false,
+        "properties": {
+          "evidence": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Evidence",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "verdict": {
+            "enum": [
+              "pass",
+              "fail",
+              "hold"
+            ],
+            "title": "Verdict",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "verdict",
+          "reasons",
+          "evidence"
+        ],
+        "title": "GateSignal",
+        "type": "object"
+      },
+      "GenerationReceipt": {
+        "additionalProperties": false,
+        "properties": {
+          "cost_microusd": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost Microusd"
+          },
+          "dispatch": {
+            "enum": [
+              "confirmed",
+              "not_dispatched",
+              "unknown"
+            ],
+            "title": "Dispatch",
+            "type": "string"
+          },
+          "fingerprint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fingerprint"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "reported_model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reported Model"
+          },
+          "request_id": {
+            "title": "Request Id",
+            "type": "string"
+          },
+          "source": {
+            "enum": [
+              "remote",
+              "test",
+              "unavailable"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tokens"
+          }
+        },
+        "required": [
+          "request_id",
+          "reported_model",
+          "fingerprint",
+          "source",
+          "dispatch",
+          "tokens",
+          "cost_microusd",
+          "reason"
+        ],
+        "title": "GenerationReceipt",
+        "type": "object"
+      },
+      "GenerationRecord": {
+        "additionalProperties": false,
+        "properties": {
+          "command": {
+            "$ref": "#/components/schemas/ReflectCommand-Output"
+          },
+          "config_digest": {
+            "title": "Config Digest",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "proposal_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Proposal Id"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "receipt": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GenerationReceipt"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "enum": [
+              "running",
+              "complete",
+              "rejected",
+              "blocked"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "version": {
+            "default": 0,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "command",
+          "config_digest",
+          "status",
+          "reason",
+          "receipt",
+          "proposal_id"
+        ],
+        "title": "GenerationRecord",
         "type": "object"
       },
       "GroupCalibration": {
@@ -5275,6 +6283,80 @@
         "title": "ModuleDescriptor",
         "type": "object"
       },
+      "OptimizationTask": {
+        "additionalProperties": false,
+        "description": "Executable train/dev input, with no meta human answer or calibration label.",
+        "properties": {
+          "case_id": {
+            "title": "Case Id",
+            "type": "string"
+          },
+          "critical": {
+            "title": "Critical",
+            "type": "boolean"
+          },
+          "data_domain": {
+            "enum": [
+              "public",
+              "local-only"
+            ],
+            "title": "Data Domain",
+            "type": "string"
+          },
+          "family": {
+            "title": "Family",
+            "type": "string"
+          },
+          "origin_group": {
+            "title": "Origin Group",
+            "type": "string"
+          },
+          "path": {
+            "title": "Path",
+            "type": "string"
+          },
+          "prompt": {
+            "title": "Prompt",
+            "type": "string"
+          },
+          "sha256": {
+            "title": "Sha256",
+            "type": "string"
+          },
+          "source": {
+            "enum": [
+              "human_seed",
+              "benchmark",
+              "episode",
+              "test_fixture"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "split": {
+            "enum": [
+              "train",
+              "development"
+            ],
+            "title": "Split",
+            "type": "string"
+          }
+        },
+        "required": [
+          "case_id",
+          "family",
+          "origin_group",
+          "split",
+          "prompt",
+          "path",
+          "sha256",
+          "data_domain",
+          "source",
+          "critical"
+        ],
+        "title": "OptimizationTask",
+        "type": "object"
+      },
       "PendingOperation": {
         "additionalProperties": false,
         "properties": {
@@ -5312,6 +6394,79 @@
           "status"
         ],
         "title": "PendingOperation",
+        "type": "object"
+      },
+      "PlaybookEntry": {
+        "additionalProperties": false,
+        "properties": {
+          "asset_id": {
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "direction": {
+            "title": "Direction",
+            "type": "string"
+          },
+          "evidence": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Evidence",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "outcome": {
+            "enum": [
+              "proposed",
+              "rejected",
+              "blocked",
+              "review_queue",
+              "ready_for_release"
+            ],
+            "title": "Outcome",
+            "type": "string"
+          },
+          "parent_sha256": {
+            "title": "Parent Sha256",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "proposal_id": {
+            "title": "Proposal Id",
+            "type": "string"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "version": {
+            "default": 0,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version",
+          "id",
+          "proposal_id",
+          "project_id",
+          "asset_id",
+          "parent_sha256",
+          "direction",
+          "outcome",
+          "reasons",
+          "evidence"
+        ],
+        "title": "PlaybookEntry",
         "type": "object"
       },
       "PolicyDecision": {
@@ -5447,6 +6602,200 @@
         "title": "Project",
         "type": "object"
       },
+      "Proposal": {
+        "additionalProperties": false,
+        "properties": {
+          "activation": {
+            "const": "not_activated",
+            "default": "not_activated",
+            "title": "Activation",
+            "type": "string"
+          },
+          "candidate_content": {
+            "title": "Candidate Content",
+            "type": "string"
+          },
+          "candidate_sha256": {
+            "title": "Candidate Sha256",
+            "type": "string"
+          },
+          "command": {
+            "$ref": "#/components/schemas/ProposalCommand"
+          },
+          "config_digest": {
+            "title": "Config Digest",
+            "type": "string"
+          },
+          "current_arena_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Arena Id"
+          },
+          "diff": {
+            "title": "Diff",
+            "type": "string"
+          },
+          "gates": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/GateSignal"
+            },
+            "title": "Gates",
+            "type": "array"
+          },
+          "generation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GenerationReceipt"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "learning_revision": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Learning Revision"
+          },
+          "parent_blob_sha256": {
+            "title": "Parent Blob Sha256",
+            "type": "string"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "source": {
+            "enum": [
+              "human-proposal",
+              "model-proposal",
+              "test"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "proposed",
+              "rejected",
+              "evaluating",
+              "blocked",
+              "review_queue",
+              "ready_for_release"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "version": {
+            "default": 0,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "command",
+          "parent_blob_sha256",
+          "candidate_content",
+          "candidate_sha256",
+          "diff",
+          "config_digest",
+          "status",
+          "reasons",
+          "generation",
+          "gates",
+          "source",
+          "learning_revision",
+          "current_arena_id",
+          "activation"
+        ],
+        "title": "Proposal",
+        "type": "object"
+      },
+      "ProposalCommand": {
+        "additionalProperties": false,
+        "properties": {
+          "asset_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "base_snapshot_id": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Base Snapshot Id",
+            "type": "string"
+          },
+          "diagnosis_id": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Diagnosis Id",
+            "type": "string"
+          },
+          "direction": {
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Direction",
+            "type": "string"
+          },
+          "expected_content_sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Expected Content Sha256",
+            "type": "string"
+          },
+          "patch": {
+            "$ref": "#/components/schemas/SectionPatch"
+          },
+          "project_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "rationale": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Rationale",
+            "type": "string"
+          },
+          "request_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Request Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "project_id",
+          "diagnosis_id",
+          "base_snapshot_id",
+          "asset_id",
+          "expected_content_sha256",
+          "patch",
+          "rationale",
+          "direction"
+        ],
+        "title": "ProposalCommand",
+        "type": "object"
+      },
       "PublicPolicy": {
         "properties": {
           "allowed_actions": {
@@ -5541,6 +6890,133 @@
           "checkpoint_event_id"
         ],
         "title": "RecoveryCommand",
+        "type": "object"
+      },
+      "ReflectCommand-Input": {
+        "additionalProperties": false,
+        "properties": {
+          "asset_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "base_snapshot_id": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Base Snapshot Id",
+            "type": "string"
+          },
+          "diagnosis_id": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Diagnosis Id",
+            "type": "string"
+          },
+          "direction": {
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Direction",
+            "type": "string"
+          },
+          "expected_content_sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Expected Content Sha256",
+            "type": "string"
+          },
+          "heading": {
+            "pattern": "^#{1,6} [^\\n]{1,100}$",
+            "title": "Heading",
+            "type": "string"
+          },
+          "project_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "public": {
+            "default": false,
+            "title": "Public",
+            "type": "boolean"
+          },
+          "request_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Request Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "project_id",
+          "diagnosis_id",
+          "base_snapshot_id",
+          "asset_id",
+          "expected_content_sha256",
+          "heading",
+          "direction"
+        ],
+        "title": "ReflectCommand",
+        "type": "object"
+      },
+      "ReflectCommand-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "asset_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "base_snapshot_id": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Base Snapshot Id",
+            "type": "string"
+          },
+          "diagnosis_id": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Diagnosis Id",
+            "type": "string"
+          },
+          "direction": {
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Direction",
+            "type": "string"
+          },
+          "expected_content_sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Expected Content Sha256",
+            "type": "string"
+          },
+          "heading": {
+            "pattern": "^#{1,6} [^\\n]{1,100}$",
+            "title": "Heading",
+            "type": "string"
+          },
+          "project_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "public": {
+            "default": false,
+            "title": "Public",
+            "type": "boolean"
+          },
+          "request_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Request Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "project_id",
+          "diagnosis_id",
+          "base_snapshot_id",
+          "asset_id",
+          "expected_content_sha256",
+          "heading",
+          "public",
+          "direction"
+        ],
+        "title": "ReflectCommand",
         "type": "object"
       },
       "Revision": {
@@ -5960,6 +7436,35 @@
         "title": "RunSnapshot",
         "type": "object"
       },
+      "SectionPatch": {
+        "additionalProperties": false,
+        "properties": {
+          "after": {
+            "maxLength": 12000,
+            "minLength": 1,
+            "title": "After",
+            "type": "string"
+          },
+          "before": {
+            "maxLength": 12000,
+            "minLength": 1,
+            "title": "Before",
+            "type": "string"
+          },
+          "heading": {
+            "pattern": "^#{1,6} [^\\n]{1,100}$",
+            "title": "Heading",
+            "type": "string"
+          }
+        },
+        "required": [
+          "heading",
+          "before",
+          "after"
+        ],
+        "title": "SectionPatch",
+        "type": "object"
+      },
       "SeedCommand": {
         "additionalProperties": false,
         "properties": {
@@ -6336,6 +7841,32 @@
       "Snapshot": {
         "additionalProperties": false,
         "properties": {
+          "arena_asset_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Arena Asset Id"
+          },
+          "arena_mode": {
+            "anyOf": [
+              {
+                "enum": [
+                  "patch",
+                  "ablation"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Arena Mode"
+          },
           "assets": {
             "items": {
               "$ref": "#/components/schemas/Asset-Output"
@@ -6351,8 +7882,28 @@
             "title": "Instructions",
             "type": "string"
           },
+          "parent_snapshot_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Snapshot Id"
+          },
           "project_id": {
             "title": "Project Id",
+            "type": "string"
+          },
+          "purpose": {
+            "default": "runtime",
+            "enum": [
+              "runtime",
+              "optimization_arena"
+            ],
+            "title": "Purpose",
             "type": "string"
           },
           "revision": {
@@ -6373,6 +7924,10 @@
           }
         },
         "required": [
+          "purpose",
+          "parent_snapshot_id",
+          "arena_asset_id",
+          "arena_mode",
           "id",
           "project_id",
           "revision",
@@ -6485,6 +8040,50 @@
           "synchronous"
         ],
         "title": "StorageInfo",
+        "type": "object"
+      },
+      "SubmitProposal": {
+        "additionalProperties": false,
+        "properties": {
+          "arena_id": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Arena Id",
+            "type": "string"
+          },
+          "direction_reviewed": {
+            "default": false,
+            "title": "Direction Reviewed",
+            "type": "boolean"
+          },
+          "expected_learning_revision": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Learning Revision"
+          },
+          "expected_version": {
+            "minimum": 0.0,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "request_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Request Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "expected_version",
+          "arena_id",
+          "expected_learning_revision"
+        ],
+        "title": "SubmitProposal",
         "type": "object"
       },
       "TaskState": {
@@ -6614,6 +8213,60 @@
           "arguments"
         ],
         "title": "ToolCall",
+        "type": "object"
+      },
+      "ToolCheckpoint-Input": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Name",
+            "type": "string"
+          },
+          "require_absent_or_null_old_digest": {
+            "default": true,
+            "title": "Require Absent Or Null Old Digest",
+            "type": "boolean"
+          },
+          "tool": {
+            "const": "file_write",
+            "default": "file_write",
+            "title": "Tool",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "ToolCheckpoint",
+        "type": "object"
+      },
+      "ToolCheckpoint-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Name",
+            "type": "string"
+          },
+          "require_absent_or_null_old_digest": {
+            "default": true,
+            "title": "Require Absent Or Null Old Digest",
+            "type": "boolean"
+          },
+          "tool": {
+            "const": "file_write",
+            "default": "file_write",
+            "title": "Tool",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "tool",
+          "require_absent_or_null_old_digest"
+        ],
+        "title": "ToolCheckpoint",
         "type": "object"
       },
       "ToolDescriptor": {
@@ -11745,6 +13398,1700 @@
           }
         },
         "summary": "Contrast Supervisor"
+      }
+    },
+    "/api/v1/evolution/arenas": {
+      "get": {
+        "operationId": "evolution_arenas_api_v1_evolution_arenas_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ArenaView"
+                  },
+                  "title": "Response Evolution Arenas Api V1 Evolution Arenas Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Evolution Arenas"
+      },
+      "post": {
+        "operationId": "evolution_create_arena_api_v1_evolution_arenas_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ArenaCommand-Input"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArenaView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Evolution Create Arena"
+      }
+    },
+    "/api/v1/evolution/arenas/{arena_id}": {
+      "get": {
+        "operationId": "evolution_arena_api_v1_evolution_arenas__arena_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "arena_id",
+            "required": true,
+            "schema": {
+              "title": "Arena Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArenaView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Evolution Arena"
+      }
+    },
+    "/api/v1/evolution/arenas/{arena_id}/commands": {
+      "post": {
+        "operationId": "evolution_control_api_v1_evolution_arenas__arena_id__commands_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "arena_id",
+            "required": true,
+            "schema": {
+              "title": "Arena Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ArenaControl"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArenaView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Evolution Control"
+      }
+    },
+    "/api/v1/evolution/diagnoses": {
+      "post": {
+        "operationId": "evolution_diagnose_api_v1_evolution_diagnoses_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DiagnoseCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Diagnosis"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Evolution Diagnose"
+      }
+    },
+    "/api/v1/evolution/generations": {
+      "get": {
+        "operationId": "evolution_generations_api_v1_evolution_generations_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/GenerationRecord"
+                  },
+                  "title": "Response Evolution Generations Api V1 Evolution Generations Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Evolution Generations"
+      }
+    },
+    "/api/v1/evolution/playbook": {
+      "get": {
+        "operationId": "evolution_playbook_api_v1_evolution_playbook_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PlaybookEntry"
+                  },
+                  "title": "Response Evolution Playbook Api V1 Evolution Playbook Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Evolution Playbook"
+      }
+    },
+    "/api/v1/evolution/proposals": {
+      "get": {
+        "operationId": "evolution_proposals_api_v1_evolution_proposals_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Proposal"
+                  },
+                  "title": "Response Evolution Proposals Api V1 Evolution Proposals Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Evolution Proposals"
+      },
+      "post": {
+        "operationId": "evolution_propose_api_v1_evolution_proposals_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProposalCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proposal"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Evolution Propose"
+      }
+    },
+    "/api/v1/evolution/proposals/{proposal_id}": {
+      "get": {
+        "operationId": "evolution_proposal_api_v1_evolution_proposals__proposal_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "proposal_id",
+            "required": true,
+            "schema": {
+              "title": "Proposal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proposal"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Evolution Proposal"
+      }
+    },
+    "/api/v1/evolution/proposals/{proposal_id}/submit": {
+      "post": {
+        "operationId": "evolution_submit_api_v1_evolution_proposals__proposal_id__submit_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "proposal_id",
+            "required": true,
+            "schema": {
+              "title": "Proposal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitProposal"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proposal"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Evolution Submit"
+      }
+    },
+    "/api/v1/evolution/reflections": {
+      "post": {
+        "operationId": "evolution_reflect_api_v1_evolution_reflections_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReflectCommand-Input"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proposal"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Evolution Reflect"
+      }
+    },
+    "/api/v1/evolution/status": {
+      "get": {
+        "operationId": "evolution_status_api_v1_evolution_status_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvolutionStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Evolution Status"
       }
     },
     "/api/v1/health": {

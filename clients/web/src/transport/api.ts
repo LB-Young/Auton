@@ -54,6 +54,25 @@ export class ApiClientFactory {
       return (await response.json()) as T;
     }
     return {
+      evolution: {
+        status: () => request('/evolution/status'),
+        proposals: (project) =>
+          request(`/evolution/proposals?project_id=${encodeURIComponent(project)}`),
+        arenas: (project) => request(`/evolution/arenas?project_id=${encodeURIComponent(project)}`),
+        generations: (project) =>
+          request(`/evolution/generations?project_id=${encodeURIComponent(project)}`),
+        playbook: (project) =>
+          request(`/evolution/playbook?project_id=${encodeURIComponent(project)}`),
+        diagnose: (command) => request('/evolution/diagnoses', command),
+        propose: (command) => request('/evolution/proposals', command),
+        reflect: (command) => request('/evolution/reflections', command),
+        createArena: (command) => request('/evolution/arenas', command),
+        arena: (id) => request(`/evolution/arenas/${encodeURIComponent(id)}`),
+        control: (id, command) =>
+          request(`/evolution/arenas/${encodeURIComponent(id)}/commands`, command),
+        submit: (id, command) =>
+          request(`/evolution/proposals/${encodeURIComponent(id)}/submit`, command),
+      },
       delegation: {
         status: () => request('/delegation/status'),
         list: (project) => request(`/delegation?project_id=${encodeURIComponent(project)}`),

@@ -8,6 +8,7 @@ from auton.constitution.config import ActionRequest, Principal
 from auton.constitution.ports import PolicyControlPort
 from auton.constitution.secrets import Redactor
 from auton.genome.contracts import (
+    ArenaSnapshotCommand,
     Asset,
     AssetRecord,
     Catalog,
@@ -49,6 +50,12 @@ class AssetResolver:
         if stored is None:
             raise error("snapshot_not_found", "No project-owned snapshot")
         result = Snapshot.model_validate(stored.event.payload["snapshot"])
+        if result.purpose == "optimization_arena":
+            if not result.parent_snapshot_id or result.parent_snapshot_id == result.id:
+                raise error("arena_source_invalid", "Arena requires an ordinary parent snapshot")
+            parent = await self.snapshot(principal, project_id, result.parent_snapshot_id)
+            if parent.purpose != "runtime":
+                raise error("arena_source_invalid", "Nested candidate arenas are forbidden")
         _, current = await anyio.to_thread.run_sync(
             lambda: self.repo.read(principal.owner, project_id)
         )
@@ -333,6 +340,11 @@ class GenomeService:
             if asset_id not in candidates.records:
                 raise error("asset_not_found", "No such learning candidate")
             asset = candidates.records[asset_id].asset
+            if asset.source.startswith("evolution-proposal:"):
+                raise error(
+                    "release_control_required",
+                    "Evolution candidates require the independent release control plane",
+                )
             self.policy.publishable(main, asset, self.deps.runtime.now())
             records = dict(main.records)
             records[asset_id] = AssetRecord(asset=asset, status="active", promoted_from=learning)
@@ -440,6 +452,84 @@ class GenomeService:
     async def snapshot(self, principal: Principal, project_id: str, snapshot_id: str) -> Snapshot:
         await self.read(principal, project_id)
         return await self.resolver.snapshot(principal, project_id, snapshot_id)
+
+    async def arena_snapshot(
+        self, principal: Principal, project_id: str, command: ArenaSnapshotCommand
+    ) -> Snapshot:
+        async with self._lock:
+            self.authorize(principal, "asset.propose")
+            if principal.role not in {"user", "evolution"}:
+                raise error(
+                    "arena_role_denied", "Only the user/evolution control plane prepares arenas"
+                )
+            base = await self.snapshot(principal, project_id, command.base_snapshot_id)
+            if base.purpose != "runtime":
+                raise error(
+                    "arena_source_invalid", "Arena derives from an ordinary frozen snapshot"
+                )
+            target = next((asset for asset in base.assets if asset.id == command.asset_id), None)
+            if target is None or target.kind != "skill":
+                raise error(
+                    "arena_target_invalid", "Initial arena can only vary one existing Skill"
+                )
+            if (
+                hashlib.sha256(target.content.encode()).hexdigest()
+                != command.expected_content_sha256
+            ):
+                raise error(
+                    "arena_parent_changed", "Target content does not match the chosen parent"
+                )
+            if command.replacement_content == target.content:
+                raise error("arena_no_change", "Patch must change the selected Skill")
+            if (
+                command.replacement_content
+                and Redactor().text(command.replacement_content) != command.replacement_content
+            ):
+                raise error("credential_in_input", "Do not put credentials into arena content")
+            assets = tuple(
+                asset
+                if asset.id != target.id
+                else asset.model_copy(
+                    update={
+                        "content": command.replacement_content,
+                        "origin": "inferred",
+                        "source": "optimization-arena:" + command.base_snapshot_id,
+                    }
+                )
+                for asset in base.assets
+                if asset.id != target.id or command.mode == "patch"
+            )
+            draft = base.model_copy(
+                update={
+                    "id": "",
+                    "assets": assets,
+                    "purpose": "optimization_arena",
+                    "parent_snapshot_id": base.id,
+                    "arena_asset_id": target.id,
+                    "arena_mode": command.mode,
+                }
+            )
+            result = draft.model_copy(
+                update={"id": hashlib.sha256(draft.model_dump_json().encode()).hexdigest()}
+            )
+            event_id = self.resolver.event_id(principal, project_id, result.id)
+            if await self.deps.events.lookup(event_id) is None:
+                await self.deps.events.append(
+                    [
+                        Event(
+                            event_id=event_id,
+                            kind="genome.arena_prepared",
+                            source="runtime",
+                            timestamp=self.deps.runtime.now(),
+                            scope=EventScope(project_id=project_id),
+                            payload={
+                                "snapshot": result.model_dump(mode="json"),
+                                "permission_scope": "single-owner-development-arena",
+                            },
+                        )
+                    ]
+                )
+            return await self.snapshot(principal, project_id, result.id)
 
     async def diff(
         self, principal: Principal, project_id: str, asset_id: str, revision: str

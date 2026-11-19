@@ -128,6 +128,7 @@ class AgentRun(Contract):
     receipts: tuple[ToolReceipt, ...] = ()
     approvals: dict[str, str] = Field(default_factory=dict)
     context_ids: tuple[str, ...] = ()
+    input_asset_snapshot_id: str | None = None
     judgment_ids: tuple[str, ...] = ()
     judgments: tuple[JudgmentResult, ...] = ()
     input_cutoff_unit: Literal["run-checkpoint-version"] = "run-checkpoint-version"

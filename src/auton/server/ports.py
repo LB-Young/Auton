@@ -14,6 +14,7 @@ from auton.constitution.ports import PolicyControlPort
 from auton.context.ports import ContextEnginePort
 from auton.delegation.ports import DelegationPort
 from auton.demo.ports import ConversationPort
+from auton.evolve.ports import EvolutionPort
 from auton.experience.ports import ExperiencePort
 from auton.genome.ports import GenomePort
 from auton.judgment.ports import JudgmentPort
@@ -57,6 +58,7 @@ class ServerDependencies:
     commands: CommandHandlerPort
     identity: IdentityPort
     events: EventLogPort
+    evolve: EvolutionPort
     delegation: DelegationPort
     assess: AssessPort
     experience: ExperiencePort

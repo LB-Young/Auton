@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Literal
 
-from pydantic import AwareDatetime, Field
+from pydantic import AwareDatetime, Field, model_validator
 
 from auton.model.contracts import Contract
 
@@ -50,7 +50,25 @@ class Revision(Contract):
     excluded: dict[str, str] = Field(default_factory=dict)
 
 
+class ArenaSnapshotCommand(Contract):
+    base_snapshot_id: str = Field(pattern=r"^[a-f0-9]{64}$")
+    asset_id: str = Field(min_length=1, max_length=100)
+    expected_content_sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
+    mode: Literal["patch", "ablation"]
+    replacement_content: str | None = Field(default=None, min_length=1, max_length=32000)
+
+    @model_validator(mode="after")
+    def matching_mode(self) -> "ArenaSnapshotCommand":
+        if (self.mode == "patch") != (self.replacement_content is not None):
+            raise ValueError("Only patch accepts replacement content")
+        return self
+
+
 class Snapshot(Contract):
+    purpose: Literal["runtime", "optimization_arena"] = "runtime"
+    parent_snapshot_id: str | None = None
+    arena_asset_id: str | None = None
+    arena_mode: Literal["patch", "ablation"] | None = None
     id: str
     project_id: str
     revision: str

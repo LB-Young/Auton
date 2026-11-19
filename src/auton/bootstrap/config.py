@@ -11,6 +11,7 @@ from auton.assess.contracts import AssessConfig
 from auton.constitution.config import ConstitutionConfig
 from auton.context.contracts import ContextConfig
 from auton.delegation.contracts import DelegationConfig
+from auton.evolve.contracts import EvolutionConfig
 from auton.experience.contracts import ExperienceConfig
 from auton.genome.contracts import GenomeConfig
 from auton.judgment.config import JudgmentConfig
@@ -21,6 +22,7 @@ from auton.tools.config import ToolConfig
 
 
 class ApplicationConfig(BaseModel):
+    evolve: EvolutionConfig = Field(default_factory=EvolutionConfig)
     delegation: DelegationConfig = Field(default_factory=DelegationConfig)
     assess: AssessConfig = Field(default_factory=AssessConfig)
     model_config = ConfigDict(extra="forbid", frozen=True, hide_input_in_errors=True)

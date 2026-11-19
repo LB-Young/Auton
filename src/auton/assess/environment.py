@@ -108,6 +108,8 @@ async def conditions(
         reasons.append("original_run_budget_missing")
     if not run.executor_spec:
         reasons.append("original_executor_spec_missing")
+    if not (run.input_asset_snapshot_id or run.command.asset_snapshot_id):
+        reasons.append("original_input_configuration_missing")
     if run.goal_revision != 1:
         reasons.append("user_revisions_change_the_experiment")
     signature = {

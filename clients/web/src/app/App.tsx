@@ -39,6 +39,7 @@ import { Judgment } from '../features/judgment/Judgment';
 import { Tools } from '../features/tools/Tools';
 import { Trajectory } from '../features/experience/Trajectory';
 import { Agent } from '../features/agent/Agent';
+import { Evolution } from '../features/evolution/Evolution';
 import { Delegation } from '../features/delegation/Delegation';
 import { Assessment } from '../features/assessment/Assessment';
 import { Context } from '../features/context/Context';
@@ -55,6 +56,12 @@ const workspaces = [
     label: '多 Agent',
     icon: Workflow,
     description: '查看受限委派、依赖和结果集成。',
+  },
+  {
+    id: 'evolve',
+    label: '进化',
+    icon: FlaskConical,
+    description: '诊断技能、评测局部改动并审核候选。',
   },
   { id: 'genome', label: '资产', icon: Layers, description: '管理技能、项目知识与长期记忆。' },
   { id: 'model', label: '模型', icon: Cpu, description: '连接执行模型，查看能力与判断来源。' },
@@ -785,6 +792,8 @@ export function App({ application }: { application: Application }) {
               </div>
             ) : view === 'delegation' ? (
               <Delegation feature={application.delegation} />
+            ) : view === 'evolve' ? (
+              <Evolution feature={application.evolution} />
             ) : view === 'assess' ? (
               <Assessment feature={application.assessment} />
             ) : view === 'settings' ? (

@@ -58,6 +58,20 @@ from auton.demo.ports import (
     SessionEvent,
     StopRun,
 )
+from auton.evolve.contracts import (
+    ArenaCommand,
+    ArenaControl,
+    ArenaView,
+    DiagnoseCommand,
+    Diagnosis,
+    EvolutionStatus,
+    GenerationRecord,
+    PlaybookEntry,
+    Proposal,
+    ProposalCommand,
+    ReflectCommand,
+    SubmitProposal,
+)
 from auton.experience.contracts import RecoveryCommand, Trajectory
 from auton.genome.contracts import Asset, Project, Revision, Snapshot, VersionInfo
 from auton.judgment.contracts import JudgmentInfo, JudgmentRequest, JudgmentResult
@@ -430,6 +444,83 @@ class ServerFactory:
         ) -> AgentRun:
             return await deps.commands.recover(
                 Principal(owner=owner(request), role="user"), project_id, run_id, command
+            )
+
+        @app.get("/api/v1/evolution/status")
+        async def evolution_status(request: Request) -> EvolutionStatus:
+            owner(request)
+            return deps.evolve.status()
+
+        @app.post("/api/v1/evolution/diagnoses")
+        async def evolution_diagnose(request: Request, command: DiagnoseCommand) -> Diagnosis:
+            return await deps.evolve.diagnose(Principal(owner=owner(request), role="user"), command)
+
+        @app.post("/api/v1/evolution/proposals", status_code=201)
+        async def evolution_propose(request: Request, command: ProposalCommand) -> Proposal:
+            return await deps.evolve.propose(Principal(owner=owner(request), role="user"), command)
+
+        @app.post("/api/v1/evolution/reflections", status_code=201)
+        async def evolution_reflect(request: Request, command: ReflectCommand) -> Proposal:
+            return await deps.evolve.reflect(Principal(owner=owner(request), role="user"), command)
+
+        @app.get("/api/v1/evolution/proposals")
+        async def evolution_proposals(request: Request, project_id: str) -> tuple[Proposal, ...]:
+            return await deps.evolve.proposals(
+                Principal(owner=owner(request), role="user"), project_id
+            )
+
+        @app.get("/api/v1/evolution/proposals/{proposal_id}")
+        async def evolution_proposal(request: Request, proposal_id: str) -> Proposal:
+            return await deps.evolve.proposal(
+                Principal(owner=owner(request), role="user"), proposal_id
+            )
+
+        @app.get("/api/v1/evolution/generations")
+        async def evolution_generations(
+            request: Request, project_id: str
+        ) -> tuple[GenerationRecord, ...]:
+            return await deps.evolve.generations(
+                Principal(owner=owner(request), role="user"), project_id
+            )
+
+        @app.get("/api/v1/evolution/playbook")
+        async def evolution_playbook(
+            request: Request, project_id: str
+        ) -> tuple[PlaybookEntry, ...]:
+            return await deps.evolve.playbook(
+                Principal(owner=owner(request), role="user"), project_id
+            )
+
+        @app.post("/api/v1/evolution/arenas", status_code=201)
+        async def evolution_create_arena(request: Request, command: ArenaCommand) -> ArenaView:
+            return await deps.evolve.create_arena(
+                Principal(owner=owner(request), role="user"), command
+            )
+
+        @app.get("/api/v1/evolution/arenas")
+        async def evolution_arenas(request: Request, project_id: str) -> tuple[ArenaView, ...]:
+            return await deps.evolve.arenas(
+                Principal(owner=owner(request), role="user"), project_id
+            )
+
+        @app.get("/api/v1/evolution/arenas/{arena_id}")
+        async def evolution_arena(request: Request, arena_id: str) -> ArenaView:
+            return await deps.evolve.arena(Principal(owner=owner(request), role="user"), arena_id)
+
+        @app.post("/api/v1/evolution/arenas/{arena_id}/commands")
+        async def evolution_control(
+            request: Request, arena_id: str, command: ArenaControl
+        ) -> ArenaView:
+            return await deps.evolve.control_arena(
+                Principal(owner=owner(request), role="user"), arena_id, command
+            )
+
+        @app.post("/api/v1/evolution/proposals/{proposal_id}/submit")
+        async def evolution_submit(
+            request: Request, proposal_id: str, command: SubmitProposal
+        ) -> Proposal:
+            return await deps.evolve.submit(
+                Principal(owner=owner(request), role="user"), proposal_id, command
             )
 
         @app.get("/api/v1/delegation/status")

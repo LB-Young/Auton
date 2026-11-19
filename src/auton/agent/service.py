@@ -725,6 +725,8 @@ class AgentRuntime:
                         status="blocked",
                         phase="idle",
                         context_ids=(*run.context_ids, snapshot.id),
+                        input_asset_snapshot_id=run.input_asset_snapshot_id
+                        or snapshot.asset_snapshot_id,
                         reason="context:" + ",".join(snapshot.reasons),
                     )
                 spec = next(m for m in self.deps.models.catalog() if m.id == run.command.model_id)
@@ -746,6 +748,8 @@ class AgentRuntime:
                     run,
                     phase="model",
                     context_ids=(*run.context_ids, snapshot.id),
+                    input_asset_snapshot_id=run.input_asset_snapshot_id
+                    or snapshot.asset_snapshot_id,
                     model_request_id=f"m-{identity[:40]}-{run.goal_revision}-{run.steps}",
                     steps=run.steps + 1,
                     reason="model_dispatch_intent",

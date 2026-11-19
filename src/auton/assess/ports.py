@@ -1,4 +1,4 @@
-from typing import Protocol
+from typing import Literal, Protocol
 
 from auton.agent.contracts import AgentRun
 from auton.assess.contracts import (
@@ -18,6 +18,7 @@ from auton.assess.contracts import (
     EvaluateCommand,
     ImportCases,
     JudgeObservation,
+    OptimizationTask,
     SeedCommand,
     Signal,
     WindowView,
@@ -69,6 +70,14 @@ class JudgePort(Protocol):
 
 
 class AssessPort(LifecycleHandle, Protocol):
+    async def optimization_task(
+        self,
+        principal: Principal,
+        case_id: str,
+        revision: str,
+        split: Literal["train", "development"],
+    ) -> OptimizationTask: ...
+
     async def windows(self, principal: Principal) -> tuple[WindowView, ...]: ...
     def status(self) -> AssessmentStatus: ...
     async def seed(self, principal: Principal, command: SeedCommand) -> CaseBank: ...

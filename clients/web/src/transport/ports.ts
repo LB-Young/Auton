@@ -30,6 +30,7 @@ import type {
 
 export interface ApiClient {
   assessment: AssessmentApi;
+  evolution: EvolutionApi;
   delegation: DelegationApi;
   runHistory(
     project: string,
@@ -154,4 +155,33 @@ export interface DelegationApi {
     id: string,
     command: import('../shared/contracts').ContrastCommand,
   ): Promise<import('../shared/contracts').SingleMultiContrast>;
+}
+
+export interface EvolutionApi {
+  status(): Promise<import('../shared/contracts').EvolutionStatus>;
+  proposals(project: string): Promise<import('../shared/contracts').Proposal[]>;
+  arenas(project: string): Promise<import('../shared/contracts').ArenaView[]>;
+  generations(project: string): Promise<import('../shared/contracts').GenerationRecord[]>;
+  playbook(project: string): Promise<import('../shared/contracts').PlaybookEntry[]>;
+  diagnose(
+    command: import('../shared/contracts').DiagnoseCommand,
+  ): Promise<import('../shared/contracts').Diagnosis>;
+  propose(
+    command: import('../shared/contracts').ProposalCommand,
+  ): Promise<import('../shared/contracts').Proposal>;
+  reflect(
+    command: import('../shared/contracts').ReflectCommand,
+  ): Promise<import('../shared/contracts').Proposal>;
+  createArena(
+    command: import('../shared/contracts').ArenaCommand,
+  ): Promise<import('../shared/contracts').ArenaView>;
+  arena(id: string): Promise<import('../shared/contracts').ArenaView>;
+  control(
+    id: string,
+    command: import('../shared/contracts').ArenaControl,
+  ): Promise<import('../shared/contracts').ArenaView>;
+  submit(
+    id: string,
+    command: import('../shared/contracts').SubmitProposal,
+  ): Promise<import('../shared/contracts').Proposal>;
 }

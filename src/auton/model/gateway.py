@@ -14,7 +14,7 @@ from auton.kernel.events import Event, EventScope
 from auton.kernel.ports import ApplicationError, RuntimeDependencies
 from auton.kernel.storage import EventLogPort
 from auton.model.config import ModelConfig
-from auton.model.contracts import ModelChunk, ModelInfo, ModelRequest, ModelResult
+from auton.model.contracts import ModelChunk, ModelInfo, ModelRequest, ModelResult, ModelUsage
 from auton.model.ports import ModelError, ProviderPort
 from auton.model.registry import ModelRegistry
 
@@ -96,7 +96,7 @@ class ModelGateway:
         )
 
     async def _replay(self, key: str, request: ModelRequest) -> ModelResult | None:
-        for stage in ("completed", "received", "started", "failed"):
+        for stage in ("completed", "received", "failed", "started"):
             previous = await self.deps.events.lookup(f"model:{key}:{stage}")
             if previous is None:
                 continue
@@ -123,6 +123,10 @@ class ModelGateway:
             raise ModelError(
                 "request_result_unknown",
                 "Previous request was dispatched or failed; do not silently re-execute",
+                dispatched=stage == "started" or payload.get("outcome") != "not_executed",
+                usage=ModelUsage.model_validate(payload["usage"])
+                if payload.get("usage") is not None
+                else None,
             )
         return None
 
@@ -205,7 +209,11 @@ class ModelGateway:
             request.request_id,
         )
         if reservation.status != "reserved":
-            raise ModelError("request_result_unknown", "Previous authorization is not dispatchable")
+            raise ModelError(
+                "request_result_unknown",
+                "Previous authorization is not dispatchable",
+                dispatched=True,
+            )
         begun = False
         result: ModelResult | None = None
         try:
@@ -299,6 +307,7 @@ class ModelGateway:
                             if isinstance(error, ApplicationError)
                             else "request_interrupted",
                             "outcome": "not_executed" if known or not begun else "unknown",
+                            "usage": usage.model_dump(mode="json") if usage is not None else None,
                         },
                     )
             self.registry.health[spec.id] = "unavailable"

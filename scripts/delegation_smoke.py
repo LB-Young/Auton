@@ -33,6 +33,8 @@ def main(reuse: bool) -> None:
         "experience",
         "assess",
         "delegation",
+        "evolve",
+        "evolve",
         "kernel",
     ):
         field = "data_directory" if section == "kernel" else "directory"
@@ -54,6 +56,9 @@ def main(reuse: bool) -> None:
             context.storage_state(path=str(state))
             state.chmod(0o600)
             headers = {"X-Auton-Client": "web", "Origin": base}
+            assessment_revision = request.get(base + "/api/v1/assessment/status").json()[
+                "config_digest"
+            ]
             catalog = request.get(base + "/api/v1/models").json()
             model_id = next(
                 m["id"] for m in catalog if m["provider"] == "deepseek" and "flash" in m["id"]
@@ -222,7 +227,7 @@ def main(reuse: bool) -> None:
             contrast = post(
                 f"/delegation/{parent_id}/contrast",
                 {
-                    "request_id": "native-paired-contrast",
+                    "request_id": "native-paired-contrast-" + assessment_revision[:12],
                     "baseline_run_id": baseline_id,
                     "expected_version": baseline["version"],
                 },

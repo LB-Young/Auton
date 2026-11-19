@@ -1,6 +1,6 @@
 # Auton
 
-个人 Agent 工作台。当前完成 **M01 项目框架、M02 持久事件内核、M03 固定控制策略、M04 执行模型网关、M05 本地判断接入、M06 受控工具、M07 版本资产、M08 上下文引擎、M09 单 Agent 执行闭环、M10 轨迹恢复、M11 服务协议、M12 真实工作台、M13 独立评测工程与 M14 受控多 Agent**：模块工厂、显式依赖组装、FastAPI API、React 对话界面与合成 Demo；M15–M21 尚未实现；M13 尚缺真实人工金标校准，语义可信门禁关闭。
+个人 Agent 工作台。当前完成 **M01 项目框架、M02 持久事件内核、M03 固定控制策略、M04 执行模型网关、M05 本地判断接入、M06 受控工具、M07 版本资产、M08 上下文引擎、M09 单 Agent 执行闭环、M10 轨迹恢复、M11 服务协议、M12 真实工作台、M13 独立评测工程、M14 受控多 Agent 与 M15 资产诊断/隔离进化**：模块工厂、显式依赖组装、FastAPI API、React 对话界面与合成 Demo；M16–M21 尚未实现；M13 尚缺真实人工金标校准，语义可信门禁关闭。
 
 后端和开发/验收辅助工具优先使用 Python。仅浏览器界面及其必要构建配置使用 TypeScript/React；Makefile 是 Python 命令入口。
 
@@ -234,3 +234,9 @@ M10 及更早版本的 Cookie 只有在原浏览器/CLI 私有文件仍保留时
 初期只支持受控文件worker与固定顺序拼接，不开放递归分工或未校准的语义子任务。单、多Agent对照记录实际用量，更多调用不会自动得到“改进”标签。参见[M14验收、API、预算与限制](./docs/milestones/evidence/M14.md)。
 
 `make delegation-smoke`显式运行真实Laya/DeepSeek公开合成任务及单Agent基线（使用API额度）；`.venv/bin/python scripts/delegation_smoke.py --reuse-completed`复用本机已完成结果验证进程恢复，不重复模型调用。
+
+## 资产诊断与隔离进化（M15）
+
+进化工作台 `?view=evolve` 支持证据诊断、单 Skill 小节 diff、一次有界反思、基线/候选/移除 Skill 同预算评测、逐次文件审批、Playbook 和学习候选审核。门禁不足保留 HOLD，候选不自动启用；真实公开工程案例三组均成功，未证明改进收益。
+
+运行 `make evolution-smoke` 可执行真实付费验收；已有结果通过 `.venv/bin/python scripts/evolution_smoke.py --reuse-completed` 只读重用。参见[M15 接口、持久化、边界与验收](./docs/milestones/evidence/M15.md)。

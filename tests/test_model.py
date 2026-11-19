@@ -330,3 +330,40 @@ async def test_missing_credentials_are_reported_before_dispatch(gateway: ModelGa
         await gateway.generate(request())
     assert error.value.code == "credential_missing"
     assert await gateway.deps.events.lookup(f"model:{gateway._key(request())}:started") is None
+
+
+@pytest.mark.parametrize("dispatched,known_usage", [(True, False), (True, True), (False, False)])
+async def test_failure_replay_preserves_dispatch_uncertainty_and_known_usage_without_new_call(
+    gateway: ModelGateway, monkeypatch: pytest.MonkeyPatch, dispatched: bool, known_usage: bool
+) -> None:
+    from collections.abc import AsyncGenerator
+
+    from auton.model.config import ModelSpec
+    from auton.model.contracts import ModelChunk, ModelUsage
+
+    calls = 0
+    usage = (
+        ModelUsage(input_tokens=12, output_tokens=3, estimated_cost_microusd=137)
+        if known_usage
+        else None
+    )
+
+    async def failing(req: ModelRequest, spec: ModelSpec) -> AsyncGenerator[ModelChunk, None]:
+        nonlocal calls
+        calls += 1
+        raise ModelError(
+            "synthetic_provider_failure",
+            "Synthetic response failure",
+            dispatched=dispatched,
+            usage=usage,
+        )
+        yield ModelChunk(kind="delta", content="unreachable")
+
+    monkeypatch.setattr(gateway.provider, "stream", failing)
+    with pytest.raises(ModelError):
+        await gateway.generate(request())
+    with pytest.raises(ModelError) as replayed:
+        await gateway.generate(request())
+    assert calls == 1 and replayed.value.code == "request_result_unknown"
+    assert replayed.value.dispatched is dispatched
+    assert replayed.value.usage == usage

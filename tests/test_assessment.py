@@ -23,6 +23,7 @@ from auton.assess.service import AssessDependencies, Assessment
 from auton.assess.statistics import aggregate, kappa, wilson
 from auton.constitution.config import Principal
 from auton.constitution.secrets import SecretStoreFactory
+from auton.evolve.contracts import EvolutionConfig
 from auton.kernel.config import KernelConfig
 from auton.kernel.factory import EventLogFactory
 from auton.kernel.ports import ApplicationError
@@ -862,6 +863,7 @@ async def test_http_protected_gold_and_judge_prompts_only_reach_private_journal(
         experience=ExperienceConfig(directory=tmp_path / "experience"),
         models=ModelConfig(backend="mock", fixture_scenario="agent_acceptance"),
         judgment=JudgmentConfig(backend="mock"),
+        evolve=EvolutionConfig(directory=tmp_path / "evolve"),
         delegation=DelegationConfig(directory=tmp_path / "delegation"),
         assess=AssessConfig(directory=tmp_path / "assess", judge_model="fixture-model"),
         allowed_origins=("http://testserver",),
@@ -949,3 +951,136 @@ async def test_http_protected_gold_and_judge_prompts_only_reach_private_journal(
             await events.close()
         for path in directory.glob("*.sqlite3"):
             assert stat.S_IMODE(path.stat().st_mode) == 0o600
+
+
+async def test_changed_asset_configuration_cannot_reuse_one_blind_candidate(
+    assessment: Assessment, agent: AgentRuntime, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from typing import cast
+
+    from auton.assess.service import candidate_revision
+    from auton.genome.contracts import Asset
+    from auton.genome.ports import GenomePort
+
+    bank = await assessment.bank(USER)
+    goal = "Write hello followed by a newline to notes.md. Fixed blind input."
+    bank = await assessment.import_cases(
+        USER,
+        ImportCases(
+            request_id="asset-scope-case",
+            expected_revision=bank.revision,
+            cases=(
+                EvalCase(
+                    id="fixed",
+                    family="fixed-family",
+                    origin_group="fixed-origin",
+                    split="test",
+                    prompt=goal,
+                    kind="file",
+                    target_path="notes.md",
+                    expected_sha256=hashlib.sha256(b"hello\n").hexdigest(),
+                    source="test_fixture",
+                ),
+            ),
+        ),
+    )
+    first = await file_run(agent, monkeypatch, "configuration-one", goal)
+    assert first.input_asset_snapshot_id
+    assets = cast(GenomePort, agent.deps.assets)
+    view = await assets.view(USER, "project")
+    proposed = await assets.propose(
+        USER,
+        "project",
+        Asset(
+            id="changed-input",
+            name="Changed input",
+            kind="document",
+            content="A new input configuration for the same model.",
+            origin="user_explicit",
+            source="assessment fixture",
+        ),
+        view.candidates_revision,
+    )
+    assert proposed.revision and proposed.candidates_revision
+    await assets.promote(
+        USER, "project", "changed-input", proposed.revision, proposed.candidates_revision
+    )
+    second = await file_run(agent, monkeypatch, "configuration-two", goal)
+    assert first.input_asset_snapshot_id != second.input_asset_snapshot_id
+    assert candidate_revision(first) != candidate_revision(second)
+    window = await assessment.open_window(
+        USER,
+        BlindWindowCommand(
+            request_id="configuration-window",
+            bank_revision=bank.revision,
+            split="test",
+            purpose="release",
+            candidate_revision=candidate_revision(first),
+        ),
+    )
+    with pytest.raises(ApplicationError) as mismatch:
+        await assessment.evaluate(
+            USER,
+            EvaluateCommand(
+                request_id="wrong-input-candidate",
+                project_id="project",
+                run_id=second.id,
+                expected_version=second.version,
+                bank_revision=bank.revision,
+                case_id="fixed",
+                window_id=window.id,
+            ),
+        )
+    assert mismatch.value.code == "assessment_candidate_changed"
+    assert (await assessment.windows(USER))[0].used == 0
+
+
+async def test_optimizer_task_capability_cannot_export_development_to_generation_or_meta(
+    assessment: Assessment,
+) -> None:
+    from typing import cast
+
+    from auton.assess.contracts import Split
+
+    bank = await assessment.bank(USER)
+    cases = []
+    for split, text in (
+        ("train", "Training example"),
+        ("development", "Development example"),
+        ("meta", "Protected judge gold"),
+    ):
+        cases.append(
+            EvalCase(
+                id=split,
+                family=split,
+                origin_group=split,
+                split=cast(Split, split),
+                prompt=text,
+                kind="file",
+                target_path="notes.md",
+                expected_sha256=hashlib.sha256(b"hello\n").hexdigest(),
+                source="test_fixture",
+                human_answer="PRIVATE_META_ANSWER" if split == "meta" else None,
+                human_verdict="pass" if split == "meta" else "unknown",
+            )
+        )
+    bank = await assessment.import_cases(
+        USER,
+        ImportCases(
+            request_id="optimizer-capabilities", expected_revision=bank.revision, cases=tuple(cases)
+        ),
+    )
+    generation = USER.model_copy(update={"role": "evolution"})
+    train = await assessment.optimization_task(generation, "train", bank.revision, "train")
+    assert train.split == "train" and "human_answer" not in train.model_dump_json()
+    assert (
+        await assessment.optimization_task(USER, "development", bank.revision, "development")
+    ).split == "development"
+    for principal, identity, purpose in (
+        (generation, "development", "development"),
+        (generation, "meta", "train"),
+        (USER, "meta", "development"),
+    ):
+        with pytest.raises(ApplicationError) as denied:
+            await assessment.optimization_task(principal, identity, bank.revision, purpose)  # type: ignore[arg-type]
+        assert denied.value.status == 403

@@ -19,6 +19,8 @@ from auton.delegation.service import DelegationDependencies
 from auton.demo.config import DemoConfig
 from auton.demo.factory import DemoConversationFactory
 from auton.demo.ports import ConversationPort
+from auton.evolve.dependencies import EvolutionDependencies
+from auton.evolve.factory import EvolutionFactory
 from auton.experience.factory import ExperienceFactory
 from auton.experience.service import ExperienceDependencies
 from auton.genome.factory import GenomeFactory
@@ -126,6 +128,25 @@ class ApplicationFactory:
             ),
             kernel.events,
         )
+        evolve = EvolutionFactory().create(
+            config.evolve,
+            EvolutionDependencies(
+                genome,
+                genome,
+                genome,
+                assess,
+                models,
+                agent,
+                tools,
+                context,
+                deps,
+                RunLimits.model_validate(
+                    config.agent.model_dump(include=set(RunLimits.model_fields))
+                ),
+                config.models.backend == "mock",
+            ),
+            kernel.events,
+        )
         identity = IdentityFactory().create(config.server, deps)
         commands = CommandHandlerFactory().create(agent, experience)
         uploads = UploadFactory().create(config.server, genome, deps)
@@ -155,6 +176,7 @@ class ApplicationFactory:
                 judge_models,
                 assess,
                 delegation,
+                evolve,
                 identity,
                 commands,
                 uploads,
@@ -175,6 +197,7 @@ class ApplicationFactory:
                 judge_models,
                 assess,
                 delegation,
+                evolve,
                 identity,
                 commands,
                 uploads,
@@ -204,6 +227,7 @@ class ApplicationFactory:
                 experience=experience,
                 assess=assess,
                 delegation=delegation,
+                evolve=evolve,
                 identity=identity,
                 commands=commands,
                 feedback=FeedbackFactory().create(agent, kernel.events, deps),

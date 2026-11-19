@@ -24,7 +24,7 @@ class AssessConfig(Contract):
     max_active_jobs: int = Field(default=2, ge=1, le=4)
     max_window_uses: int = Field(default=1, ge=1, le=3)
     max_calibration_calls: int = Field(default=128, ge=60, le=2048)
-    checker_revision: Literal["deterministic-checks-v1"] = "deterministic-checks-v1"
+    checker_revision: Literal["deterministic-checks-v2"] = "deterministic-checks-v2"
     statistics_revision: Literal["family-wilson-kappa-v1"] = "family-wilson-kappa-v1"
 
     @property
@@ -181,6 +181,7 @@ class Metrics(Contract):
 
 
 class EvalReport(Contract):
+    current_evidence_valid: bool = True
     id: str
     request_id: str
     project_id: str
@@ -362,3 +363,18 @@ class WindowView(Contract):
     window: BlindWindow
     used: int
     current: bool
+
+
+class OptimizationTask(Contract):
+    """Executable train/dev input, with no meta human answer or calibration label."""
+
+    case_id: str
+    family: str
+    origin_group: str
+    split: Literal["train", "development"]
+    prompt: str
+    path: str
+    sha256: str
+    data_domain: Literal["public", "local-only"]
+    source: Literal["human_seed", "benchmark", "episode", "test_fixture"]
+    critical: bool

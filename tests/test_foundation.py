@@ -13,6 +13,7 @@ from auton.delegation.contracts import DelegationConfig
 from auton.demo.config import DemoConfig
 from auton.demo.factory import DemoConversationFactory
 from auton.demo.ports import ConversationPort
+from auton.evolve.contracts import EvolutionConfig
 from auton.judgment.config import JudgmentConfig
 from auton.kernel.config import KernelConfig
 from auton.kernel.modules import ModuleDescriptor, resolve_modules
@@ -27,6 +28,7 @@ def test_factory_swap_has_identical_http_and_event_contract(
 ) -> None:
     app = ApplicationFactory().create(
         ApplicationConfig(
+            evolve=EvolutionConfig(directory=tmp_path / "evolve"),
             delegation=DelegationConfig(directory=tmp_path / "delegation"),
             assess=AssessConfig(directory=tmp_path / "assess"),
             kernel=KernelConfig(backend="memory"),
@@ -95,6 +97,7 @@ def test_invalid_configuration_is_rejected(config: dict[str, object]) -> None:
 def test_real_profile_never_uses_demo(deps: RuntimeDependencies, tmp_path: Path) -> None:
     app = ApplicationFactory().create(
         ApplicationConfig(
+            evolve=EvolutionConfig(directory=tmp_path / "evolve"),
             delegation=DelegationConfig(directory=tmp_path / "delegation"),
             assess=AssessConfig(directory=tmp_path / "assess"),
             server=ServerSettings(directory=tmp_path / "server"),
