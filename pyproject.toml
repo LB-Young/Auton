@@ -260,7 +260,7 @@ forbidden_modules = ["auton.datasets"]
 name = "Training only consumes qualified data ports"
 type = "forbidden"
 source_modules = ["auton.training"]
-forbidden_modules = ["auton.bootstrap", "auton.server", "auton.model.gateway", "auton.model.provider", "auton.agent.service", "auton.datasets.service", "auton.datasets.store", "auton.assess.service", "auton.tools", "auton.decision_review.service", "auton.evolve.service"]
+forbidden_modules = ["auton.bootstrap", "auton.server", "auton.model.gateway", "auton.model.provider", "auton.agent.service", "auton.datasets.service", "auton.datasets.store", "auton.assess.service", "auton.tools.ports", "auton.tools.service", "auton.tools.factory", "auton.tools.adapters", "auton.tools.ledger", "auton.tools.sandbox", "auton.tools.process_worker", "auton.tools.mcp_server", "auton.decision_review.service", "auton.evolve.service"]
 
 [[tool.importlinter.contracts]]
 name = "Executors cannot train or register themselves"

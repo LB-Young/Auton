@@ -76,6 +76,7 @@ class ExecutorTraining:
     def status(self) -> TrainingStatus:
         return TrainingStatus(
             backend=self.config.backend,
+            workload=self.config.workload,
             configured=self.config.backend != "disabled",
             model_ids=tuple(b.id for b in self.config.base_models),
         )
@@ -99,7 +100,15 @@ class ExecutorTraining:
             blockers.append("engineering_probe_max_three_steps")
         base_digest = None
         try:
-            base_digest = await self.data.base(self.base(command.base_model_id))
+            spec = self.base(command.base_model_id)
+            expected = "encoder_choice" if self.config.workload == "decision" else "causal_lm"
+            if spec.architecture != expected:
+                raise ApplicationError(
+                    409,
+                    "training_architecture_mismatch",
+                    "Base architecture must match supervision kind",
+                )
+            base_digest = await self.data.base(spec)
         except ApplicationError as error:
             blockers.append(error.code)
         manifests: dict[str, str] = {}
@@ -269,6 +278,7 @@ class ExecutorTraining:
             )
         manifest: dict[str, Any] = {
             "protocol": "auton-training-worker-v1",
+            "workload": self.config.workload,
             "plan_digest": plan.manifest_digest,
             "command": plan.command.model_dump(mode="json"),
             "device": self.config.device,
@@ -522,6 +532,14 @@ class ExecutorTraining:
             raise ApplicationError(
                 409, "training_source_invalid", "Sources changed before candidate registration"
             )
+        auxiliary = {"result.json": file_digest(path)}
+        prediction_path = path.parent / "predictions-validation.json"
+        if prediction_path.exists():
+            if prediction_path.is_symlink() or prediction_path.stat().st_size > 1000000:
+                raise ApplicationError(
+                    409, "training_invalid_predictions", "Invalid prediction evidence"
+                )
+            auxiliary[prediction_path.name] = file_digest(prediction_path)
         bundle = TrainingBundle(
             id=key(job.id, "bundle"),
             project_id=job.project_id,
@@ -530,7 +548,9 @@ class ExecutorTraining:
             files=job.checkpoint.files,
             lineage_digest=job.plan_digest,
             metrics=result["metrics"],
+            auxiliary_files=auxiliary,
             source="test" if self.deps.test_source else "runtime",
+            kind=self.config.workload,
             release_blockers=(
                 "independent_deployment_evaluation_required",
                 "protected_release_window_required",

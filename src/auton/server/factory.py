@@ -121,6 +121,11 @@ from auton.training.contracts import (
     TrainingPlanCommand,
     TrainingStatus,
 )
+from auton.training.decision_contracts import (
+    DecisionEvaluation,
+    DecisionEvaluationCommand,
+    ShadowEvaluation,
+)
 
 
 class LegacyIdentityCommand(BaseModel):
@@ -515,6 +520,89 @@ class ServerFactory:
         async def training_bundles(request: Request, project_id: str) -> tuple[TrainingBundle, ...]:
             return await deps.training.bundles(
                 Principal(owner=owner(request), role="user"), project_id
+            )
+
+        @app.get("/api/v1/decision-training/status")
+        async def decision_training_status(request: Request) -> TrainingStatus:
+            owner(request)
+            return deps.decision_training.status()
+
+        @app.get("/api/v1/decision-training/plans")
+        async def decision_training_plans(
+            request: Request, project_id: str
+        ) -> tuple[TrainingPlan, ...]:
+            return await deps.decision_training.plans(
+                Principal(owner=owner(request), role="user"), project_id
+            )
+
+        @app.post("/api/v1/decision-training/plans", status_code=201)
+        async def decision_training_plan(
+            request: Request, command: TrainingPlanCommand
+        ) -> TrainingPlan:
+            return await deps.decision_training.plan(
+                Principal(owner=owner(request), role="user"), command
+            )
+
+        @app.post("/api/v1/decision-training/jobs", status_code=201)
+        async def decision_training_create(
+            request: Request, command: TrainingJobCommand
+        ) -> TrainingJob:
+            return await deps.decision_training.create(
+                Principal(owner=owner(request), role="user"), command
+            )
+
+        @app.get("/api/v1/decision-training/jobs")
+        async def decision_training_jobs(
+            request: Request, project_id: str
+        ) -> tuple[TrainingJob, ...]:
+            return await deps.decision_training.jobs(
+                Principal(owner=owner(request), role="user"), project_id
+            )
+
+        @app.get("/api/v1/decision-training/jobs/{job_id}")
+        async def decision_training_job(request: Request, job_id: str) -> TrainingJob:
+            return await deps.decision_training.get(
+                Principal(owner=owner(request), role="user"), job_id
+            )
+
+        @app.post("/api/v1/decision-training/jobs/{job_id}/commands")
+        async def decision_training_control(
+            request: Request, job_id: str, command: TrainingControl
+        ) -> TrainingJob:
+            return await deps.decision_training.control(
+                Principal(owner=owner(request), role="user"), job_id, command
+            )
+
+        @app.get("/api/v1/decision-training/bundles")
+        async def decision_training_bundles(
+            request: Request, project_id: str
+        ) -> tuple[TrainingBundle, ...]:
+            return await deps.decision_training.bundles(
+                Principal(owner=owner(request), role="user"), project_id
+            )
+
+        @app.post("/api/v1/decision-training/evaluations", status_code=201)
+        async def decision_training_evaluate(
+            request: Request, command: DecisionEvaluationCommand
+        ) -> DecisionEvaluation:
+            return await deps.decision_training.evaluate(
+                Principal(owner=owner(request), role="user"), command
+            )
+
+        @app.get("/api/v1/decision-training/evaluations")
+        async def decision_training_evaluations(
+            request: Request, project_id: str
+        ) -> tuple[DecisionEvaluation, ...]:
+            return await deps.decision_training.evaluations(
+                Principal(owner=owner(request), role="user"), project_id
+            )
+
+        @app.get("/api/v1/decision-training/bundles/{bundle_id}/shadow-replay")
+        async def decision_training_shadow(
+            request: Request, project_id: str, bundle_id: str
+        ) -> ShadowEvaluation:
+            return await deps.decision_training.shadow_replay(
+                Principal(owner=owner(request), role="user"), project_id, bundle_id
             )
 
         @app.get("/api/v1/datasets/status")

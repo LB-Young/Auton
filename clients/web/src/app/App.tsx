@@ -52,6 +52,12 @@ import { Markdown } from '../shared/Markdown';
 
 const workspaces = [
   {
+    id: 'decision_training',
+    label: '决策训练',
+    icon: GraduationCap,
+    description: '训练决策学生并检查四层证据。',
+  },
+  {
     id: 'training',
     label: '执行训练',
     icon: GraduationCap,
@@ -809,6 +815,8 @@ export function App({ application }: { application: Application }) {
               <Delegation feature={application.delegation} />
             ) : view === 'decision_review' ? (
               <DecisionReview feature={application.decisionReview} />
+            ) : view === 'decision_training' ? (
+              <Training feature={application.decisionTraining} />
             ) : view === 'training' ? (
               <Training feature={application.training} />
             ) : view === 'datasets' ? (

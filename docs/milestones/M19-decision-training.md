@@ -1,6 +1,6 @@
 # M19：本地类 Jev 训练与四层评估
 
-> 状态：计划中。当前仅建立开发计划，未实现本里程碑。
+> 状态：通用决策训练、描述性评估和证据门禁已实现；真实训练、完整隔离 Agent 与实时影子验收待目标环境完成。见 [M19 证据与限制](./evidence/M19.md)。
 
 ## 目标与前置依赖
 
@@ -38,3 +38,9 @@ DecisionTrainingFactory、DecisionBackendFactory、ShadowEvaluatorFactory。对�
 实际上线见 M20；本里程碑无 Jev/本地动态路由或故障接管。
 
 交付实现、相关检查结果、接口/配置/迁移说明和页面演示；由验收证据更新 [总表](./README.md)，不以 Mock 通过替代真实模块完成。
+
+## 本次流程范围
+
+遵循用户最新要求，不根据开发电脑选硬件、不在此执行真实训练。首期参考 backend 是独立 HF encoder-choice student，不冒充原生 Laya head；encoder 与 LLM JSON 读出有分离的数据适配，LLM 实际训练 backend 仍需目标模型模板验证。
+
+已交付 DecisionTrainingFactory、DecisionBackendFactory、ShadowEvaluatorFactory、受限作业、候选、描述性指标、四层缺失项报告、历史留出预测回放与前端。实际 champion/独立金标、完整隔离 Agent 执行、实时影子及部署效果继续保持未验；当前报告只出 HOLD，不引入在线 student 路由。

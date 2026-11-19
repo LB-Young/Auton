@@ -46,6 +46,8 @@ from auton.server.ports import ServerDependencies
 from auton.server.uploads import UploadFactory
 from auton.tools.factory import ToolHostFactory
 from auton.tools.service import ToolDependencies
+from auton.training.decision_evaluation import DecisionEvaluationDependencies
+from auton.training.decision_factory import DecisionTrainingFactory
 from auton.training.dependencies import TrainingDependencies
 from auton.training.factory import ExecutorTrainingFactory
 
@@ -199,6 +201,13 @@ class ApplicationFactory:
                 datasets, genome, kernel.events, deps, config.models.backend == "mock"
             ),
         )
+        decision_training = DecisionTrainingFactory().create(
+            config.decision_training,
+            TrainingDependencies(
+                datasets, genome, kernel.events, deps, config.models.backend == "mock"
+            ),
+            DecisionEvaluationDependencies(agent, assess),
+        )
         identity = IdentityFactory().create(config.server, deps)
         commands = CommandHandlerFactory().create(agent, experience)
         uploads = UploadFactory().create(config.server, genome, deps)
@@ -234,6 +243,7 @@ class ApplicationFactory:
                 decision_review,
                 datasets,
                 training,
+                decision_training,
                 identity,
                 commands,
                 uploads,
@@ -260,6 +270,7 @@ class ApplicationFactory:
                 decision_review,
                 datasets,
                 training,
+                decision_training,
                 identity,
                 commands,
                 uploads,
@@ -293,6 +304,7 @@ class ApplicationFactory:
                 decision_review=decision_review,
                 datasets=datasets,
                 training=training,
+                decision_training=decision_training,
                 identity=identity,
                 commands=commands,
                 feedback=FeedbackFactory().create(agent, kernel.events, deps),

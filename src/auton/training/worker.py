@@ -228,10 +228,15 @@ def run(manifest_path: Path) -> None:
                 [state[f"cuda_rng_{i}"] for i in range(torch.cuda.device_count())]
             )
         for i, parameter in enumerate(params):
-            for k in ("step", "exp_avg", "exp_avg_sq"):
-                optimizer.state[parameter][k] = state[f"optimizer_{i}_{k}"].to(
-                    device if k != "step" else "cpu"
-                )
+            keys = ("step", "exp_avg", "exp_avg_sq")
+            present = [f"optimizer_{i}_{k}" in state for k in keys]
+            if any(present) and not all(present):
+                raise ValueError("optimizer_checkpoint_incomplete")
+            if all(present):
+                for k in keys:
+                    optimizer.state[parameter][k] = state[f"optimizer_{i}_{k}"].to(
+                        device if k != "step" else "cpu"
+                    )
         completed = checkpoint["step"]
 
     def loss(record: dict[str, Any]) -> Any:

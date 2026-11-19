@@ -7,7 +7,7 @@ from auton.constitution.config import Principal
 from auton.datasets.contracts import DatasetArtifact
 from auton.kernel.documents import digest
 from auton.kernel.ports import ApplicationError
-from auton.training.contracts import BaseModelSpec, TrainingPlanCommand
+from auton.training.contracts import ENCODER_CHOICE_TEMPLATE, BaseModelSpec, TrainingPlanCommand
 from auton.training.dependencies import TrainingDependencies
 
 
@@ -53,7 +53,11 @@ def verify_base(spec: BaseModelSpec) -> str:
     import json
 
     tokenizer = json.loads((root / "tokenizer_config.json").read_text())
-    template = tokenizer.get("chat_template")
+    template = (
+        ENCODER_CHOICE_TEMPLATE
+        if spec.architecture == "encoder_choice"
+        else tokenizer.get("chat_template")
+    )
     if (
         not isinstance(template, str)
         or hashlib.sha256(template.encode()).hexdigest() != spec.template_sha256
@@ -65,8 +69,9 @@ def verify_base(spec: BaseModelSpec) -> str:
 
 
 class TrainingDataReader:
-    def __init__(self, deps: TrainingDependencies) -> None:
+    def __init__(self, deps: TrainingDependencies, kind: str = "executor") -> None:
         self.deps = deps
+        self.kind = kind
         self.base_cache: dict[str, tuple[tuple[tuple[str, int, int, int, int], ...], str]] = {}
 
     async def read(
@@ -86,10 +91,12 @@ class TrainingDataReader:
             snapshot = await self.deps.datasets.get(principal, artifact.snapshot_id)
             if (
                 snapshot.command.project_id != command.project_id
-                or snapshot.command.kind != "executor"
+                or snapshot.command.kind != self.kind
             ):
                 raise ApplicationError(
-                    409, "training_dataset_scope", "Executor training needs owned executor data"
+                    409,
+                    "training_dataset_scope",
+                    "Training needs owned data with exactly matching supervision kind",
                 )
             selected = [e for e in snapshot.examples if e.split == artifact.command.split]
             for example in selected:

@@ -13,6 +13,11 @@ from auton.training.contracts import (
     TrainingPlanCommand,
     TrainingStatus,
 )
+from auton.training.decision_contracts import (
+    DecisionEvaluation,
+    DecisionEvaluationCommand,
+    ShadowEvaluation,
+)
 
 
 class WorkerState(Contract):
@@ -39,3 +44,16 @@ class ExecutorTrainingPort(LifecycleHandle, Protocol):
         self, principal: Principal, identity: str, command: TrainingControl
     ) -> TrainingJob: ...
     async def bundles(self, principal: Principal, project: str) -> tuple[TrainingBundle, ...]: ...
+
+
+class DecisionTrainingPort(ExecutorTrainingPort, Protocol):
+    async def evaluate(
+        self, principal: Principal, command: "DecisionEvaluationCommand"
+    ) -> "DecisionEvaluation": ...
+    async def evaluations(
+        self, principal: Principal, project: str
+    ) -> tuple["DecisionEvaluation", ...]: ...
+
+    async def shadow_replay(
+        self, principal: Principal, project: str, bundle_id: str
+    ) -> ShadowEvaluation: ...

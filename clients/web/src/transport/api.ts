@@ -65,6 +65,26 @@ export class ApiClientFactory {
         bundles: (project) =>
           request(`/training/bundles?project_id=${encodeURIComponent(project)}`),
       },
+      decisionTraining: {
+        status: () => request('/decision-training/status'),
+        plans: (project) =>
+          request(`/decision-training/plans?project_id=${encodeURIComponent(project)}`),
+        plan: (command) => request('/decision-training/plans', command),
+        jobs: (project) =>
+          request(`/decision-training/jobs?project_id=${encodeURIComponent(project)}`),
+        create: (command) => request('/decision-training/jobs', command),
+        control: (id, command) =>
+          request(`/decision-training/jobs/${encodeURIComponent(id)}/commands`, command),
+        bundles: (project) =>
+          request(`/decision-training/bundles?project_id=${encodeURIComponent(project)}`),
+        evaluate: (command) => request('/decision-training/evaluations', command),
+        evaluations: (project) =>
+          request(`/decision-training/evaluations?project_id=${encodeURIComponent(project)}`),
+        shadowReplay: (project, id) =>
+          request(
+            `/decision-training/bundles/${encodeURIComponent(id)}/shadow-replay?project_id=${encodeURIComponent(project)}`,
+          ),
+      },
       datasets: {
         status: () => request('/datasets/status'),
         grants: (project) => request(`/datasets/grants?project_id=${encodeURIComponent(project)}`),

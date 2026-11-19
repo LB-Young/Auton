@@ -155,3 +155,7 @@ export type TrainingJob = components['schemas']['TrainingJob'];
 export type TrainingJobCommand = components['schemas']['TrainingJobCommand'];
 export type TrainingControl = components['schemas']['TrainingControl'];
 export type TrainingBundle = components['schemas']['TrainingBundle'];
+
+export type DecisionEvaluation = components['schemas']['DecisionEvaluation'];
+export type DecisionEvaluationCommand = components['schemas']['DecisionEvaluationCommand-Input'];
+export type ShadowEvaluation = components['schemas']['ShadowEvaluation'];

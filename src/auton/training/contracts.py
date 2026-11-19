@@ -9,10 +9,15 @@ from auton.datasets.contracts import Digest, Id
 from auton.kernel.documents import digest
 from auton.model.contracts import Contract
 
+ENCODER_CHOICE_TEMPLATE = (
+    "auton-encoder-choice-v1: state\nquestion.instructions\noption.description"
+)
+
 
 class BaseModelSpec(Contract):
     id: Id
     directory: Path
+    architecture: Literal["causal_lm", "encoder_choice"] = "causal_lm"
     repository: str = Field(min_length=1, max_length=200)
     revision: str = Field(pattern=r"^[a-f0-9]{40}$")
     license_reference: str = Field(min_length=10, max_length=1000)
@@ -22,6 +27,7 @@ class BaseModelSpec(Contract):
 
 
 class TrainingConfig(Contract):
+    workload: Literal["executor", "decision"] = "executor"
     directory: Path = Path(".auton_local/training")
     backend: Literal["disabled", "docker"] = "disabled"
     image: str = Field(default="", max_length=300)
@@ -51,7 +57,16 @@ class TrainingConfig(Contract):
 
     @property
     def digest(self) -> str:
-        return digest(self.model_dump(mode="json", exclude={"directory"}))
+        source = {
+            p.name: __import__("hashlib").sha256(p.read_bytes()).hexdigest()
+            for p in sorted(Path(__file__).parent.glob("*.py"))
+        }
+        return digest(
+            {
+                "config": self.model_dump(mode="json", exclude={"directory"}),
+                "implementation": source,
+            }
+        )
 
 
 class TrainingPlanCommand(Contract):
@@ -67,6 +82,7 @@ class TrainingPlanCommand(Contract):
     rank: int = Field(default=8, ge=1, le=128)
     seed: int = Field(default=42, ge=0, le=2147483647)
     max_sequence_length: int = Field(default=2048, ge=64, le=32768)
+    abstention_threshold: float = Field(default=0.7, ge=0.5, le=0.99)
     engineering_probe: bool = False
 
 
@@ -131,7 +147,9 @@ class TrainingBundle(Contract):
     plan_id: Digest
     files: dict[str, Digest]
     lineage_digest: Digest
+    auxiliary_files: dict[str, Digest] = Field(default_factory=dict)
     metrics: dict[str, JsonValue]
+    kind: Literal["executor", "decision"] = "executor"
     source: Literal["runtime", "test"]
     quality_release_eligible: Literal[False] = False
     release_blockers: tuple[str, ...] = ("independent_deployment_evaluation_required",)
@@ -140,8 +158,20 @@ class TrainingBundle(Contract):
 
 
 class TrainingStatus(Contract):
+    workload: Literal["executor", "decision"] = "executor"
     backend: str
     configured: bool
     model_ids: tuple[str, ...]
     lifecycle: Literal["manual_start_candidate_only"] = "manual_start_candidate_only"
     worker_protocol: Literal["auton-training-worker-v1"] = "auton-training-worker-v1"
+
+
+class DecisionTrainingConfig(TrainingConfig):
+    directory: Path = Path(".auton_local/decision-training")
+    workload: Literal["executor", "decision"] = "decision"
+
+    @model_validator(mode="after")
+    def decision_only(self) -> "DecisionTrainingConfig":
+        if self.workload != "decision":
+            raise ValueError("Decision training cannot use executor supervision")
+        return self

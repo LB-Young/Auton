@@ -93,6 +93,11 @@ class DockerTrainingBackend:
             raise ApplicationError(
                 409, "training_invalid_mount", "Unsupported mount path characters"
             )
+        worker = (
+            Path(__file__)
+            .with_name("decision_worker.py" if self.config.workload == "decision" else "worker.py")
+            .resolve()
+        )
         arguments = [
             "create",
             "--pull",
@@ -129,7 +134,7 @@ class DockerTrainingBackend:
             "--mount",
             f"type=bind,src={base},dst=/base,readonly",
             "--mount",
-            f"type=bind,src={Path(__file__).with_name('worker.py').resolve()},dst=/worker.py,readonly",
+            f"type=bind,src={worker},dst=/worker.py,readonly",
             "--env",
             "HF_HUB_OFFLINE=1",
             "--env",
@@ -139,6 +144,17 @@ class DockerTrainingBackend:
             "--env",
             "HOME=/tmp",
         ]
+        if self.config.workload == "decision":
+            for filename, destination in (
+                ("worker.py", "/common.py"),
+                ("decision_metrics.py", "/decision_metrics.py"),
+            ):
+                arguments.extend(
+                    (
+                        "--mount",
+                        f"type=bind,src={Path(__file__).with_name(filename).resolve()},dst={destination},readonly",
+                    )
+                )
         if self.config.device == "cuda":
             arguments.extend(("--gpus", "all"))
         arguments.extend(

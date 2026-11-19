@@ -24,7 +24,7 @@ from auton.model.contracts import ModelChunk, ModelRequest
 from auton.server.commands import CommandHandler
 from auton.server.identity import IdentityFactory, ServerSettings
 from auton.server.run_events import EventStreamFactory, RunEventStream
-from auton.training.contracts import TrainingConfig
+from auton.training.contracts import DecisionTrainingConfig, TrainingConfig
 
 
 async def test_identity_is_persistent_hashed_and_expires_without_silent_replacement(
@@ -342,6 +342,7 @@ def test_persistent_http_identity_and_upload_survive_application_restart(
     config = ApplicationConfig(
         datasets=DatasetConfig(directory=tmp_path / "datasets"),
         training=TrainingConfig(directory=tmp_path / "training"),
+        decision_training=DecisionTrainingConfig(directory=tmp_path / "decision-training"),
         decision_review=DecisionReviewConfig(directory=tmp_path / "decision-review"),
         evolve=EvolutionConfig(directory=tmp_path / "evolve"),
         delegation=DelegationConfig(directory=tmp_path / "delegation"),

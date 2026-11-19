@@ -6,6 +6,7 @@ import type {
   TrainingJob,
   TrainingBundle,
   TrainingStatus,
+  DecisionEvaluation,
 } from '../../shared/contracts';
 import type { TrainingFeature } from './factory';
 const pretty = (value: unknown) => JSON.stringify(value, null, 2);
@@ -16,6 +17,9 @@ export function Training({ feature }: { feature: TrainingFeature }) {
   const [plans, setPlans] = useState<TrainingPlan[]>([]);
   const [jobs, setJobs] = useState<TrainingJob[]>([]);
   const [bundles, setBundles] = useState<TrainingBundle[]>([]);
+  const [evaluations, setEvaluations] = useState<DecisionEvaluation[]>([]);
+  const [result, setResult] = useState('');
+  const decision = !!feature.decisionApi;
   const [json, setJson] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
@@ -45,6 +49,8 @@ export function Training({ feature }: { feature: TrainingFeature }) {
   }, [feature]);
   useEffect(() => {
     const generation = ++epoch.current;
+    setEvaluations([]);
+    setResult('');
     setPlans([]);
     setJobs([]);
     setBundles([]);
@@ -63,6 +69,10 @@ export function Training({ feature }: { feature: TrainingFeature }) {
           setPlans(p);
           setJobs(j);
           setBundles(b);
+          if (feature.decisionApi) {
+            const reports = await feature.decisionApi.evaluations(project);
+            if (epoch.current === generation) setEvaluations(reports);
+          }
         }
       } catch (e) {
         if (epoch.current === generation) setError((e as Error).message);
@@ -82,7 +92,8 @@ export function Training({ feature }: { feature: TrainingFeature }) {
     setBusy(true);
     setError('');
     try {
-      await work();
+      const value = await work();
+      if (generation === epoch.current) setResult(pretty(value));
       if (generation !== epoch.current) return;
       const [p, j, b] = await Promise.all([
         feature.api.plans(project),
@@ -103,10 +114,17 @@ export function Training({ feature }: { feature: TrainingFeature }) {
   return (
     <section className="module-page datasets-page">
       <p className="eyebrow">获准数据 → 基线 → 训练 → 候选复测</p>
-      <h1>执行模型训练</h1>
+      <h1>{decision ? '决策模型训练与评估' : '执行模型训练'}</h1>
       <p className="module-description">
         训练环境由部署配置决定。每个作业固定模型、模板、数据与预算；完成后生成离线候选，独立评估通过后再进入发布流程。
       </p>
+      {decision && (
+        <p className="module-description">
+          决策训练只消费当前合格 KEEP，encoder 选项排序与执行 SFT
+          分离。候选只在离线评估；独立金标、champion 对照、完整隔离 Agent
+          比较、实际部署和新鲜影子证据不足时保持 HOLD，线上不引入 student 路由。
+        </p>
+      )}
       {loading && <p role="status">正在加载训练模块…</p>}
       {error && <p role="alert">{error}</p>}
       {status && !status.configured && (
@@ -263,6 +281,53 @@ export function Training({ feature }: { feature: TrainingFeature }) {
           </details>
         ))}
       </div>
+      {decision && (
+        <div className="settings-card">
+          <h2>四层评估与离线预测</h2>
+          <p>历史留出预测不等于实时影子，更不能证明 student 改变动作后的任务收益。</p>
+          {bundles.map((b) => (
+            <article key={b.id}>
+              <p>{b.id.slice(0, 16)}</p>
+              <button
+                disabled={busy || !b.source_current}
+                onClick={() =>
+                  void action(() =>
+                    feature.decisionApi!.evaluate({
+                      request_id: crypto.randomUUID(),
+                      project_id: project,
+                      bundle_id: b.id,
+                      champion_bundle_id: null,
+                      agent_pairs: [],
+                    }),
+                  )
+                }
+              >
+                检查四层证据
+              </button>
+              <button
+                disabled={busy || !b.source_current}
+                onClick={() => void action(() => feature.decisionApi!.shadowReplay(project, b.id))}
+              >
+                读取离线预测回放
+              </button>
+            </article>
+          ))}
+          {evaluations.map((e) => (
+            <details key={e.id}>
+              <summary>
+                {e.status} · {e.command.request_id}
+              </summary>
+              <pre>{pretty(e)}</pre>
+            </details>
+          ))}
+        </div>
+      )}
+      {result && (
+        <details>
+          <summary>最近训练操作结果</summary>
+          <pre>{result}</pre>
+        </details>
+      )}
     </section>
   );
 }

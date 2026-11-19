@@ -1107,3 +1107,30 @@ def test_portable_training_disabled_defaults_plan_and_mobile(page: Page) -> None
     page.set_viewport_size({"width": 390, "height": 844})
     assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
     screenshot(page, "M18-training-mobile.png")
+
+
+def test_decision_training_is_separate_and_preserves_teacher_only(page: Page) -> None:
+    import json
+    from uuid import uuid4
+
+    project = "student-" + uuid4().hex[:10]
+    seed_workbench(page, project)
+    page.goto(BASE + "?view=decision_training")
+    expect(page.get_by_role("heading", name="决策模型训练与评估", exact=True)).to_be_visible()
+    page.get_by_label("训练项目", exact=True).select_option(project)
+    expect(page.get_by_text("线上不引入 student 路由。", exact=False)).to_be_visible()
+    page.get_by_role("button", name="准备训练计划", exact=True).click()
+    editor = page.get_by_label("训练计划命令", exact=True)
+    command = json.loads(editor.input_value())
+    command["train_artifact_id"] = "0" * 64
+    editor.fill(json.dumps(command))
+    page.get_by_role("button", name="检查并保存计划", exact=True).click()
+    expect(page.get_by_role("button", name="启动训练作业", exact=True)).to_be_disabled()
+    expect(page.get_by_role("heading", name="四层评估与离线预测", exact=True)).to_be_visible()
+    screenshot(page, "M19-decision-training-desktop.png")
+    page.reload()
+    page.get_by_label("训练项目", exact=True).select_option(project)
+    expect(page.get_by_role("button", name="启动训练作业", exact=True)).to_be_disabled()
+    page.set_viewport_size({"width": 390, "height": 844})
+    assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+    screenshot(page, "M19-decision-training-mobile.png")

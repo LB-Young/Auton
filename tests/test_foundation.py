@@ -22,7 +22,7 @@ from auton.kernel.modules import ModuleDescriptor, resolve_modules
 from auton.kernel.ports import ModuleFactory, RuntimeDependencies
 from auton.model.config import ModelConfig
 from auton.server.identity import ServerSettings
-from auton.training.contracts import TrainingConfig
+from auton.training.contracts import DecisionTrainingConfig, TrainingConfig
 
 
 @pytest.mark.parametrize("implementation", ["echo", "scripted"])
@@ -33,6 +33,7 @@ def test_factory_swap_has_identical_http_and_event_contract(
         ApplicationConfig(
             datasets=DatasetConfig(directory=tmp_path / "datasets"),
             training=TrainingConfig(directory=tmp_path / "training"),
+            decision_training=DecisionTrainingConfig(directory=tmp_path / "decision-training"),
             decision_review=DecisionReviewConfig(directory=tmp_path / "decision-review"),
             evolve=EvolutionConfig(directory=tmp_path / "evolve"),
             delegation=DelegationConfig(directory=tmp_path / "delegation"),
@@ -105,6 +106,7 @@ def test_real_profile_never_uses_demo(deps: RuntimeDependencies, tmp_path: Path)
         ApplicationConfig(
             datasets=DatasetConfig(directory=tmp_path / "datasets"),
             training=TrainingConfig(directory=tmp_path / "training"),
+            decision_training=DecisionTrainingConfig(directory=tmp_path / "decision-training"),
             decision_review=DecisionReviewConfig(directory=tmp_path / "decision-review"),
             evolve=EvolutionConfig(directory=tmp_path / "evolve"),
             delegation=DelegationConfig(directory=tmp_path / "delegation"),
