@@ -14,6 +14,8 @@ from auton.constitution.factory import ConstitutionDependencies, ConstitutionFac
 from auton.constitution.secrets import LoggerFactory, Redactor, SecretStoreFactory
 from auton.context.factory import ContextEngineFactory
 from auton.context.service import ContextDependencies
+from auton.datasets.dependencies import DatasetDependencies
+from auton.datasets.factory import DatasetPipelineFactory
 from auton.decision_review.dependencies import ReviewDependencies
 from auton.decision_review.factory import DecisionReviewFactory
 from auton.delegation.factory import DelegationFactory
@@ -174,6 +176,21 @@ class ApplicationFactory:
                 delegation=delegation,
             ),
         )
+        datasets = DatasetPipelineFactory().create(
+            config.datasets,
+            DatasetDependencies(
+                agent,
+                assess,
+                genome,
+                context,
+                decision_review,
+                evolve,
+                delegation,
+                kernel.events,
+                deps,
+                config.models.backend == "mock",
+            ),
+        )
         identity = IdentityFactory().create(config.server, deps)
         commands = CommandHandlerFactory().create(agent, experience)
         uploads = UploadFactory().create(config.server, genome, deps)
@@ -207,6 +224,7 @@ class ApplicationFactory:
                 review_kernel,
                 review_models,
                 decision_review,
+                datasets,
                 identity,
                 commands,
                 uploads,
@@ -231,6 +249,7 @@ class ApplicationFactory:
                 review_kernel,
                 review_models,
                 decision_review,
+                datasets,
                 identity,
                 commands,
                 uploads,
@@ -262,6 +281,7 @@ class ApplicationFactory:
                 delegation=delegation,
                 evolve=evolve,
                 decision_review=decision_review,
+                datasets=datasets,
                 identity=identity,
                 commands=commands,
                 feedback=FeedbackFactory().create(agent, kernel.events, deps),

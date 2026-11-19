@@ -41,6 +41,16 @@ from auton.constitution.config import (
     PublicPolicy,
 )
 from auton.context.contracts import ContextRequest, ContextSnapshot, TaskState
+from auton.datasets.contracts import (
+    DataGrant,
+    DataGrantCommand,
+    DatasetArtifact,
+    DatasetBuild,
+    DatasetSnapshot,
+    DatasetStatus,
+    DatasetWithdrawal,
+    ExportCommand,
+)
 from auton.decision_review.contracts import (
     CalibrationView,
     HumanRevision,
@@ -453,6 +463,69 @@ class ServerFactory:
         ) -> AgentRun:
             return await deps.commands.recover(
                 Principal(owner=owner(request), role="user"), project_id, run_id, command
+            )
+
+        @app.get("/api/v1/datasets/status")
+        async def dataset_status(request: Request) -> DatasetStatus:
+            owner(request)
+            return deps.datasets.status()
+
+        @app.get("/api/v1/datasets/grants")
+        async def dataset_grants(request: Request, project_id: str) -> tuple[DataGrant, ...]:
+            return await deps.datasets.grants(
+                Principal(owner=owner(request), role="user"), project_id
+            )
+
+        @app.post("/api/v1/datasets/grants", status_code=201)
+        async def dataset_grant(request: Request, command: DataGrantCommand) -> DataGrant:
+            return await deps.datasets.grant(Principal(owner=owner(request), role="user"), command)
+
+        @app.post("/api/v1/datasets/snapshots", status_code=201)
+        async def build_dataset(request: Request, command: DatasetBuild) -> DatasetSnapshot:
+            return await deps.datasets.build(Principal(owner=owner(request), role="user"), command)
+
+        @app.get("/api/v1/datasets/snapshots")
+        async def dataset_snapshots(
+            request: Request, project_id: str
+        ) -> tuple[DatasetSnapshot, ...]:
+            return await deps.datasets.list(
+                Principal(owner=owner(request), role="user"), project_id
+            )
+
+        @app.get("/api/v1/datasets/snapshots/{snapshot_id}")
+        async def dataset_snapshot(request: Request, snapshot_id: str) -> DatasetSnapshot:
+            return await deps.datasets.get(
+                Principal(owner=owner(request), role="user"), snapshot_id
+            )
+
+        @app.post("/api/v1/datasets/withdrawals")
+        async def withdraw_dataset_source(
+            request: Request, command: DatasetWithdrawal
+        ) -> tuple[str, ...]:
+            return await deps.datasets.withdraw(
+                Principal(owner=owner(request), role="user"), command
+            )
+
+        @app.post("/api/v1/datasets/snapshots/{snapshot_id}/exports", status_code=201)
+        async def export_dataset(
+            request: Request, snapshot_id: str, command: ExportCommand
+        ) -> DatasetArtifact:
+            return await deps.datasets.export(
+                Principal(owner=owner(request), role="user"), snapshot_id, command
+            )
+
+        @app.get("/api/v1/datasets/artifacts/{artifact_id}")
+        async def read_dataset_artifact(request: Request, artifact_id: str) -> Response:
+            artifact, content = await deps.datasets.read_artifact(
+                Principal(owner=owner(request), role="user"), artifact_id
+            )
+            return Response(
+                content=content,
+                media_type="application/x-ndjson",
+                headers={
+                    "Content-Disposition": f'attachment; filename="dataset-{artifact.id}.jsonl"',
+                    "Cache-Control": "no-store",
+                },
             )
 
         @app.get("/api/v1/decision-review/status")

@@ -1,3 +1,4 @@
+import { DatasetsFeatureFactory } from '../features/datasets/factory';
 import { DecisionReviewFeatureFactory } from '../features/decision-review/factory';
 import { EvolutionFeatureFactory } from '../features/evolution/factory';
 import { DelegationFeatureFactory } from '../features/delegation/factory';
@@ -22,6 +23,7 @@ export function createApplication() {
   const events = new EventStreamFactory().create();
   return {
     projects,
+    datasets: new DatasetsFeatureFactory().create({ api }),
     assessment: new AssessmentFeatureFactory().create({ api }),
     decisionReview: new DecisionReviewFeatureFactory().create({ api }),
     evolution: new EvolutionFeatureFactory().create({ api }),

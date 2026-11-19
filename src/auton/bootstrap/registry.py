@@ -1,7 +1,6 @@
 from auton.kernel.modules import ModuleDescriptor
 
 PLANNED = (
-    ("datasets", "训练数据快照", "M17"),
     ("executor_training", "执行模型训练", "M18"),
     ("decision_training", "决策模型训练", "M19"),
     ("release", "发布与回滚", "M20"),
@@ -191,6 +190,25 @@ def module_catalog(demo: bool) -> list[ModuleDescriptor]:
             requires=("agent", "experience", "assessment", "assets", "models", "event_log"),
             factory_entry="decision_review.DecisionReviewFactory",
             config_schema="DecisionReviewConfig",
+        ),
+        ModuleDescriptor(
+            id="datasets",
+            title="训练数据快照与谱系",
+            milestone="M17",
+            status="ready",
+            provides=("datasets",),
+            requires=(
+                "agent",
+                "assessment",
+                "assets",
+                "context",
+                "decision_review",
+                "evolution",
+                "delegation",
+                "event_log",
+            ),
+            factory_entry="datasets.DatasetPipelineFactory",
+            config_schema="DatasetConfig",
         ),
         *[
             ModuleDescriptor(id=key, title=title, milestone=milestone, status="planned")

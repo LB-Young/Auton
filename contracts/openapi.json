@@ -271,6 +271,39 @@
             "title": "Cost Microusd",
             "type": "integer"
           },
+          "decision_candidate_catalog": {
+            "default": [],
+            "items": {
+              "additionalProperties": {
+                "$ref": "#/components/schemas/JsonValue"
+              },
+              "type": "object"
+            },
+            "title": "Decision Candidate Catalog",
+            "type": "array"
+          },
+          "decision_catalog_cutoff": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decision Catalog Cutoff"
+          },
+          "decision_catalog_goal_revision": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decision Catalog Goal Revision"
+          },
           "executor_selection": {
             "const": "user-explicit",
             "default": "user-explicit",
@@ -481,6 +514,9 @@
           }
         },
         "required": [
+          "decision_candidate_catalog",
+          "decision_catalog_cutoff",
+          "decision_catalog_goal_revision",
           "session_id",
           "id",
           "version",
@@ -1751,6 +1787,73 @@
           "expected"
         ],
         "title": "AssetRevisionCommand",
+        "type": "object"
+      },
+      "AssetUse-Input": {
+        "additionalProperties": false,
+        "properties": {
+          "asset_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "content_sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Content Sha256",
+            "type": "string"
+          },
+          "license_reference": {
+            "maxLength": 1000,
+            "minLength": 10,
+            "title": "License Reference",
+            "type": "string"
+          },
+          "training_use_confirmed_by_user": {
+            "default": false,
+            "title": "Training Use Confirmed By User",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "asset_id",
+          "content_sha256",
+          "license_reference"
+        ],
+        "title": "AssetUse",
+        "type": "object"
+      },
+      "AssetUse-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "asset_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "content_sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Content Sha256",
+            "type": "string"
+          },
+          "license_reference": {
+            "maxLength": 1000,
+            "minLength": 10,
+            "title": "License Reference",
+            "type": "string"
+          },
+          "training_use_confirmed_by_user": {
+            "default": false,
+            "title": "Training Use Confirmed By User",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "asset_id",
+          "content_sha256",
+          "license_reference",
+          "training_use_confirmed_by_user"
+        ],
+        "title": "AssetUse",
         "type": "object"
       },
       "BatchEvaluation": {
@@ -3557,6 +3660,600 @@
         "title": "CreateSession",
         "type": "object"
       },
+      "DataGrant": {
+        "additionalProperties": false,
+        "properties": {
+          "command": {
+            "$ref": "#/components/schemas/DataGrantCommand-Output"
+          },
+          "id": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Id",
+            "type": "string"
+          },
+          "license_truth": {
+            "const": "user_attestation_not_legal_verification",
+            "default": "user_attestation_not_legal_verification",
+            "title": "License Truth",
+            "type": "string"
+          },
+          "revoked": {
+            "default": false,
+            "title": "Revoked",
+            "type": "boolean"
+          },
+          "source_scope": {
+            "const": "owner_project_local_training",
+            "default": "owner_project_local_training",
+            "title": "Source Scope",
+            "type": "string"
+          },
+          "version": {
+            "default": 0,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "command",
+          "revoked",
+          "source_scope",
+          "license_truth"
+        ],
+        "title": "DataGrant",
+        "type": "object"
+      },
+      "DataGrantCommand-Input": {
+        "additionalProperties": false,
+        "properties": {
+          "allow_local_only_data": {
+            "default": false,
+            "title": "Allow Local Only Data",
+            "type": "boolean"
+          },
+          "data_license_reference": {
+            "maxLength": 1000,
+            "minLength": 10,
+            "title": "Data License Reference",
+            "type": "string"
+          },
+          "external_asset_uses": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/AssetUse-Input"
+            },
+            "maxItems": 100,
+            "title": "External Asset Uses",
+            "type": "array"
+          },
+          "local_training_authorized": {
+            "default": false,
+            "title": "Local Training Authorized",
+            "type": "boolean"
+          },
+          "project_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "purposes": {
+            "items": {
+              "enum": [
+                "executor",
+                "router",
+                "decision"
+              ],
+              "type": "string"
+            },
+            "maxItems": 3,
+            "minItems": 1,
+            "title": "Purposes",
+            "type": "array"
+          },
+          "request_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "run_ids": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 200,
+            "minItems": 1,
+            "title": "Run Ids",
+            "type": "array"
+          },
+          "teacher_uses": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/TeacherUse-Input"
+            },
+            "maxItems": 20,
+            "title": "Teacher Uses",
+            "type": "array"
+          }
+        },
+        "required": [
+          "request_id",
+          "project_id",
+          "run_ids",
+          "purposes",
+          "data_license_reference"
+        ],
+        "title": "DataGrantCommand",
+        "type": "object"
+      },
+      "DataGrantCommand-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "allow_local_only_data": {
+            "default": false,
+            "title": "Allow Local Only Data",
+            "type": "boolean"
+          },
+          "data_license_reference": {
+            "maxLength": 1000,
+            "minLength": 10,
+            "title": "Data License Reference",
+            "type": "string"
+          },
+          "external_asset_uses": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/AssetUse-Output"
+            },
+            "maxItems": 100,
+            "title": "External Asset Uses",
+            "type": "array"
+          },
+          "local_training_authorized": {
+            "default": false,
+            "title": "Local Training Authorized",
+            "type": "boolean"
+          },
+          "project_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "purposes": {
+            "items": {
+              "enum": [
+                "executor",
+                "router",
+                "decision"
+              ],
+              "type": "string"
+            },
+            "maxItems": 3,
+            "minItems": 1,
+            "title": "Purposes",
+            "type": "array"
+          },
+          "request_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "run_ids": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 200,
+            "minItems": 1,
+            "title": "Run Ids",
+            "type": "array"
+          },
+          "teacher_uses": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/TeacherUse-Output"
+            },
+            "maxItems": 20,
+            "title": "Teacher Uses",
+            "type": "array"
+          }
+        },
+        "required": [
+          "request_id",
+          "project_id",
+          "run_ids",
+          "purposes",
+          "data_license_reference",
+          "local_training_authorized",
+          "teacher_uses",
+          "external_asset_uses",
+          "allow_local_only_data"
+        ],
+        "title": "DataGrantCommand",
+        "type": "object"
+      },
+      "DatasetArtifact": {
+        "additionalProperties": false,
+        "properties": {
+          "command": {
+            "$ref": "#/components/schemas/ExportCommand-Output"
+          },
+          "example_count": {
+            "title": "Example Count",
+            "type": "integer"
+          },
+          "format": {
+            "const": "auton-local-learning-jsonl-v1",
+            "default": "auton-local-learning-jsonl-v1",
+            "title": "Format",
+            "type": "string"
+          },
+          "id": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Id",
+            "type": "string"
+          },
+          "manifest_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Manifest Digest",
+            "type": "string"
+          },
+          "sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Sha256",
+            "type": "string"
+          },
+          "size": {
+            "title": "Size",
+            "type": "integer"
+          },
+          "snapshot_id": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "version": {
+            "default": 0,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "snapshot_id",
+          "command",
+          "sha256",
+          "size",
+          "example_count",
+          "manifest_digest",
+          "format"
+        ],
+        "title": "DatasetArtifact",
+        "type": "object"
+      },
+      "DatasetBuild-Input": {
+        "additionalProperties": false,
+        "properties": {
+          "grant_id": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Grant Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "executor",
+              "router",
+              "decision"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "project_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "request_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "router_pairs": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/RouterPair"
+            },
+            "maxItems": 100,
+            "title": "Router Pairs",
+            "type": "array"
+          },
+          "subjects": {
+            "items": {
+              "$ref": "#/components/schemas/SubjectRef-Input"
+            },
+            "maxItems": 200,
+            "minItems": 1,
+            "title": "Subjects",
+            "type": "array"
+          }
+        },
+        "required": [
+          "request_id",
+          "project_id",
+          "kind",
+          "grant_id",
+          "subjects"
+        ],
+        "title": "DatasetBuild",
+        "type": "object"
+      },
+      "DatasetBuild-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "grant_id": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Grant Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "executor",
+              "router",
+              "decision"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "project_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "request_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "router_pairs": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/RouterPair"
+            },
+            "maxItems": 100,
+            "title": "Router Pairs",
+            "type": "array"
+          },
+          "subjects": {
+            "items": {
+              "$ref": "#/components/schemas/SubjectRef-Output"
+            },
+            "maxItems": 200,
+            "minItems": 1,
+            "title": "Subjects",
+            "type": "array"
+          }
+        },
+        "required": [
+          "request_id",
+          "project_id",
+          "kind",
+          "grant_id",
+          "subjects",
+          "router_pairs"
+        ],
+        "title": "DatasetBuild",
+        "type": "object"
+      },
+      "DatasetSnapshot": {
+        "additionalProperties": false,
+        "properties": {
+          "activation": {
+            "const": "no_training_started",
+            "default": "no_training_started",
+            "title": "Activation",
+            "type": "string"
+          },
+          "command": {
+            "$ref": "#/components/schemas/DatasetBuild-Output"
+          },
+          "config_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Config Digest",
+            "type": "string"
+          },
+          "content_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Content Digest",
+            "type": "string"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "number"
+          },
+          "current_evidence_valid": {
+            "default": true,
+            "title": "Current Evidence Valid",
+            "type": "boolean"
+          },
+          "examples": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/TrainingExample"
+            },
+            "title": "Examples",
+            "type": "array"
+          },
+          "grant_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Grant Digest",
+            "type": "string"
+          },
+          "id": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Id",
+            "type": "string"
+          },
+          "invalidation_reasons": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Invalidation Reasons",
+            "type": "array"
+          },
+          "rejected": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/RejectedSubject"
+            },
+            "title": "Rejected",
+            "type": "array"
+          },
+          "source_groups": {
+            "default": 0,
+            "title": "Source Groups",
+            "type": "integer"
+          },
+          "status": {
+            "default": "blocked",
+            "enum": [
+              "ready",
+              "blocked",
+              "engineering_only"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "training_ready": {
+            "default": false,
+            "title": "Training Ready",
+            "type": "boolean"
+          },
+          "version": {
+            "default": 0,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "command",
+          "config_digest",
+          "grant_digest",
+          "status",
+          "examples",
+          "rejected",
+          "content_digest",
+          "source_groups",
+          "training_ready",
+          "current_evidence_valid",
+          "invalidation_reasons",
+          "activation",
+          "created_at"
+        ],
+        "title": "DatasetSnapshot",
+        "type": "object"
+      },
+      "DatasetStatus": {
+        "additionalProperties": false,
+        "properties": {
+          "config_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Config Digest",
+            "type": "string"
+          },
+          "max_sources": {
+            "title": "Max Sources",
+            "type": "integer"
+          },
+          "protected_splits": {
+            "default": [
+              "test",
+              "meta",
+              "reviewer_meta",
+              "optimization_arena"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "title": "Protected Splits",
+            "type": "array"
+          },
+          "source_revision": {
+            "title": "Source Revision",
+            "type": "string"
+          },
+          "training": {
+            "const": "separate_worker_capability",
+            "default": "separate_worker_capability",
+            "title": "Training",
+            "type": "string"
+          }
+        },
+        "required": [
+          "config_digest",
+          "source_revision",
+          "max_sources",
+          "protected_splits",
+          "training"
+        ],
+        "title": "DatasetStatus",
+        "type": "object"
+      },
+      "DatasetWithdrawal": {
+        "additionalProperties": false,
+        "properties": {
+          "grant_id": {
+            "anyOf": [
+              {
+                "pattern": "^[a-f0-9]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grant Id"
+          },
+          "project_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "reason": {
+            "maxLength": 2000,
+            "minLength": 10,
+            "title": "Reason",
+            "type": "string"
+          },
+          "request_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "run_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id"
+          }
+        },
+        "required": [
+          "request_id",
+          "project_id",
+          "reason"
+        ],
+        "title": "DatasetWithdrawal",
+        "type": "object"
+      },
       "DecisionSource": {
         "additionalProperties": false,
         "properties": {
@@ -5180,6 +5877,85 @@
           "activation"
         ],
         "title": "EvolutionStatus",
+        "type": "object"
+      },
+      "ExportCommand-Input": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_content_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Expected Content Digest",
+            "type": "string"
+          },
+          "purpose": {
+            "enum": [
+              "local_training",
+              "local_validation"
+            ],
+            "title": "Purpose",
+            "type": "string"
+          },
+          "request_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "split": {
+            "default": "train",
+            "enum": [
+              "train",
+              "validation"
+            ],
+            "title": "Split",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "expected_content_digest",
+          "purpose"
+        ],
+        "title": "ExportCommand",
+        "type": "object"
+      },
+      "ExportCommand-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_content_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Expected Content Digest",
+            "type": "string"
+          },
+          "purpose": {
+            "enum": [
+              "local_training",
+              "local_validation"
+            ],
+            "title": "Purpose",
+            "type": "string"
+          },
+          "request_id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "split": {
+            "default": "train",
+            "enum": [
+              "train",
+              "validation"
+            ],
+            "title": "Split",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "expected_content_digest",
+          "split",
+          "purpose"
+        ],
+        "title": "ExportCommand",
         "type": "object"
       },
       "FeedbackCommand": {
@@ -7628,6 +8404,28 @@
         "title": "ReflectCommand",
         "type": "object"
       },
+      "RejectedSubject": {
+        "additionalProperties": false,
+        "properties": {
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "run_id",
+          "reasons"
+        ],
+        "title": "RejectedSubject",
+        "type": "object"
+      },
       "ReviewCommand-Input": {
         "additionalProperties": false,
         "properties": {
@@ -8281,6 +9079,29 @@
           "policy_version"
         ],
         "title": "RouteDecision",
+        "type": "object"
+      },
+      "RouterPair": {
+        "additionalProperties": false,
+        "properties": {
+          "left_run_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Left Run Id",
+            "type": "string"
+          },
+          "right_run_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Right Run Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "left_run_id",
+          "right_run_id"
+        ],
+        "title": "RouterPair",
         "type": "object"
       },
       "RunCommand": {
@@ -9105,6 +9926,114 @@
         "title": "SourceLocation",
         "type": "object"
       },
+      "SourceProof": {
+        "additionalProperties": false,
+        "properties": {
+          "assessment_report_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assessment Report Id"
+          },
+          "checkpoint_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Checkpoint Digest",
+            "type": "string"
+          },
+          "checkpoint_id": {
+            "title": "Checkpoint Id",
+            "type": "string"
+          },
+          "declared_model": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonValue"
+            },
+            "title": "Declared Model",
+            "type": "object"
+          },
+          "event_refs": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Event Refs",
+            "type": "array"
+          },
+          "goal_revision": {
+            "title": "Goal Revision",
+            "type": "integer"
+          },
+          "input_snapshot_id": {
+            "title": "Input Snapshot Id",
+            "type": "string"
+          },
+          "review_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review Id"
+          },
+          "review_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review Version"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          },
+          "source": {
+            "enum": [
+              "runtime",
+              "test"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "source_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Source Digest",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "run_id",
+          "version",
+          "goal_revision",
+          "checkpoint_id",
+          "checkpoint_digest",
+          "source_digest",
+          "input_snapshot_id",
+          "assessment_report_id",
+          "review_id",
+          "review_version",
+          "event_refs",
+          "declared_model",
+          "source"
+        ],
+        "title": "SourceProof",
+        "type": "object"
+      },
       "StageReceipt": {
         "additionalProperties": false,
         "properties": {
@@ -9312,6 +10241,143 @@
         "title": "StorageInfo",
         "type": "object"
       },
+      "SubjectRef-Input": {
+        "additionalProperties": false,
+        "properties": {
+          "assessment_report_id": {
+            "anyOf": [
+              {
+                "pattern": "^[a-f0-9]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assessment Report Id"
+          },
+          "expected_version": {
+            "minimum": 0.0,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "family": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Family",
+            "type": "string"
+          },
+          "origin_group": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Origin Group",
+            "type": "string"
+          },
+          "review_id": {
+            "anyOf": [
+              {
+                "pattern": "^[a-f0-9]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review Id"
+          },
+          "run_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Run Id",
+            "type": "string"
+          },
+          "split": {
+            "default": "train",
+            "enum": [
+              "train",
+              "validation"
+            ],
+            "title": "Split",
+            "type": "string"
+          }
+        },
+        "required": [
+          "run_id",
+          "expected_version",
+          "family",
+          "origin_group"
+        ],
+        "title": "SubjectRef",
+        "type": "object"
+      },
+      "SubjectRef-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "assessment_report_id": {
+            "anyOf": [
+              {
+                "pattern": "^[a-f0-9]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assessment Report Id"
+          },
+          "expected_version": {
+            "minimum": 0.0,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "family": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Family",
+            "type": "string"
+          },
+          "origin_group": {
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Origin Group",
+            "type": "string"
+          },
+          "review_id": {
+            "anyOf": [
+              {
+                "pattern": "^[a-f0-9]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review Id"
+          },
+          "run_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Run Id",
+            "type": "string"
+          },
+          "split": {
+            "default": "train",
+            "enum": [
+              "train",
+              "validation"
+            ],
+            "title": "Split",
+            "type": "string"
+          }
+        },
+        "required": [
+          "run_id",
+          "expected_version",
+          "assessment_report_id",
+          "review_id",
+          "family",
+          "origin_group",
+          "split"
+        ],
+        "title": "SubjectRef",
+        "type": "object"
+      },
       "SubmitProposal": {
         "additionalProperties": false,
         "properties": {
@@ -9396,6 +10462,77 @@
           "goal"
         ],
         "title": "TaskState",
+        "type": "object"
+      },
+      "TeacherUse-Input": {
+        "additionalProperties": false,
+        "properties": {
+          "declared_revision": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Declared Revision",
+            "type": "string"
+          },
+          "model_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Model Id",
+            "type": "string"
+          },
+          "terms_reference": {
+            "maxLength": 1000,
+            "minLength": 10,
+            "title": "Terms Reference",
+            "type": "string"
+          },
+          "training_use_confirmed_by_user": {
+            "default": false,
+            "title": "Training Use Confirmed By User",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "model_id",
+          "declared_revision",
+          "terms_reference"
+        ],
+        "title": "TeacherUse",
+        "type": "object"
+      },
+      "TeacherUse-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "declared_revision": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Declared Revision",
+            "type": "string"
+          },
+          "model_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Model Id",
+            "type": "string"
+          },
+          "terms_reference": {
+            "maxLength": 1000,
+            "minLength": 10,
+            "title": "Terms Reference",
+            "type": "string"
+          },
+          "training_use_confirmed_by_user": {
+            "default": false,
+            "title": "Training Use Confirmed By User",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "model_id",
+          "declared_revision",
+          "terms_reference",
+          "training_use_confirmed_by_user"
+        ],
+        "title": "TeacherUse",
         "type": "object"
       },
       "ToolApproval": {
@@ -9968,6 +11105,160 @@
           "details"
         ],
         "title": "TraceNode",
+        "type": "object"
+      },
+      "TrainingExample": {
+        "additionalProperties": false,
+        "properties": {
+          "engineering_only": {
+            "default": false,
+            "title": "Engineering Only",
+            "type": "boolean"
+          },
+          "family": {
+            "title": "Family",
+            "type": "string"
+          },
+          "following_tool_results": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/ModelMessage-Output"
+            },
+            "title": "Following Tool Results",
+            "type": "array"
+          },
+          "group_id": {
+            "default": "",
+            "title": "Group Id",
+            "type": "string"
+          },
+          "id": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Id",
+            "type": "string"
+          },
+          "input_fingerprints": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Input Fingerprints",
+            "type": "array"
+          },
+          "input_messages": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/ModelMessage-Output"
+            },
+            "title": "Input Messages",
+            "type": "array"
+          },
+          "kind": {
+            "enum": [
+              "executor",
+              "router",
+              "decision"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "lineage_tokens": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Lineage Tokens",
+            "type": "array"
+          },
+          "loss_message_indices": {
+            "default": [],
+            "items": {
+              "type": "integer"
+            },
+            "title": "Loss Message Indices",
+            "type": "array"
+          },
+          "normalized_input": {
+            "title": "Normalized Input",
+            "type": "string"
+          },
+          "normalized_target": {
+            "title": "Normalized Target",
+            "type": "string"
+          },
+          "origin_group": {
+            "title": "Origin Group",
+            "type": "string"
+          },
+          "proofs": {
+            "items": {
+              "$ref": "#/components/schemas/SourceProof"
+            },
+            "title": "Proofs",
+            "type": "array"
+          },
+          "split": {
+            "enum": [
+              "train",
+              "validation"
+            ],
+            "title": "Split",
+            "type": "string"
+          },
+          "structured_input": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonValue"
+            },
+            "title": "Structured Input",
+            "type": "object"
+          },
+          "structured_target": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonValue"
+            },
+            "title": "Structured Target",
+            "type": "object"
+          },
+          "target_message": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ModelMessage-Output"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "tools": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/ToolSpec"
+            },
+            "title": "Tools",
+            "type": "array"
+          }
+        },
+        "required": [
+          "lineage_tokens",
+          "id",
+          "kind",
+          "family",
+          "origin_group",
+          "split",
+          "group_id",
+          "normalized_input",
+          "normalized_target",
+          "input_messages",
+          "target_message",
+          "following_tool_results",
+          "tools",
+          "loss_message_indices",
+          "structured_input",
+          "structured_target",
+          "proofs",
+          "input_fingerprints",
+          "engineering_only"
+        ],
+        "title": "TrainingExample",
         "type": "object"
       },
       "Trajectory": {
@@ -13884,6 +15175,1169 @@
           }
         },
         "summary": "Event Contract"
+      }
+    },
+    "/api/v1/datasets/artifacts/{artifact_id}": {
+      "get": {
+        "operationId": "read_dataset_artifact_api_v1_datasets_artifacts__artifact_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "artifact_id",
+            "required": true,
+            "schema": {
+              "title": "Artifact Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Read Dataset Artifact"
+      }
+    },
+    "/api/v1/datasets/grants": {
+      "get": {
+        "operationId": "dataset_grants_api_v1_datasets_grants_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DataGrant"
+                  },
+                  "title": "Response Dataset Grants Api V1 Datasets Grants Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Dataset Grants"
+      },
+      "post": {
+        "operationId": "dataset_grant_api_v1_datasets_grants_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DataGrantCommand-Input"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataGrant"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Dataset Grant"
+      }
+    },
+    "/api/v1/datasets/snapshots": {
+      "get": {
+        "operationId": "dataset_snapshots_api_v1_datasets_snapshots_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DatasetSnapshot"
+                  },
+                  "title": "Response Dataset Snapshots Api V1 Datasets Snapshots Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Dataset Snapshots"
+      },
+      "post": {
+        "operationId": "build_dataset_api_v1_datasets_snapshots_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DatasetBuild-Input"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DatasetSnapshot"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Build Dataset"
+      }
+    },
+    "/api/v1/datasets/snapshots/{snapshot_id}": {
+      "get": {
+        "operationId": "dataset_snapshot_api_v1_datasets_snapshots__snapshot_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "snapshot_id",
+            "required": true,
+            "schema": {
+              "title": "Snapshot Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DatasetSnapshot"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Dataset Snapshot"
+      }
+    },
+    "/api/v1/datasets/snapshots/{snapshot_id}/exports": {
+      "post": {
+        "operationId": "export_dataset_api_v1_datasets_snapshots__snapshot_id__exports_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "snapshot_id",
+            "required": true,
+            "schema": {
+              "title": "Snapshot Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExportCommand-Input"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DatasetArtifact"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Export Dataset"
+      }
+    },
+    "/api/v1/datasets/status": {
+      "get": {
+        "operationId": "dataset_status_api_v1_datasets_status_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DatasetStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Dataset Status"
+      }
+    },
+    "/api/v1/datasets/withdrawals": {
+      "post": {
+        "operationId": "withdraw_dataset_source_api_v1_datasets_withdrawals_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DatasetWithdrawal"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "title": "Response Withdraw Dataset Source Api V1 Datasets Withdrawals Post",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Withdraw Dataset Source"
       }
     },
     "/api/v1/decision-review/calibrations": {

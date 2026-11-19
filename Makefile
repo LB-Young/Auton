@@ -93,3 +93,6 @@ evolution-smoke:
 
 decision-review-smoke:
 	@"$(DEV_PYTHON)" "$(PROJECT_ROOT)scripts/decision_review_smoke.py"
+
+dataset-smoke:
+	@"$(DEV_PYTHON)" "$(PROJECT_ROOT)scripts/dataset_smoke.py"

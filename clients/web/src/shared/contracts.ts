@@ -138,3 +138,12 @@ export type CalibrationView = components['schemas']['CalibrationView'];
 
 export type ReviewCommand = components['schemas']['ReviewCommand-Input'];
 export type HumanRevision = components['schemas']['HumanRevision-Input'];
+
+export type DatasetStatus = components['schemas']['DatasetStatus'];
+export type DataGrant = components['schemas']['DataGrant'];
+export type DataGrantCommand = components['schemas']['DataGrantCommand-Input'];
+export type DatasetBuild = components['schemas']['DatasetBuild-Input'];
+export type DatasetSnapshot = components['schemas']['DatasetSnapshot'];
+export type DatasetWithdrawal = components['schemas']['DatasetWithdrawal'];
+export type ExportCommand = components['schemas']['ExportCommand-Input'];
+export type DatasetArtifact = components['schemas']['DatasetArtifact'];

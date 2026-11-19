@@ -18,7 +18,13 @@ from auton.evolve.contracts import (
 from auton.kernel.ports import LifecycleHandle
 
 
-class EvolutionPort(LifecycleHandle, Protocol):
+class OptimizationInputPort(Protocol):
+    async def optimization_request_ids(
+        self, principal: Principal, project: str
+    ) -> tuple[str, ...]: ...
+
+
+class EvolutionPort(LifecycleHandle, OptimizationInputPort, Protocol):
     async def generations(
         self, principal: Principal, project: str
     ) -> tuple[GenerationRecord, ...]: ...

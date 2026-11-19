@@ -1,3 +1,4 @@
+import { Datasets } from '../features/datasets/Datasets';
 import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from 'react';
 import {
   ArrowDownToLine,
@@ -801,6 +802,8 @@ export function App({ application }: { application: Application }) {
               <Delegation feature={application.delegation} />
             ) : view === 'decision_review' ? (
               <DecisionReview feature={application.decisionReview} />
+            ) : view === 'datasets' ? (
+              <Datasets feature={application.datasets} />
             ) : view === 'evolve' ? (
               <Evolution feature={application.evolution} />
             ) : view === 'assess' ? (

@@ -399,6 +399,127 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/datasets/artifacts/{artifact_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Read Dataset Artifact */
+    get: operations['read_dataset_artifact_api_v1_datasets_artifacts__artifact_id__get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/datasets/grants': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Dataset Grants */
+    get: operations['dataset_grants_api_v1_datasets_grants_get'];
+    put?: never;
+    /** Dataset Grant */
+    post: operations['dataset_grant_api_v1_datasets_grants_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/datasets/snapshots': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Dataset Snapshots */
+    get: operations['dataset_snapshots_api_v1_datasets_snapshots_get'];
+    put?: never;
+    /** Build Dataset */
+    post: operations['build_dataset_api_v1_datasets_snapshots_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/datasets/snapshots/{snapshot_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Dataset Snapshot */
+    get: operations['dataset_snapshot_api_v1_datasets_snapshots__snapshot_id__get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/datasets/snapshots/{snapshot_id}/exports': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Export Dataset */
+    post: operations['export_dataset_api_v1_datasets_snapshots__snapshot_id__exports_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/datasets/status': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Dataset Status */
+    get: operations['dataset_status_api_v1_datasets_status_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/datasets/withdrawals': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Withdraw Dataset Source */
+    post: operations['withdraw_dataset_source_api_v1_datasets_withdrawals_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/decision-review/calibrations': {
     parameters: {
       query?: never;
@@ -1580,6 +1701,17 @@ export interface components {
        */
       cost_microusd: number;
       /**
+       * Decision Candidate Catalog
+       * @default []
+       */
+      decision_candidate_catalog: {
+        [key: string]: components['schemas']['JsonValue'];
+      }[];
+      /** Decision Catalog Cutoff */
+      decision_catalog_cutoff: number | null;
+      /** Decision Catalog Goal Revision */
+      decision_catalog_goal_revision: number | null;
+      /**
        * Executor Selection
        * @default user-explicit
        * @constant
@@ -2210,6 +2342,34 @@ export interface components {
       expected: string;
       /** Revision */
       revision?: string | null;
+    };
+    /** AssetUse */
+    'AssetUse-Input': {
+      /** Asset Id */
+      asset_id: string;
+      /** Content Sha256 */
+      content_sha256: string;
+      /** License Reference */
+      license_reference: string;
+      /**
+       * Training Use Confirmed By User
+       * @default false
+       */
+      training_use_confirmed_by_user: boolean;
+    };
+    /** AssetUse */
+    'AssetUse-Output': {
+      /** Asset Id */
+      asset_id: string;
+      /** Content Sha256 */
+      content_sha256: string;
+      /** License Reference */
+      license_reference: string;
+      /**
+       * Training Use Confirmed By User
+       * @default false
+       */
+      training_use_confirmed_by_user: boolean;
     };
     /** BatchEvaluation */
     BatchEvaluation: {
@@ -2940,6 +3100,268 @@ export interface components {
       /** Request Id */
       request_id: string;
     };
+    /** DataGrant */
+    DataGrant: {
+      command: components['schemas']['DataGrantCommand-Output'];
+      /** Id */
+      id: string;
+      /**
+       * License Truth
+       * @default user_attestation_not_legal_verification
+       * @constant
+       */
+      license_truth: 'user_attestation_not_legal_verification';
+      /**
+       * Revoked
+       * @default false
+       */
+      revoked: boolean;
+      /**
+       * Source Scope
+       * @default owner_project_local_training
+       * @constant
+       */
+      source_scope: 'owner_project_local_training';
+      /**
+       * Version
+       * @default 0
+       */
+      version: number;
+    };
+    /** DataGrantCommand */
+    'DataGrantCommand-Input': {
+      /**
+       * Allow Local Only Data
+       * @default false
+       */
+      allow_local_only_data: boolean;
+      /** Data License Reference */
+      data_license_reference: string;
+      /**
+       * External Asset Uses
+       * @default []
+       */
+      external_asset_uses: components['schemas']['AssetUse-Input'][];
+      /**
+       * Local Training Authorized
+       * @default false
+       */
+      local_training_authorized: boolean;
+      /** Project Id */
+      project_id: string;
+      /** Purposes */
+      purposes: ('executor' | 'router' | 'decision')[];
+      /** Request Id */
+      request_id: string;
+      /** Run Ids */
+      run_ids: string[];
+      /**
+       * Teacher Uses
+       * @default []
+       */
+      teacher_uses: components['schemas']['TeacherUse-Input'][];
+    };
+    /** DataGrantCommand */
+    'DataGrantCommand-Output': {
+      /**
+       * Allow Local Only Data
+       * @default false
+       */
+      allow_local_only_data: boolean;
+      /** Data License Reference */
+      data_license_reference: string;
+      /**
+       * External Asset Uses
+       * @default []
+       */
+      external_asset_uses: components['schemas']['AssetUse-Output'][];
+      /**
+       * Local Training Authorized
+       * @default false
+       */
+      local_training_authorized: boolean;
+      /** Project Id */
+      project_id: string;
+      /** Purposes */
+      purposes: ('executor' | 'router' | 'decision')[];
+      /** Request Id */
+      request_id: string;
+      /** Run Ids */
+      run_ids: string[];
+      /**
+       * Teacher Uses
+       * @default []
+       */
+      teacher_uses: components['schemas']['TeacherUse-Output'][];
+    };
+    /** DatasetArtifact */
+    DatasetArtifact: {
+      command: components['schemas']['ExportCommand-Output'];
+      /** Example Count */
+      example_count: number;
+      /**
+       * Format
+       * @default auton-local-learning-jsonl-v1
+       * @constant
+       */
+      format: 'auton-local-learning-jsonl-v1';
+      /** Id */
+      id: string;
+      /** Manifest Digest */
+      manifest_digest: string;
+      /** Sha256 */
+      sha256: string;
+      /** Size */
+      size: number;
+      /** Snapshot Id */
+      snapshot_id: string;
+      /**
+       * Version
+       * @default 0
+       */
+      version: number;
+    };
+    /** DatasetBuild */
+    'DatasetBuild-Input': {
+      /** Grant Id */
+      grant_id: string;
+      /**
+       * Kind
+       * @enum {string}
+       */
+      kind: 'executor' | 'router' | 'decision';
+      /** Project Id */
+      project_id: string;
+      /** Request Id */
+      request_id: string;
+      /**
+       * Router Pairs
+       * @default []
+       */
+      router_pairs: components['schemas']['RouterPair'][];
+      /** Subjects */
+      subjects: components['schemas']['SubjectRef-Input'][];
+    };
+    /** DatasetBuild */
+    'DatasetBuild-Output': {
+      /** Grant Id */
+      grant_id: string;
+      /**
+       * Kind
+       * @enum {string}
+       */
+      kind: 'executor' | 'router' | 'decision';
+      /** Project Id */
+      project_id: string;
+      /** Request Id */
+      request_id: string;
+      /**
+       * Router Pairs
+       * @default []
+       */
+      router_pairs: components['schemas']['RouterPair'][];
+      /** Subjects */
+      subjects: components['schemas']['SubjectRef-Output'][];
+    };
+    /** DatasetSnapshot */
+    DatasetSnapshot: {
+      /**
+       * Activation
+       * @default no_training_started
+       * @constant
+       */
+      activation: 'no_training_started';
+      command: components['schemas']['DatasetBuild-Output'];
+      /** Config Digest */
+      config_digest: string;
+      /** Content Digest */
+      content_digest: string;
+      /** Created At */
+      created_at: number;
+      /**
+       * Current Evidence Valid
+       * @default true
+       */
+      current_evidence_valid: boolean;
+      /**
+       * Examples
+       * @default []
+       */
+      examples: components['schemas']['TrainingExample'][];
+      /** Grant Digest */
+      grant_digest: string;
+      /** Id */
+      id: string;
+      /**
+       * Invalidation Reasons
+       * @default []
+       */
+      invalidation_reasons: string[];
+      /**
+       * Rejected
+       * @default []
+       */
+      rejected: components['schemas']['RejectedSubject'][];
+      /**
+       * Source Groups
+       * @default 0
+       */
+      source_groups: number;
+      /**
+       * Status
+       * @default blocked
+       * @enum {string}
+       */
+      status: 'ready' | 'blocked' | 'engineering_only';
+      /**
+       * Training Ready
+       * @default false
+       */
+      training_ready: boolean;
+      /**
+       * Version
+       * @default 0
+       */
+      version: number;
+    };
+    /** DatasetStatus */
+    DatasetStatus: {
+      /** Config Digest */
+      config_digest: string;
+      /** Max Sources */
+      max_sources: number;
+      /**
+       * Protected Splits
+       * @default [
+       *       "test",
+       *       "meta",
+       *       "reviewer_meta",
+       *       "optimization_arena"
+       *     ]
+       */
+      protected_splits: string[];
+      /** Source Revision */
+      source_revision: string;
+      /**
+       * Training
+       * @default separate_worker_capability
+       * @constant
+       */
+      training: 'separate_worker_capability';
+    };
+    /** DatasetWithdrawal */
+    DatasetWithdrawal: {
+      /** Grant Id */
+      grant_id?: string | null;
+      /** Project Id */
+      project_id: string;
+      /** Reason */
+      reason: string;
+      /** Request Id */
+      request_id: string;
+      /** Run Id */
+      run_id?: string | null;
+    };
     /** DecisionSource */
     DecisionSource: {
       /** Device */
@@ -3582,6 +4004,42 @@ export interface components {
       min_repeats: number;
       /** Reflection Model */
       reflection_model: string;
+    };
+    /** ExportCommand */
+    'ExportCommand-Input': {
+      /** Expected Content Digest */
+      expected_content_digest: string;
+      /**
+       * Purpose
+       * @enum {string}
+       */
+      purpose: 'local_training' | 'local_validation';
+      /** Request Id */
+      request_id: string;
+      /**
+       * Split
+       * @default train
+       * @enum {string}
+       */
+      split: 'train' | 'validation';
+    };
+    /** ExportCommand */
+    'ExportCommand-Output': {
+      /** Expected Content Digest */
+      expected_content_digest: string;
+      /**
+       * Purpose
+       * @enum {string}
+       */
+      purpose: 'local_training' | 'local_validation';
+      /** Request Id */
+      request_id: string;
+      /**
+       * Split
+       * @default train
+       * @enum {string}
+       */
+      split: 'train' | 'validation';
     };
     /** FeedbackCommand */
     FeedbackCommand: {
@@ -4545,6 +5003,13 @@ export interface components {
       /** Request Id */
       request_id: string;
     };
+    /** RejectedSubject */
+    RejectedSubject: {
+      /** Reasons */
+      reasons: string[];
+      /** Run Id */
+      run_id: string;
+    };
     /** ReviewCommand */
     'ReviewCommand-Input': {
       /** Assessment Report Id */
@@ -4812,6 +5277,13 @@ export interface components {
        * @enum {string}
        */
       status: 'proposed' | 'blocked' | 'not_requested' | 'stale';
+    };
+    /** RouterPair */
+    RouterPair: {
+      /** Left Run Id */
+      left_run_id: string;
+      /** Right Run Id */
+      right_run_id: string;
     };
     /** RunCommand */
     RunCommand: {
@@ -5130,6 +5602,43 @@ export interface components {
       /** Start Character */
       start_character: number;
     };
+    /** SourceProof */
+    SourceProof: {
+      /** Assessment Report Id */
+      assessment_report_id: string | null;
+      /** Checkpoint Digest */
+      checkpoint_digest: string;
+      /** Checkpoint Id */
+      checkpoint_id: string;
+      /** Declared Model */
+      declared_model: {
+        [key: string]: components['schemas']['JsonValue'];
+      };
+      /**
+       * Event Refs
+       * @default []
+       */
+      event_refs: string[];
+      /** Goal Revision */
+      goal_revision: number;
+      /** Input Snapshot Id */
+      input_snapshot_id: string;
+      /** Review Id */
+      review_id: string | null;
+      /** Review Version */
+      review_version: number | null;
+      /** Run Id */
+      run_id: string;
+      /**
+       * Source
+       * @enum {string}
+       */
+      source: 'runtime' | 'test';
+      /** Source Digest */
+      source_digest: string;
+      /** Version */
+      version: number;
+    };
     /** StageReceipt */
     StageReceipt: {
       /**
@@ -5202,6 +5711,48 @@ export interface components {
       /** Synchronous */
       synchronous: string;
     };
+    /** SubjectRef */
+    'SubjectRef-Input': {
+      /** Assessment Report Id */
+      assessment_report_id?: string | null;
+      /** Expected Version */
+      expected_version: number;
+      /** Family */
+      family: string;
+      /** Origin Group */
+      origin_group: string;
+      /** Review Id */
+      review_id?: string | null;
+      /** Run Id */
+      run_id: string;
+      /**
+       * Split
+       * @default train
+       * @enum {string}
+       */
+      split: 'train' | 'validation';
+    };
+    /** SubjectRef */
+    'SubjectRef-Output': {
+      /** Assessment Report Id */
+      assessment_report_id: string | null;
+      /** Expected Version */
+      expected_version: number;
+      /** Family */
+      family: string;
+      /** Origin Group */
+      origin_group: string;
+      /** Review Id */
+      review_id: string | null;
+      /** Run Id */
+      run_id: string;
+      /**
+       * Split
+       * @default train
+       * @enum {string}
+       */
+      split: 'train' | 'validation';
+    };
     /** SubmitProposal */
     SubmitProposal: {
       /** Arena Id */
@@ -5236,6 +5787,34 @@ export interface components {
        * @default []
        */
       pending: components['schemas']['PendingOperation'][];
+    };
+    /** TeacherUse */
+    'TeacherUse-Input': {
+      /** Declared Revision */
+      declared_revision: string;
+      /** Model Id */
+      model_id: string;
+      /** Terms Reference */
+      terms_reference: string;
+      /**
+       * Training Use Confirmed By User
+       * @default false
+       */
+      training_use_confirmed_by_user: boolean;
+    };
+    /** TeacherUse */
+    'TeacherUse-Output': {
+      /** Declared Revision */
+      declared_revision: string;
+      /** Model Id */
+      model_id: string;
+      /** Terms Reference */
+      terms_reference: string;
+      /**
+       * Training Use Confirmed By User
+       * @default false
+       */
+      training_use_confirmed_by_user: boolean;
     };
     /** ToolApproval */
     ToolApproval: {
@@ -5498,6 +6077,77 @@ export interface components {
       processed_at: string;
       /** Source */
       source: string;
+    };
+    /** TrainingExample */
+    TrainingExample: {
+      /**
+       * Engineering Only
+       * @default false
+       */
+      engineering_only: boolean;
+      /** Family */
+      family: string;
+      /**
+       * Following Tool Results
+       * @default []
+       */
+      following_tool_results: components['schemas']['ModelMessage-Output'][];
+      /**
+       * Group Id
+       * @default
+       */
+      group_id: string;
+      /** Id */
+      id: string;
+      /** Input Fingerprints */
+      input_fingerprints: string[];
+      /**
+       * Input Messages
+       * @default []
+       */
+      input_messages: components['schemas']['ModelMessage-Output'][];
+      /**
+       * Kind
+       * @enum {string}
+       */
+      kind: 'executor' | 'router' | 'decision';
+      /**
+       * Lineage Tokens
+       * @default []
+       */
+      lineage_tokens: string[];
+      /**
+       * Loss Message Indices
+       * @default []
+       */
+      loss_message_indices: number[];
+      /** Normalized Input */
+      normalized_input: string;
+      /** Normalized Target */
+      normalized_target: string;
+      /** Origin Group */
+      origin_group: string;
+      /** Proofs */
+      proofs: components['schemas']['SourceProof'][];
+      /**
+       * Split
+       * @enum {string}
+       */
+      split: 'train' | 'validation';
+      /** Structured Input */
+      structured_input: {
+        [key: string]: components['schemas']['JsonValue'];
+      };
+      /** Structured Target */
+      structured_target: {
+        [key: string]: components['schemas']['JsonValue'];
+      };
+      target_message: components['schemas']['ModelMessage-Output'] | null;
+      /**
+       * Tools
+       * @default []
+       */
+      tools: components['schemas']['ToolSpec'][];
     };
     /** Trajectory */
     Trajectory: {
@@ -8632,6 +9282,1022 @@ export interface operations {
           'application/json': {
             [key: string]: unknown;
           };
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  read_dataset_artifact_api_v1_datasets_artifacts__artifact_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        artifact_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  dataset_grants_api_v1_datasets_grants_get: {
+    parameters: {
+      query: {
+        project_id: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['DataGrant'][];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  dataset_grant_api_v1_datasets_grants_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['DataGrantCommand-Input'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['DataGrant'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  dataset_snapshots_api_v1_datasets_snapshots_get: {
+    parameters: {
+      query: {
+        project_id: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['DatasetSnapshot'][];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  build_dataset_api_v1_datasets_snapshots_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['DatasetBuild-Input'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['DatasetSnapshot'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  dataset_snapshot_api_v1_datasets_snapshots__snapshot_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        snapshot_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['DatasetSnapshot'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  export_dataset_api_v1_datasets_snapshots__snapshot_id__exports_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        snapshot_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ExportCommand-Input'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['DatasetArtifact'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  dataset_status_api_v1_datasets_status_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['DatasetStatus'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  withdraw_dataset_source_api_v1_datasets_withdrawals_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['DatasetWithdrawal'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': string[];
         };
       };
       /** @description Unauthorized */

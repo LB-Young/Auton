@@ -23,6 +23,7 @@ from auton.assess.service import AssessDependencies, Assessment
 from auton.assess.statistics import aggregate, kappa, wilson
 from auton.constitution.config import Principal
 from auton.constitution.secrets import SecretStoreFactory
+from auton.datasets.contracts import DatasetConfig
 from auton.decision_review.contracts import DecisionReviewConfig
 from auton.evolve.contracts import EvolutionConfig
 from auton.kernel.config import KernelConfig
@@ -864,6 +865,7 @@ async def test_http_protected_gold_and_judge_prompts_only_reach_private_journal(
         experience=ExperienceConfig(directory=tmp_path / "experience"),
         models=ModelConfig(backend="mock", fixture_scenario="agent_acceptance"),
         judgment=JudgmentConfig(backend="mock"),
+        datasets=DatasetConfig(directory=tmp_path / "datasets"),
         decision_review=DecisionReviewConfig(directory=tmp_path / "decision-review"),
         evolve=EvolutionConfig(directory=tmp_path / "evolve"),
         delegation=DelegationConfig(directory=tmp_path / "delegation"),

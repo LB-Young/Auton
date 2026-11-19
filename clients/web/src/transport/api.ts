@@ -54,6 +54,32 @@ export class ApiClientFactory {
       return (await response.json()) as T;
     }
     return {
+      datasets: {
+        status: () => request('/datasets/status'),
+        grants: (project) => request(`/datasets/grants?project_id=${encodeURIComponent(project)}`),
+        grant: (command) => request('/datasets/grants', command),
+        list: (project) => request(`/datasets/snapshots?project_id=${encodeURIComponent(project)}`),
+        build: (command) => request('/datasets/snapshots', command),
+        withdraw: (command) => request('/datasets/withdrawals', command),
+        export: (id, command) =>
+          request(`/datasets/snapshots/${encodeURIComponent(id)}/exports`, command),
+        download: async (id) => {
+          const response = await fetch(base + `/datasets/artifacts/${encodeURIComponent(id)}`, {
+            credentials: 'same-origin',
+            cache: 'no-store',
+          });
+          if (!response.ok) {
+            const error = (await response.json()) as ErrorBody;
+            throw new ApiError(error.code, error.message);
+          }
+          const url = URL.createObjectURL(await response.blob());
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `${id}.jsonl`;
+          link.click();
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+        },
+      },
       decisionReview: {
         status: () => request('/decision-review/status'),
         list: (project) =>

@@ -1,6 +1,6 @@
 # M17：数据加工、快照与谱系
 
-> 状态：计划中。当前仅建立开发计划，未实现本里程碑。
+> 状态：工程实现与本地真实来源导出已完成；检查结果见 [M17 验收](./evidence/M17.md)。没有启动训练，也不代表模型质量达标。
 
 ## 目标与前置依赖
 
@@ -14,10 +14,10 @@ DatasetPipelineFactory、ExporterFactory、LineageStoreFactory。对外 Port、�
 
 ## 开发任务
 
-- [ ] 资格/授权/脱敏/去重/家族分组/split 锁定先行；派生或 teacher 重写不能跨 split。
-- [ ] 分别构建 RouterDataset、ExecutorDataset、DecisionDataset；判断正样本只消费合格 KEEP。
-- [ ] canonical 样本与具体训练导出分离，manifest 关联 source、模型、模板、input_cutoff 和质量报告。
-- [ ] 实现幂等批处理、不可变 snapshot、撤回传播与受限导出，真实数据不入公开 Git。
+- [x] 资格/授权/脱敏/去重/家族分组/split 锁定先行；派生或 teacher 重写不能跨 split。
+- [x] 分别构建 RouterDataset、ExecutorDataset、DecisionDataset；判断正样本只消费合格 KEEP。
+- [x] canonical 样本与具体训练导出分离，manifest 关联 source、模型、模板、input_cutoff 和质量报告。
+- [x] 实现幂等批处理、不可变 snapshot、撤回传播与受限导出，真实数据不入公开 Git。
 
 ## 前端交付
 
@@ -38,3 +38,13 @@ DatasetPipelineFactory、ExporterFactory、LineageStoreFactory。对外 Port、�
 只产获准数据，不启动训练或直接决定模型可上线。
 
 交付实现、相关检查结果、接口/配置/迁移说明和页面演示；由验收证据更新 [总表](./README.md)，不以 Mock 通过替代真实模块完成。
+
+## 初始实现的受限范围
+
+Executor 只监督经独立文件验收的 `file_write` 动作，保持原请求、完整工具对与消息级监督位置；未经语义金标校准的回答不进入 SFT。具体 tokenizer 的 token mask 归 M18 验证。
+
+Router 只接受两条实际运行、原始输入及候选目录一致、初始文件不存在的受控成功对比，标签依据已观测费用；旧轨迹缺候选目录时拒绝补造。Decision 只消费 M16 当前合格 KEEP；目前真实 KEEP 门禁仍关闭。
+
+近重复采用明确版本的字符 5-gram Jaccard 启发式，配合同家族、原始来源、实际 DAG、验收家族/组和规范化输入指纹的连通分组。它不是语义 embedding，不能保证识别任意改写。跨 split 冲突拒绝，不把未检出的语义改写算作已解决。
+
+撤回阻止后续 API 读取与导出，保留不可变审计；已下载文件无法远程收回，后续训练 worker 必须通过来源复核接口使用。训练与模型发布仍分别属于 M18/M19、M20。

@@ -108,6 +108,9 @@ class AcceptanceCheck(Contract):
 
 
 class AgentRun(Contract):
+    decision_candidate_catalog: tuple[dict[str, JsonValue], ...] = ()
+    decision_catalog_cutoff: int | None = None
+    decision_catalog_goal_revision: int | None = None
     session_id: str = ""
     id: str
     version: int = 0

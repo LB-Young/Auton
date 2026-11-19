@@ -29,6 +29,7 @@ import type {
 } from '../shared/contracts';
 
 export interface ApiClient {
+  datasets: DatasetsApi;
   assessment: AssessmentApi;
   decisionReview: DecisionReviewApi;
   evolution: EvolutionApi;
@@ -202,4 +203,22 @@ export interface DecisionReviewApi {
   annotateMeta(
     command: import('../shared/contracts').MetaCaseCommand,
   ): Promise<import('../shared/contracts').CalibrationView>;
+}
+
+export interface DatasetsApi {
+  status(): Promise<import('../shared/contracts').DatasetStatus>;
+  grants(project: string): Promise<import('../shared/contracts').DataGrant[]>;
+  grant(
+    command: import('../shared/contracts').DataGrantCommand,
+  ): Promise<import('../shared/contracts').DataGrant>;
+  list(project: string): Promise<import('../shared/contracts').DatasetSnapshot[]>;
+  build(
+    command: import('../shared/contracts').DatasetBuild,
+  ): Promise<import('../shared/contracts').DatasetSnapshot>;
+  withdraw(command: import('../shared/contracts').DatasetWithdrawal): Promise<string[]>;
+  export(
+    id: string,
+    command: import('../shared/contracts').ExportCommand,
+  ): Promise<import('../shared/contracts').DatasetArtifact>;
+  download(id: string): Promise<void>;
 }

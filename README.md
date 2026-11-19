@@ -1,6 +1,6 @@
 # Auton
 
-个人 Agent 工作台。当前完成 **M01 项目框架、M02 持久事件内核、M03 固定控制策略、M04 执行模型网关、M05 本地判断接入、M06 受控工具、M07 版本资产、M08 上下文引擎、M09 单 Agent 执行闭环、M10 轨迹恢复、M11 服务协议、M12 真实工作台、M13 独立评测工程、M14 受控多 Agent 、M15 资产诊断/隔离进化与 M16 决策复核工程**：模块工厂、显式依赖组装、FastAPI API、React 对话界面与合成 Demo；M17–M21 尚未实现；M13 尚缺真实人工金标校准，语义可信门禁关闭。
+个人 Agent 工作台。当前完成 **M01 项目框架、M02 持久事件内核、M03 固定控制策略、M04 执行模型网关、M05 本地判断接入、M06 受控工具、M07 版本资产、M08 上下文引擎、M09 单 Agent 执行闭环、M10 轨迹恢复、M11 服务协议、M12 真实工作台、M13 独立评测工程、M14 受控多 Agent 、M15 资产诊断/隔离进化、M16 决策复核工程与 M17 数据快照/谱系**：模块工厂、显式依赖组装、FastAPI API、React 对话界面与合成 Demo；M18–M21 尚未实现；M13 尚缺真实人工金标校准，语义可信门禁关闭。
 
 后端和开发/验收辅助工具优先使用 Python。仅浏览器界面及其必要构建配置使用 TypeScript/React；Makefile 是 Python 命令入口。
 
@@ -246,3 +246,9 @@ M10 及更早版本的 Cookie 只有在原浏览器/CLI 私有文件仍保留时
 决策复核工作台 `?view=decision_review` 将当时合理性与后续贡献分开审查，校验真实引用、是否采用、验收、目标版本和多 Agent 影响链。DROP/HOLD 不进正样本；人工修订、晚到纠正和配置变化会使旧资格失效。当前 Laya 未采用且缺少真实人工 meta/因果对照，自动 KEEP 门禁关闭。
 
 `make decision-review-smoke` 在已完成的 M15 公开工程轨迹上进行两次有界真实复核；已有记录用 `.venv/bin/python scripts/decision_review_smoke.py --reuse-completed` 只读重用。真实 reviewer 无引用的环境归因被拒绝并保留 HOLD，未把模型输出当作真值。参见[M16 接口、门禁与验收](./docs/milestones/evidence/M16.md)。
+
+## 数据快照与谱系（M17）
+
+`?view=datasets` 提供范围明确的授权、三类数据批次、来源/分组/划分、拒绝原因、JSONL 导出与撤回。授权默认关闭；原始模型事件、工具凭据、独立验收与固定版本必须匹配。私有数据库和导出文件不入 Git。test/meta、reviewer meta、全部进化实验分支禁止进入学习；测试来源只能验证工程，不能导出训练。
+
+`make dataset-smoke` 复用本机 M15 的公开原始诊断任务，验证真实文件动作导出、授权撤回与下载拒绝，不增加付费模型调用。`.venv/bin/python scripts/dataset_smoke.py --reuse-completed` 验证新进程重用。当前只有一条真实样本，尚未开始训练，也不能据此宣称效果提升。见 [M17 验收与限制](./docs/milestones/evidence/M17.md)。

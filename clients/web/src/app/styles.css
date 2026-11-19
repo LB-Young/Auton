@@ -1638,3 +1638,51 @@ svg {
   overflow-wrap: anywhere;
   cursor: pointer;
 }
+
+.datasets-page label {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0;
+  font-size: 14px;
+}
+.datasets-page select,
+.datasets-page textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface-soft);
+  color: var(--text);
+  font: inherit;
+}
+.datasets-page textarea {
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  resize: vertical;
+}
+.datasets-page button {
+  margin: 8px 8px 8px 0;
+  padding: 10px 16px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface-soft);
+  color: var(--text);
+}
+.datasets-page button:disabled {
+  opacity: 0.45;
+}
+.datasets-page pre {
+  max-width: 100%;
+  max-height: 400px;
+  overflow: auto;
+  padding: 12px;
+  background: var(--surface-soft);
+  font-size: 12px;
+}
+.datasets-page article,
+.datasets-page details {
+  margin: 16px 0;
+  overflow-wrap: anywhere;
+}

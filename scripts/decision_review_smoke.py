@@ -38,6 +38,7 @@ def main(reuse: bool) -> None:
         "delegation",
         "evolve",
         "decision_review",
+        "datasets",
         "kernel",
     ):
         config[section] = {

@@ -620,11 +620,22 @@ class AgentRuntime:
         judgment_id = judgment_prefix + str(run.version)
         if not recovering and not any(j.startswith(judgment_prefix) for j in run.judgment_ids):
             async with self._lock:
+                run = await self.repo.load(principal.owner, identity)
                 run = await self._save(
                     principal,
-                    await self.repo.load(principal.owner, identity),
+                    run,
                     phase="judgment",
                     reason="local_judgment_advisory",
+                    decision_candidate_catalog=run.decision_candidate_catalog
+                    if run.decision_catalog_goal_revision == run.goal_revision
+                    else tuple(
+                        m.model_dump(mode="json", exclude={"health"})
+                        for m in self.deps.models.catalog()
+                    ),
+                    decision_catalog_cutoff=run.decision_catalog_cutoff
+                    if run.decision_catalog_goal_revision == run.goal_revision
+                    else run.version + 1,
+                    decision_catalog_goal_revision=run.goal_revision,
                 )
             judgment_request = JudgmentRequest(
                 request_id=judgment_id,

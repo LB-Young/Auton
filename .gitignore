@@ -23,4 +23,4 @@ test-results/
 *.log
 data/
 weights/
-datasets/
+/datasets/

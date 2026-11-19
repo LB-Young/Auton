@@ -17,6 +17,20 @@ from auton.kernel.ports import ApplicationError
 class Evolution(ProposalService):
     runner: ArenaRunner
 
+    async def optimization_request_ids(self, principal: Principal, project: str) -> tuple[str, ...]:
+        self.user(principal)
+        await self.deps.assets.resolve(principal, project)
+        return tuple(
+            sorted(
+                {
+                    "evo-" + str(trial["id"])
+                    for arena in await self.store.list("arena", principal.owner)
+                    if arena["project_id"] == project
+                    for trial in arena["trials"]
+                }
+            )
+        )
+
     async def start(self) -> None:
         await self.store.start()
         self.runner.accepting = True

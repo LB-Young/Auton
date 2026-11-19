@@ -80,9 +80,10 @@ def test_narrow_screen_navigation_and_artifact(page: Page) -> None:
     screenshot(page, "mobile-home.png")
     page.get_by_role("button", name="展开导航").click()
     page.get_by_role("button", name=re.compile("^学习")).click()
-    expect(page.get_by_role("heading", name="学习", exact=True)).to_be_visible()
-    expect(page.get_by_text("M17 · 待开发")).to_be_visible()
-    page.get_by_role("button", name="返回对话").click()
+    expect(page.get_by_role("heading", name="数据集与谱系", exact=True)).to_be_visible()
+    expect(page.get_by_text("暂无数据快照。", exact=True)).to_be_visible()
+    page.get_by_role("button", name="展开导航").click()
+    page.get_by_role("button", name="演示对话 · Demo", exact=True).click()
     text = page.get_by_role("textbox", name="任务输入")
     text.fill("移动端演示")
     page.get_by_role("button", name="发送消息").click()
@@ -1046,3 +1047,35 @@ def test_decision_review_shadow_exclusion_manual_revision_reload_and_mobile(page
     page.get_by_role("heading", name="决策轨迹复核", exact=True).scroll_into_view_if_needed()
     assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
     screenshot(page, "M16-decision-review-mobile.png")
+
+
+def test_datasets_scoped_grant_defaults_withdraw_reload_and_mobile(page: Page) -> None:
+    import json
+    from uuid import uuid4
+
+    project = "dataset-" + uuid4().hex[:10]
+    seed_workbench(page, project)
+    page.goto(BASE + "?view=datasets")
+    expect(page.get_by_role("heading", name="数据集与谱系", exact=True)).to_be_visible()
+    page.get_by_label("数据项目", exact=True).select_option(project)
+    expect(page.get_by_text("暂无数据快照。", exact=True)).to_be_visible()
+    page.get_by_role("button", name="准备数据命令", exact=True).click()
+    editor = page.get_by_label("数据命令", exact=True)
+    expect(editor).not_to_have_value("")
+    command = json.loads(editor.input_value())
+    assert command["local_training_authorized"] is False
+    assert command["allow_local_only_data"] is False
+    screenshot(page, "M17-datasets-desktop.png")
+    page.get_by_label("数据操作", exact=True).select_option("withdraw")
+    page.get_by_role("button", name="准备数据命令", exact=True).click()
+    expect(editor).to_have_value(re.compile('"reason"', re.S))
+    command = json.loads(editor.input_value())
+    command["project_id"] = "another-project"
+    editor.fill(json.dumps(command))
+    page.get_by_role("button", name="提交数据操作", exact=True).click()
+    expect(page.get_by_role("alert")).to_contain_text("命令项目必须与当前项目一致")
+    page.reload()
+    expect(page.get_by_role("heading", name="数据集与谱系", exact=True)).to_be_visible()
+    page.set_viewport_size({"width": 390, "height": 844})
+    assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+    screenshot(page, "M17-datasets-mobile.png")
