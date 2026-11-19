@@ -22,6 +22,7 @@ from auton.kernel.ports import RuntimeDependencies
 from auton.model.config import ModelConfig
 from auton.server.identity import ServerSettings
 from auton.tools.config import ToolConfig
+from auton.training.contracts import TrainingConfig
 
 
 @pytest.fixture
@@ -34,6 +35,7 @@ def client(deps: RuntimeDependencies, tmp_path: Path) -> Iterator[TestClient]:
     app = ApplicationFactory().create(
         ApplicationConfig(
             datasets=DatasetConfig(directory=tmp_path / "datasets"),
+            training=TrainingConfig(directory=tmp_path / "training"),
             decision_review=DecisionReviewConfig(directory=tmp_path / "decision-review"),
             evolve=EvolutionConfig(directory=tmp_path / "evolve"),
             delegation=DelegationConfig(directory=tmp_path / "delegation"),

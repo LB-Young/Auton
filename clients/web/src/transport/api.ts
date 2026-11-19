@@ -54,6 +54,17 @@ export class ApiClientFactory {
       return (await response.json()) as T;
     }
     return {
+      training: {
+        status: () => request('/training/status'),
+        plans: (project) => request(`/training/plans?project_id=${encodeURIComponent(project)}`),
+        plan: (command) => request('/training/plans', command),
+        jobs: (project) => request(`/training/jobs?project_id=${encodeURIComponent(project)}`),
+        create: (command) => request('/training/jobs', command),
+        control: (id, command) =>
+          request(`/training/jobs/${encodeURIComponent(id)}/commands`, command),
+        bundles: (project) =>
+          request(`/training/bundles?project_id=${encodeURIComponent(project)}`),
+      },
       datasets: {
         status: () => request('/datasets/status'),
         grants: (project) => request(`/datasets/grants?project_id=${encodeURIComponent(project)}`),

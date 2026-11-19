@@ -316,9 +316,21 @@ class DatasetSourceReader:
                 "Provide independent acceptance for the source checkpoint",
             )
         groups = ["run:" + run.id, "family:" + ref.family, "origin:" + ref.origin_group]
-        if report is not None:
-            groups.append("assessment-family:" + report.family)
-            groups.extend("assessment-group:" + g for g in report.groups)
+        if report is not None and report.case_id is not None:
+            if not report.bank_revision or report.split not in {"train", "development"}:
+                raise ApplicationError(
+                    409, "dataset_case_lineage_missing", "Case lineage is incomplete"
+                )
+            task = await self.deps.assess.optimization_task(
+                principal,
+                report.case_id,
+                report.bank_revision,
+                "train" if report.split == "train" else "development",
+            )
+            groups.extend(("family:" + task.family, "origin:" + task.origin_group))
+        # EvalReport.groups are language/risk/domain calibration buckets, not
+        # shared data ancestry. Operational report.family is just file/research.
+
         for parent in await self.deps.delegation.list(principal, command.project_id):
             if any(c.run_id == run.id for c in parent.children):
                 groups.append("dag:" + parent.id)

@@ -112,6 +112,15 @@ from auton.tools.contracts import (
     ToolReceipt,
     ToolRequest,
 )
+from auton.training.contracts import (
+    TrainingBundle,
+    TrainingControl,
+    TrainingJob,
+    TrainingJobCommand,
+    TrainingPlan,
+    TrainingPlanCommand,
+    TrainingStatus,
+)
 
 
 class LegacyIdentityCommand(BaseModel):
@@ -463,6 +472,49 @@ class ServerFactory:
         ) -> AgentRun:
             return await deps.commands.recover(
                 Principal(owner=owner(request), role="user"), project_id, run_id, command
+            )
+
+        @app.get("/api/v1/training/status")
+        async def training_status(request: Request) -> TrainingStatus:
+            owner(request)
+            return deps.training.status()
+
+        @app.get("/api/v1/training/plans")
+        async def training_plans(request: Request, project_id: str) -> tuple[TrainingPlan, ...]:
+            return await deps.training.plans(
+                Principal(owner=owner(request), role="user"), project_id
+            )
+
+        @app.post("/api/v1/training/plans", status_code=201)
+        async def training_plan(request: Request, command: TrainingPlanCommand) -> TrainingPlan:
+            return await deps.training.plan(Principal(owner=owner(request), role="user"), command)
+
+        @app.post("/api/v1/training/jobs", status_code=201)
+        async def training_create(request: Request, command: TrainingJobCommand) -> TrainingJob:
+            return await deps.training.create(Principal(owner=owner(request), role="user"), command)
+
+        @app.get("/api/v1/training/jobs")
+        async def training_jobs(request: Request, project_id: str) -> tuple[TrainingJob, ...]:
+            return await deps.training.jobs(
+                Principal(owner=owner(request), role="user"), project_id
+            )
+
+        @app.get("/api/v1/training/jobs/{job_id}")
+        async def training_job(request: Request, job_id: str) -> TrainingJob:
+            return await deps.training.get(Principal(owner=owner(request), role="user"), job_id)
+
+        @app.post("/api/v1/training/jobs/{job_id}/commands")
+        async def training_control(
+            request: Request, job_id: str, command: TrainingControl
+        ) -> TrainingJob:
+            return await deps.training.control(
+                Principal(owner=owner(request), role="user"), job_id, command
+            )
+
+        @app.get("/api/v1/training/bundles")
+        async def training_bundles(request: Request, project_id: str) -> tuple[TrainingBundle, ...]:
+            return await deps.training.bundles(
+                Principal(owner=owner(request), role="user"), project_id
             )
 
         @app.get("/api/v1/datasets/status")

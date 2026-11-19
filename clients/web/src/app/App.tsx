@@ -1,3 +1,4 @@
+import { Training } from '../features/training/Training';
 import { Datasets } from '../features/datasets/Datasets';
 import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from 'react';
 import {
@@ -50,6 +51,12 @@ import { Models } from '../features/models/Models';
 import { Markdown } from '../shared/Markdown';
 
 const workspaces = [
+  {
+    id: 'training',
+    label: '执行训练',
+    icon: GraduationCap,
+    description: '配置训练计划、管理作业并复测离线候选。',
+  },
   { id: 'context', label: '上下文', icon: BookOpen, description: '查看来源、保留状态与输入预算。' },
   { id: 'tools', label: '工具', icon: Wrench, description: '受控文件、审批与执行凭据。' },
   { id: 'agent', label: '任务', icon: Workflow, description: '查看任务进展、审批与执行记录。' },
@@ -802,6 +809,8 @@ export function App({ application }: { application: Application }) {
               <Delegation feature={application.delegation} />
             ) : view === 'decision_review' ? (
               <DecisionReview feature={application.decisionReview} />
+            ) : view === 'training' ? (
+              <Training feature={application.training} />
             ) : view === 'datasets' ? (
               <Datasets feature={application.datasets} />
             ) : view === 'evolve' ? (

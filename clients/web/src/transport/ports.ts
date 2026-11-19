@@ -29,6 +29,7 @@ import type {
 } from '../shared/contracts';
 
 export interface ApiClient {
+  training: TrainingApi;
   datasets: DatasetsApi;
   assessment: AssessmentApi;
   decisionReview: DecisionReviewApi;
@@ -221,4 +222,21 @@ export interface DatasetsApi {
     command: import('../shared/contracts').ExportCommand,
   ): Promise<import('../shared/contracts').DatasetArtifact>;
   download(id: string): Promise<void>;
+}
+
+export interface TrainingApi {
+  status(): Promise<import('../shared/contracts').TrainingStatus>;
+  plans(project: string): Promise<import('../shared/contracts').TrainingPlan[]>;
+  plan(
+    command: import('../shared/contracts').TrainingPlanCommand,
+  ): Promise<import('../shared/contracts').TrainingPlan>;
+  jobs(project: string): Promise<import('../shared/contracts').TrainingJob[]>;
+  create(
+    command: import('../shared/contracts').TrainingJobCommand,
+  ): Promise<import('../shared/contracts').TrainingJob>;
+  control(
+    id: string,
+    command: import('../shared/contracts').TrainingControl,
+  ): Promise<import('../shared/contracts').TrainingJob>;
+  bundles(project: string): Promise<import('../shared/contracts').TrainingBundle[]>;
 }

@@ -21,9 +21,11 @@ from auton.kernel.config import KernelConfig
 from auton.model.config import ModelConfig
 from auton.server.identity import ServerSettings
 from auton.tools.config import ToolConfig
+from auton.training.contracts import TrainingConfig
 
 
 class ApplicationConfig(BaseModel):
+    training: TrainingConfig = Field(default_factory=TrainingConfig)
     datasets: DatasetConfig = Field(default_factory=DatasetConfig)
     decision_review: DecisionReviewConfig = Field(default_factory=DecisionReviewConfig)
     evolve: EvolutionConfig = Field(default_factory=EvolutionConfig)

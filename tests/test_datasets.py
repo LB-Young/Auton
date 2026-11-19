@@ -496,3 +496,23 @@ async def test_export_disk_faults_and_source_change_recheck(
     with pytest.raises(ApplicationError) as withdrawn:
         await datasets.read_artifact(USER, artifact.id)
     assert withdrawn.value.code == "dataset_artifact_withdrawn" and calls == 2
+
+
+async def test_calibration_buckets_are_not_source_family_tokens(datasets: Datasets) -> None:
+    ref = await source(datasets, "source-family")
+    consent = await grant(datasets, ref)
+    snapshot = await datasets.build(
+        USER,
+        DatasetBuild(
+            request_id="source-family-build",
+            project_id="project",
+            kind="executor",
+            grant_id=consent.id,
+            subjects=(ref,),
+        ),
+    )
+    assert snapshot.examples
+    tokens = snapshot.examples[0].lineage_tokens
+    assert "family:source-family" in tokens
+    assert "assessment-family:file" not in tokens
+    assert not any(token.startswith("assessment-group:") for token in tokens)

@@ -29,6 +29,7 @@ from auton.server.feedback import FeedbackPort
 from auton.server.identity import IdentityInfo, IdentityPort
 from auton.server.uploads import UploadPort
 from auton.tools.ports import ToolHostPort
+from auton.training.ports import ExecutorTrainingPort
 
 
 class BootstrapResponse(BaseModel):
@@ -60,6 +61,7 @@ class ServerDependencies:
     commands: CommandHandlerPort
     identity: IdentityPort
     events: EventLogPort
+    training: ExecutorTrainingPort
     datasets: DatasetPort
     decision_review: DecisionReviewPort
     evolve: EvolutionPort

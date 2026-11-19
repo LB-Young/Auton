@@ -147,3 +147,11 @@ export type DatasetSnapshot = components['schemas']['DatasetSnapshot'];
 export type DatasetWithdrawal = components['schemas']['DatasetWithdrawal'];
 export type ExportCommand = components['schemas']['ExportCommand-Input'];
 export type DatasetArtifact = components['schemas']['DatasetArtifact'];
+
+export type TrainingStatus = components['schemas']['TrainingStatus'];
+export type TrainingPlan = components['schemas']['TrainingPlan'];
+export type TrainingPlanCommand = components['schemas']['TrainingPlanCommand-Input'];
+export type TrainingJob = components['schemas']['TrainingJob'];
+export type TrainingJobCommand = components['schemas']['TrainingJobCommand'];
+export type TrainingControl = components['schemas']['TrainingControl'];
+export type TrainingBundle = components['schemas']['TrainingBundle'];

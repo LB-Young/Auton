@@ -33,6 +33,7 @@ from auton.model.config import ModelConfig
 from auton.model.contracts import ModelRequest, ModelResult, ToolCall
 from auton.model.factory import ModelGatewayFactory
 from auton.model.gateway import GatewayDependencies
+from auton.training.contracts import TrainingConfig
 
 
 @pytest.fixture
@@ -866,6 +867,7 @@ async def test_http_protected_gold_and_judge_prompts_only_reach_private_journal(
         models=ModelConfig(backend="mock", fixture_scenario="agent_acceptance"),
         judgment=JudgmentConfig(backend="mock"),
         datasets=DatasetConfig(directory=tmp_path / "datasets"),
+        training=TrainingConfig(directory=tmp_path / "training"),
         decision_review=DecisionReviewConfig(directory=tmp_path / "decision-review"),
         evolve=EvolutionConfig(directory=tmp_path / "evolve"),
         delegation=DelegationConfig(directory=tmp_path / "delegation"),

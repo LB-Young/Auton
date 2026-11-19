@@ -1079,3 +1079,31 @@ def test_datasets_scoped_grant_defaults_withdraw_reload_and_mobile(page: Page) -
     page.set_viewport_size({"width": 390, "height": 844})
     assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
     screenshot(page, "M17-datasets-mobile.png")
+
+
+def test_portable_training_disabled_defaults_plan_and_mobile(page: Page) -> None:
+    import json
+    from uuid import uuid4
+
+    project = "training-" + uuid4().hex[:10]
+    seed_workbench(page, project)
+    page.goto(BASE + "?view=training")
+    expect(page.get_by_role("heading", name="执行模型训练", exact=True)).to_be_visible()
+    expect(page.get_by_text("训练后端未配置。", exact=False)).to_be_visible()
+    page.get_by_label("训练项目", exact=True).select_option(project)
+    page.get_by_role("button", name="准备训练计划", exact=True).click()
+    editor = page.get_by_label("训练计划命令", exact=True)
+    command = json.loads(editor.input_value())
+    assert command["engineering_probe"] is False and command["project_id"] == project
+    command["train_artifact_id"] = "0" * 64
+    editor.fill(json.dumps(command))
+    page.get_by_role("button", name="检查并保存计划", exact=True).click()
+    expect(page.get_by_text("training_backend_disabled", exact=False).first).to_be_visible()
+    expect(page.get_by_role("button", name="启动训练作业", exact=True)).to_be_disabled()
+    screenshot(page, "M18-training-desktop.png")
+    page.reload()
+    page.get_by_label("训练项目", exact=True).select_option(project)
+    expect(page.get_by_role("button", name="启动训练作业", exact=True)).to_be_disabled()
+    page.set_viewport_size({"width": 390, "height": 844})
+    assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+    screenshot(page, "M18-training-mobile.png")

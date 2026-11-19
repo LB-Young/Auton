@@ -67,7 +67,7 @@ root_package = "auton"
 name = "Kernel is independent"
 type = "forbidden"
 source_modules = ["auton.kernel"]
-forbidden_modules = ["auton.bootstrap", "auton.demo", "auton.server", "auton.constitution", "auton.model", "auton.judgment", "auton.tools", "auton.genome", "auton.context", "auton.agent", "auton.experience", "auton.assess", "auton.delegation", "auton.evolve", "auton.decision_review", "auton.datasets"]
+forbidden_modules = ["auton.bootstrap", "auton.demo", "auton.server", "auton.constitution", "auton.model", "auton.judgment", "auton.tools", "auton.genome", "auton.context", "auton.agent", "auton.experience", "auton.assess", "auton.delegation", "auton.evolve", "auton.decision_review", "auton.datasets", "auton.training"]
 
 [[tool.importlinter.contracts]]
 name = "Demo never imports transport or composition"
@@ -255,3 +255,15 @@ name = "Execution cannot curate or export training data"
 type = "forbidden"
 source_modules = ["auton.agent", "auton.model", "auton.judgment", "auton.tools", "auton.context", "auton.genome", "auton.assess", "auton.evolve", "auton.decision_review", "auton.delegation"]
 forbidden_modules = ["auton.datasets"]
+
+[[tool.importlinter.contracts]]
+name = "Training only consumes qualified data ports"
+type = "forbidden"
+source_modules = ["auton.training"]
+forbidden_modules = ["auton.bootstrap", "auton.server", "auton.model.gateway", "auton.model.provider", "auton.agent.service", "auton.datasets.service", "auton.datasets.store", "auton.assess.service", "auton.tools", "auton.decision_review.service", "auton.evolve.service"]
+
+[[tool.importlinter.contracts]]
+name = "Executors cannot train or register themselves"
+type = "forbidden"
+source_modules = ["auton.agent", "auton.model", "auton.judgment", "auton.tools", "auton.context", "auton.genome", "auton.datasets", "auton.assess", "auton.decision_review", "auton.evolve"]
+forbidden_modules = ["auton.training"]
