@@ -58,6 +58,11 @@ export function Agent({
   const [goal, setGoal] = useState(feature.draft.goal);
   const goalInput = useRef<HTMLTextAreaElement>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [sendAttempted, setSendAttempted] = useState(false);
+  const settingsPanel = useRef<HTMLDivElement>(null);
+  const missingSettings = [!project && '项目', !workspace && '工作区', !model && '执行模型'].filter(
+    Boolean,
+  );
   const [boundaries, setBoundaries] = useState(feature.draft.boundaries);
   const [kind, setKind] = useState<'research' | 'file'>(feature.draft.kind);
   const [path, setPath] = useState(feature.draft.path);
@@ -86,6 +91,7 @@ export function Agent({
       setPath(feature.draft.path);
       setPublic(feature.draft.isPublic);
       setSettingsOpen(false);
+      setSendAttempted(false);
     }
   }, [draftVersion, feature]);
   useEffect(() => {
@@ -170,6 +176,17 @@ export function Agent({
   }
   const act = (action: () => Promise<AgentRun>) => controller.act(action);
   async function create() {
+    if (busy || loading || !goal.trim()) return;
+    if (missingSettings.length) {
+      setSendAttempted(true);
+      setSettingsOpen(true);
+      requestAnimationFrame(() => {
+        settingsPanel.current?.focus({ preventScroll: true });
+        settingsPanel.current?.scrollIntoView({ block: 'nearest' });
+      });
+      return;
+    }
+    setSendAttempted(false);
     await act(async () => {
       const sha =
         kind === 'file'
@@ -245,8 +262,7 @@ export function Agent({
                   event.keyCode !== 229
                 ) {
                   event.preventDefault();
-                  if (!busy && !loading && project && workspace && model && goal.trim())
-                    void create();
+                  void create();
                 }
               }}
             />
@@ -267,7 +283,7 @@ export function Agent({
               className="task-send"
               aria-label="启动真实任务"
               title="发送任务（Enter）"
-              disabled={busy || loading || !project || !workspace || !model || !goal.trim()}
+              disabled={busy || loading || !goal.trim()}
               onClick={() => void create()}
             >
               <ArrowUp size={21} />
@@ -287,7 +303,18 @@ export function Agent({
             'Enter 发送 · Shift + Enter 换行'
           )}
         </p>
-        <div id="task-settings" className="task-settings" hidden={!settingsOpen}>
+        {sendAttempted && missingSettings.length > 0 && (
+          <p className="notice-banner" role="alert">
+            尚未发送：请先在任务设置中配置{missingSettings.join('、')}。输入内容已保留。
+          </p>
+        )}
+        <div
+          ref={settingsPanel}
+          tabIndex={-1}
+          id="task-settings"
+          className="task-settings"
+          hidden={!settingsOpen}
+        >
           <h2>任务设置</h2>
           {!loading && (!projects.length || !workspaces.length) && (
             <div className="task-setup" role="status">
