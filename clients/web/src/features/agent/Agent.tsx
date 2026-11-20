@@ -1,3 +1,4 @@
+import { ArrowUp, SlidersHorizontal, Sparkles } from 'lucide-react';
 import {
   useEffect,
   useRef,
@@ -56,6 +57,7 @@ export function Agent({
   const [model, setModel] = useState(feature.draft.model);
   const [goal, setGoal] = useState(feature.draft.goal);
   const goalInput = useRef<HTMLTextAreaElement>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [boundaries, setBoundaries] = useState(feature.draft.boundaries);
   const [kind, setKind] = useState<'research' | 'file'>(feature.draft.kind);
   const [path, setPath] = useState(feature.draft.path);
@@ -83,6 +85,7 @@ export function Agent({
       setKind(feature.draft.kind);
       setPath(feature.draft.path);
       setPublic(feature.draft.isPublic);
+      setSettingsOpen(false);
     }
   }, [draftVersion, feature]);
   useEffect(() => {
@@ -207,224 +210,266 @@ export function Agent({
   }
   return (
     <section className="module-page tool-page context-page agent-page">
-      <p className="eyebrow">项目与任务工作台</p>
-      <h1>开始一件值得完成的事</h1>
-      <p className="module-description">
-        从明确目标开始，通过模型和受控工具完成任务，由宿主核对交付。
-      </p>
+      <header className="task-intro" hidden={Boolean(run)}>
+        <span className="task-intro-icon" aria-hidden="true">
+          <Sparkles size={32} strokeWidth={1.5} />
+        </span>
+        <p className="eyebrow">从一个想法开始</p>
+        <h1>开始一件值得完成的事</h1>
+        <p className="module-description">描述你想完成的任务，让我们一起推进。</p>
+      </header>
       {loading && <p role="status">正在加载任务连接…</p>}
       {error && (
         <p className="notice-banner" role="alert">
           {error}
         </p>
       )}
-      <article className="settings-card">
-        <h2>创建任务</h2>
-        <label className="judgment-label">
-          你想完成什么？
-          <textarea
-            ref={goalInput}
-            className="judgment-input task-composer"
-            aria-label="真实任务目标"
-            placeholder="描述你的任务，例如：总结项目资料中的主要内容，并给出引用。"
-            rows={5}
-            maxLength={2000}
-            value={goal}
-            onChange={(e) => setGoal(e.target.value)}
-            onKeyDown={(event) => {
-              if (
-                event.key === 'Enter' &&
-                !event.shiftKey &&
-                !event.nativeEvent.isComposing &&
-                event.keyCode !== 229
-              ) {
-                event.preventDefault();
-                if (!busy && !loading && project && workspace && model && goal.trim())
-                  void create();
-              }
-            }}
-          />
-        </label>
-        {!loading && (!projects.length || !workspaces.length) && (
-          <div className="task-setup" role="status">
-            <p>可以先输入任务目标。开始执行前，请准备项目资料和工作区。</p>
-            {!projects.length && (
-              <button
-                type="button"
-                className="secondary-button"
-                onClick={() => onNavigate?.('genome')}
-              >
-                创建项目与添加资料
-              </button>
-            )}
-            {!workspaces.length && (
-              <button
-                type="button"
-                className="secondary-button"
-                onClick={() => onNavigate?.('tools')}
-              >
-                创建工作区
-              </button>
-            )}
-          </div>
-        )}
-        <div className="run-config-grid">
-          <label className="judgment-label">
-            项目
-            <select
-              aria-label="任务项目"
-              value={project}
-              disabled={busy}
-              onChange={(e) => void controller.project(e.target.value)}
-            >
-              {!projects.length && <option value="">请先创建项目</option>}
-              {projects.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.title}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="judgment-label">
-            工作区
-            <select
-              aria-label="任务工作区"
-              value={workspace}
-              disabled={busy}
-              onChange={(e) => setWorkspace(e.target.value)}
-            >
-              {!workspaces.length && <option value="">请先创建工作区</option>}
-              {workspaces.map((w) => (
-                <option key={w.id} value={w.id}>
-                  {w.title} {w.read_only ? '· 只读' : '· 可申请写入'}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="judgment-label">
-            执行模型
-            <select
-              aria-label="任务模型"
-              value={model}
-              disabled={busy}
-              onChange={(e) => setModel(e.target.value)}
-            >
-              {models.some((m) => m.provider === 'local') && (
-                <option value="project_default">项目批准的灰度策略</option>
-              )}
-              {models.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.id}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="judgment-label">
-            验收类型
-            <select
-              aria-label="任务验收类型"
-              value={kind}
-              onChange={(e) => setKind(e.target.value as 'research' | 'file')}
-            >
-              <option value="research">只读资料调研 · 引用检查</option>
-              <option value="file">精确文件写入 · SHA256 检查</option>
-            </select>
-          </label>
-        </div>
-        <details>
-          <summary>任务边界（可选）</summary>
-          <label className="judgment-label">
-            必留边界（每行一条）
+      <article className="task-compose-area" aria-label="任务对话输入">
+        <div className="composer task-chat-composer">
+          <label className="task-goal-label">
+            <span className="task-sr-only">你想完成什么？</span>
             <textarea
-              className="judgment-input"
-              aria-label="真实任务边界"
-              rows={2}
-              value={boundaries}
-              onChange={(e) => setBoundaries(e.target.value)}
+              ref={goalInput}
+              className="task-composer"
+              aria-label="真实任务目标"
+              placeholder="给 Auton 发消息，描述你想完成的任务…"
+              rows={3}
+              maxLength={2000}
+              value={goal}
+              onChange={(e) => setGoal(e.target.value)}
+              onKeyDown={(event) => {
+                if (
+                  event.key === 'Enter' &&
+                  !event.shiftKey &&
+                  !event.nativeEvent.isComposing &&
+                  event.keyCode !== 229
+                ) {
+                  event.preventDefault();
+                  if (!busy && !loading && project && workspace && model && goal.trim())
+                    void create();
+                }
+              }}
             />
           </label>
-        </details>
-        {kind === 'file' && (
-          <>
+          <div className="task-chat-toolbar">
+            <button
+              type="button"
+              className="task-settings-toggle"
+              aria-expanded={settingsOpen}
+              aria-controls="task-settings"
+              onClick={() => setSettingsOpen(!settingsOpen)}
+            >
+              <SlidersHorizontal size={16} />
+              任务设置
+            </button>
+            <span className="task-model-label">{model || '加载模型…'}</span>
+            <button
+              className="task-send"
+              aria-label="启动真实任务"
+              title="发送任务（Enter）"
+              disabled={busy || loading || !project || !workspace || !model || !goal.trim()}
+              onClick={() => void create()}
+            >
+              <ArrowUp size={21} />
+            </button>
+          </div>
+        </div>
+        <p className="task-composer-hint">
+          {!loading && (!projects.length || !workspaces.length) ? (
+            <>
+              首次使用，请在
+              <button type="button" onClick={() => setSettingsOpen(true)}>
+                任务设置
+              </button>
+              中准备项目和工作区。可以先写下你的想法。
+            </>
+          ) : (
+            'Enter 发送 · Shift + Enter 换行'
+          )}
+        </p>
+        <div id="task-settings" className="task-settings" hidden={!settingsOpen}>
+          <h2>任务设置</h2>
+          {!loading && (!projects.length || !workspaces.length) && (
+            <div className="task-setup" role="status">
+              <p>可以先输入任务目标。开始执行前，请准备项目资料和工作区。</p>
+              {!projects.length && (
+                <button
+                  type="button"
+                  className="secondary-button"
+                  onClick={() => onNavigate?.('genome')}
+                >
+                  创建项目与添加资料
+                </button>
+              )}
+              {!workspaces.length && (
+                <button
+                  type="button"
+                  className="secondary-button"
+                  onClick={() => onNavigate?.('tools')}
+                >
+                  创建工作区
+                </button>
+              )}
+            </div>
+          )}
+          <div className="run-config-grid">
             <label className="judgment-label">
-              目标路径
-              <input
-                aria-label="任务目标路径"
-                value={path}
-                maxLength={400}
-                onChange={(e) => setPath(e.target.value)}
-              />
+              项目
+              <select
+                aria-label="任务项目"
+                value={project}
+                disabled={busy}
+                onChange={(e) => void controller.project(e.target.value)}
+              >
+                {!projects.length && <option value="">请先创建项目</option>}
+                {projects.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.title}
+                  </option>
+                ))}
+              </select>
             </label>
             <label className="judgment-label">
-              期望的完整文件内容
+              工作区
+              <select
+                aria-label="任务工作区"
+                value={workspace}
+                disabled={busy}
+                onChange={(e) => setWorkspace(e.target.value)}
+              >
+                {!workspaces.length && <option value="">请先创建工作区</option>}
+                {workspaces.map((w) => (
+                  <option key={w.id} value={w.id}>
+                    {w.title} {w.read_only ? '· 只读' : '· 可申请写入'}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="judgment-label">
+              执行模型
+              <select
+                aria-label="任务模型"
+                value={model}
+                disabled={busy}
+                onChange={(e) => setModel(e.target.value)}
+              >
+                {models.some((m) => m.provider === 'local') && (
+                  <option value="project_default">项目批准的灰度策略</option>
+                )}
+                {models.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.id}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="judgment-label">
+              验收类型
+              <select
+                aria-label="任务验收类型"
+                value={kind}
+                onChange={(e) => setKind(e.target.value as 'research' | 'file')}
+              >
+                <option value="research">只读资料调研 · 引用检查</option>
+                <option value="file">精确文件写入 · SHA256 检查</option>
+              </select>
+            </label>
+          </div>
+          <details>
+            <summary>任务边界（可选）</summary>
+            <label className="judgment-label">
+              必留边界（每行一条）
               <textarea
                 className="judgment-input"
-                aria-label="任务期望内容"
-                rows={4}
-                value={content}
-                maxLength={1000}
-                onChange={(e) => setContent(e.target.value)}
+                aria-label="真实任务边界"
+                rows={2}
+                value={boundaries}
+                onChange={(e) => setBoundaries(e.target.value)}
               />
             </label>
-          </>
-        )}
-        <label className="judgment-check">
-          <input type="checkbox" checked={isPublic} onChange={(e) => setPublic(e.target.checked)} />
-          确认任务、项目资料及工作区内容均可发送给所选远程模型
-        </label>
-        <button
-          className="secondary-button"
-          disabled={busy || loading || !project || !workspace || !model || !goal.trim()}
-          onClick={() => void create()}
-        >
-          启动真实任务
-        </button>
+          </details>
+          {kind === 'file' && (
+            <>
+              <label className="judgment-label">
+                目标路径
+                <input
+                  aria-label="任务目标路径"
+                  value={path}
+                  maxLength={400}
+                  onChange={(e) => setPath(e.target.value)}
+                />
+              </label>
+              <label className="judgment-label">
+                期望的完整文件内容
+                <textarea
+                  className="judgment-input"
+                  aria-label="任务期望内容"
+                  rows={4}
+                  value={content}
+                  maxLength={1000}
+                  onChange={(e) => setContent(e.target.value)}
+                />
+              </label>
+            </>
+          )}
+          <label className="judgment-check">
+            <input
+              type="checkbox"
+              checked={isPublic}
+              onChange={(e) => setPublic(e.target.checked)}
+            />
+            确认任务、项目资料及工作区内容均可发送给所选远程模型
+          </label>
+        </div>
       </article>
-      <article className="settings-card">
-        <h2>项目会话与任务</h2>
-        <label className="judgment-label">
-          搜索项目任务
-          <input
-            aria-label="搜索项目任务"
-            maxLength={100}
-            value={search}
-            onChange={(event) => void controller.search(event.target.value)}
-          />
-        </label>
-        <button
-          className="secondary-button"
-          disabled={busy}
-          onClick={() => {
-            controller.newRun();
-            setGoal('');
-            setContent('');
-          }}
-        >
-          新建任务会话
-        </button>
-        {!runs.length && (
-          <p>{next !== null ? '本页暂无匹配任务，可以继续加载。' : '当前没有匹配任务'}</p>
-        )}
-        {runs.map((r) => (
+      <details className="task-history">
+        <summary>项目会话与任务</summary>
+        <article className="settings-card">
+          <h2>项目会话与任务</h2>
+          <label className="judgment-label">
+            搜索项目任务
+            <input
+              aria-label="搜索项目任务"
+              maxLength={100}
+              value={search}
+              onChange={(event) => void controller.search(event.target.value)}
+            />
+          </label>
           <button
-            key={r.id}
             className="secondary-button"
             disabled={busy}
-            onClick={() => void controller.select(r.id)}
+            onClick={() => {
+              controller.newRun();
+              setGoal('');
+              setContent('');
+            }}
           >
-            {r.command.goal.slice(0, 30)} · {statusLabels[r.status]}
+            新建任务会话
           </button>
-        ))}
-        {next !== null && (
-          <button
-            className="secondary-button"
-            disabled={loading}
-            onClick={() => void controller.more()}
-          >
-            加载更多任务
-          </button>
-        )}
-      </article>
+          {!runs.length && (
+            <p>{next !== null ? '本页暂无匹配任务，可以继续加载。' : '当前没有匹配任务'}</p>
+          )}
+          {runs.map((r) => (
+            <button
+              key={r.id}
+              className="secondary-button"
+              disabled={busy}
+              onClick={() => void controller.select(r.id)}
+            >
+              {r.command.goal.slice(0, 30)} · {statusLabels[r.status]}
+            </button>
+          ))}
+          {next !== null && (
+            <button
+              className="secondary-button"
+              disabled={loading}
+              onClick={() => void controller.more()}
+            >
+              加载更多任务
+            </button>
+          )}
+        </article>
+      </details>
       {run && (
         <article className="settings-card agent-result" aria-label="真实任务执行记录">
           <h2>执行记录</h2>
