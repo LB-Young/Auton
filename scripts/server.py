@@ -6,6 +6,7 @@ import argparse
 import fcntl
 import hashlib
 import os
+import re
 import shutil
 import socket
 import subprocess
@@ -58,14 +59,56 @@ def ensure_env(root: Path) -> bool:
     return False
 
 
+def node_candidates() -> list[Path]:
+    # Conda may shadow a supported system/nvm runtime. Keep the caller's PATH
+    # first, then inspect installed runtimes without modifying the shell setup.
+    folders = [Path(v) for v in os.get_exec_path()]
+    folders += [Path("/usr/local/bin"), Path("/opt/homebrew/bin"), Path("/usr/bin")]
+    folders += [Path.home() / ".volta/bin"]
+    for pattern in (
+        ".nvm/versions/node/*/bin",
+        ".local/share/fnm/node-versions/*/installation/bin",
+    ):
+        folders.extend(sorted(Path.home().glob(pattern), reverse=True))
+    return list(dict.fromkeys(folder / "node" for folder in folders))
+
+
+def select_node() -> None:
+    observed: list[str] = []
+    for node in node_candidates():
+        if not node.is_file() or not os.access(node, os.X_OK):
+            continue
+        try:
+            version = subprocess.check_output(
+                [str(node), "--version"], text=True, stderr=subprocess.DEVNULL, timeout=5
+            ).strip()
+        except (OSError, subprocess.SubprocessError):
+            continue
+        observed.append(f"{node}: {version}")
+        match = re.fullmatch(r"v?(\d+)\.(\d+)\.(\d+)", version)
+        if not match:
+            continue
+        parts = tuple(int(v) for v in match.groups())
+        if not ((22, 14, 0) <= parts < (23, 0, 0)):
+            continue
+        if shutil.which("npm", path=str(node.parent)) is None:
+            continue
+        os.environ["PATH"] = str(node.parent) + os.pathsep + os.environ.get("PATH", "")
+        print(f"使用 Node.js {version}：{node}（仅当前启动进程）", flush=True)
+        return
+    detail = "；".join(observed) if observed else "未找到可执行的 Node.js"
+    raise SystemExit(
+        "未找到配套 npm 的 Node.js 22.14+（22.x）。检测结果："
+        + detail
+        + "。请安装 Node.js 22.x，或使用 nvm install 22，然后重试 make server。"
+    )
+
+
 def check_tools() -> None:
-    missing = [name for name in ("uv", "node", "npm", "git") if shutil.which(name) is None]
+    missing = [name for name in ("uv", "git") if shutil.which(name) is None]
     if missing:
         raise SystemExit("请先安装运行工具：" + ", ".join(missing))
-    version = subprocess.check_output(["node", "--version"], text=True).strip().lstrip("v")
-    parts = tuple(int(p) for p in version.split(".")[:3])
-    if not (parts >= (22, 14, 0) and parts < (23, 0, 0)):
-        raise SystemExit("项目需要 Node.js 22.14 或更新的 22.x 版本")
+    select_node()
 
 
 def check_ports() -> None:

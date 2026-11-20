@@ -130,3 +130,48 @@ def test_server_preset_is_real_bounded_and_does_not_enable_training() -> None:
     assert config.judgment.backend == "laya" and not config.judgment.application_enabled
     assert config.training.backend == config.decision_training.backend == "disabled"
     assert not config.operations.enabled
+
+
+def test_conda_shadowed_node_uses_compatible_installed_pair(
+    launcher: ModuleType,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    old = tmp_path / "conda/bin/node"
+    supported = tmp_path / "node22/bin/node"
+    for node in (old, supported):
+        node.parent.mkdir(parents=True)
+        node.touch()
+        node.chmod(0o755)
+        npm = node.parent / "npm"
+        npm.touch()
+        npm.chmod(0o755)
+    monkeypatch.setenv("PATH", str(old.parent))
+    monkeypatch.setattr(launcher, "node_candidates", lambda: [old, supported])
+    monkeypatch.setattr(
+        launcher.subprocess,
+        "check_output",
+        lambda command, **kwargs: "v20.19.0" if command[0] == str(old) else "v22.14.0",
+    )
+    launcher.select_node()
+    assert launcher.shutil.which("node") == str(supported)
+    assert launcher.shutil.which("npm") == str(supported.parent / "npm")
+
+
+def test_missing_compatible_node_reports_actual_versions_without_accepting_prerelease(
+    launcher: ModuleType,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    node = tmp_path / "node"
+    node.touch()
+    node.chmod(0o755)
+    monkeypatch.setattr(launcher, "node_candidates", lambda: [node])
+    monkeypatch.setattr(launcher.subprocess, "check_output", lambda *args, **kwargs: "v24.1.0")
+    with pytest.raises(SystemExit, match="v24.1.0"):
+        launcher.select_node()
+    monkeypatch.setattr(
+        launcher.subprocess, "check_output", lambda *args, **kwargs: "v22.14.0-rc.1"
+    )
+    with pytest.raises(SystemExit, match="未找到配套"):
+        launcher.select_node()

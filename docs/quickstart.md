@@ -12,7 +12,7 @@
 make server
 ```
 
-缺少 .env 时会创建私有模板并提示填写，不覆盖已有 key。脚本自动使用 `config/server.toml`：真实 DeepSeek、允许明确 public 的输入外发、Laya 建议模式、关闭 Demo、关闭训练和后台自动工作。无需手动创建 TOML。系统仍需预装 uv、Node/npm 和 Git；Python 3.12 由 uv 按项目要求准备。
+缺少 .env 时会创建私有模板并提示填写，不覆盖已有 key。脚本自动使用 `config/server.toml`：真实 DeepSeek、允许明确 public 的输入外发、Laya 建议模式、关闭 Demo、关闭训练和后台自动工作。无需手动创建 TOML。系统仍需预装 uv、兼容的 Node/npm 和 Git；Python 3.12 由 uv 按项目要求准备。启动器会自动寻找 PATH、常见系统目录及 nvm/fnm/Volta 中已安装的 Node 22.14+（22.x），避免 Conda 的其他版本遮蔽它；只调整当前启动进程的 PATH，不修改或卸载你的环境。
 
 首次会同步 `uv.lock` 中含 judgment extra 的依赖、安装前端并下载固定 tokenizer/Laya（模型/tokenizer 约 700 MB，依赖下载量另计）；后续复用前端依赖和通过摘要检查的资源。key 只供模型网关读取，不放在下载命令参数中。下载失败可重跑，通过校验的文件会复用。
 
