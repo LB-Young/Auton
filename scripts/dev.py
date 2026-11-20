@@ -77,7 +77,9 @@ def servers(
         # Refuse an occupied port before probing readiness; never test another process.
         for port in (api_port, web_port):
             with socket.socket() as probe:
+                probe.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
                 probe.bind(("127.0.0.1", port))
+                probe.listen(1)
         for command in [api_command(api_port), web_command()]:
             processes.append(
                 subprocess.Popen(command, cwd=ROOT, env=environment, start_new_session=True)

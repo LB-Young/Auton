@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import errno
 import fcntl
 import hashlib
 import os
@@ -111,14 +112,25 @@ def check_tools() -> None:
     select_node()
 
 
-def check_ports() -> None:
-    for port in (8000, 5173):
+def check_ports(ports: tuple[int, ...] = (8000, 5173)) -> None:
+    for port in ports:
         try:
             with socket.socket() as probe:
+                # Match the server's restart behavior without bypassing live listeners.
+                probe.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
                 probe.bind(("127.0.0.1", port))
-        except OSError:
+                probe.listen(1)
+        except OSError as error:
+            if error.errno == errno.EADDRINUSE:
+                raise SystemExit(
+                    f"端口 {port} 已占用；make server 不会停止现有服务。"
+                    f"\n请运行 lsof -nP -iTCP:{port} -sTCP:LISTEN 确认占用进程。"
+                    "\n若是之前启动的 Auton，请在原终端 Ctrl+C 停止后重试；"
+                    "若前后端都正常运行，可直接打开 http://127.0.0.1:5173。"
+                ) from None
             raise SystemExit(
-                f"端口 {port} 已占用，请先在原终端 Ctrl+C 停止旧服务，再运行 make server。"
+                f"无法检查端口 {port}：{error.strerror}（errno={error.errno}），"
+                "请检查当前终端的网络权限。"
             ) from None
 
 

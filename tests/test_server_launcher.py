@@ -1,6 +1,8 @@
 """Verify bootstrap orchestration without downloads, dependency changes, or model calls."""
 
+import errno
 import importlib.util
+import socket
 import sys
 import tomllib
 from pathlib import Path
@@ -175,3 +177,33 @@ def test_missing_compatible_node_reports_actual_versions_without_accepting_prere
     )
     with pytest.raises(SystemExit, match="未找到配套"):
         launcher.select_node()
+
+
+def test_port_check_reuses_closed_connections_but_refuses_live_listener(
+    launcher: ModuleType,
+) -> None:
+    with socket.socket() as listener:
+        listener.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        listener.bind(("127.0.0.1", 0))
+        port = listener.getsockname()[1]
+        listener.listen(1)
+        with pytest.raises(SystemExit, match=f"端口 {port} 已占用"):
+            launcher.check_ports((port,))
+        # Active server close leaves an accepted connection in TIME_WAIT.
+        with socket.create_connection(("127.0.0.1", port), timeout=2) as client:
+            connection, _ = listener.accept()
+            connection.close()
+            assert client.recv(1) == b""
+    launcher.check_ports((port,))
+
+
+def test_port_permission_failure_is_not_reported_as_occupied(
+    launcher: ModuleType, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    def denied() -> None:
+        raise PermissionError(errno.EPERM, "Operation not permitted")
+
+    monkeypatch.setattr(launcher.socket, "socket", denied)
+    with pytest.raises(SystemExit, match="无法检查端口 8000") as error:
+        launcher.check_ports()
+    assert "已占用" not in str(error.value)
