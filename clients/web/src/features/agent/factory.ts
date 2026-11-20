@@ -38,7 +38,14 @@ export function createAgentFeature(deps: {
   return {
     draft,
     controller: createAgentController(deps.api, deps.events, command, deps.projects, () =>
-      Object.assign(draft, { goal: '', content: '' }),
+      Object.assign(draft, {
+        goal: '',
+        content: '',
+        boundaries: '',
+        kind: 'research',
+        path: 'notes.md',
+        isPublic: false,
+      }),
     ),
     feedback: (run: string, command: import('../../shared/contracts').FeedbackCommand) =>
       deps.api.feedback(run, command),

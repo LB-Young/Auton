@@ -451,6 +451,63 @@ def create_workbench_run(page: Page, project: str, goal: str, request: str) -> d
     return response.json()  # type: ignore[no-any-return]
 
 
+def test_new_task_composer_without_setup_and_draft_navigation(page: Page) -> None:
+    page.goto(BASE)
+    goal = page.get_by_label("真实任务目标")
+    expect(goal).to_be_focused()
+    expect(goal).to_be_in_viewport()
+    expect(goal).to_be_enabled()
+    goal.fill("先写任务目标，再配置项目和工作区。")
+    expect(page.get_by_role("button", name="启动真实任务")).to_be_disabled()
+    page.get_by_role("button", name="创建项目与添加资料", exact=True).click()
+    expect(page).to_have_url(re.compile(r"view=genome"))
+    page.get_by_role("button", name=re.compile("^任务 已接入")).click()
+    expect(goal).to_have_value("先写任务目标，再配置项目和工作区。")
+    page.get_by_role("button", name="创建工作区", exact=True).click()
+    expect(page).to_have_url(re.compile(r"view=tools"))
+    page.get_by_role("button", name="新任务", exact=False).click()
+    expect(goal).to_be_focused()
+    expect(goal).to_have_value("")
+    goal.fill("新的目标可以直接输入")
+    page.set_viewport_size({"width": 390, "height": 844})
+    goal.focus()
+    expect(goal).to_be_in_viewport()
+    assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth")
+    screenshot(page, "new-task-composer-mobile.png")
+
+
+def test_new_task_resets_content_boundaries_and_public_consent(page: Page) -> None:
+    seed_workbench(page, "composer-reset")
+    page.goto(BASE)
+    goal = page.get_by_label("真实任务目标")
+    expect(page.get_by_label("任务项目")).to_have_value("composer-reset")
+    expect(page.get_by_label("任务工作区")).to_have_value("composer-reset")
+    goal.fill("上一条任务")
+    page.get_by_text("任务边界（可选）", exact=True).click()
+    page.get_by_label("真实任务边界").fill("上一条边界")
+    page.get_by_label("任务验收类型").select_option("file")
+    page.get_by_label("任务目标路径").fill("old.txt")
+    page.get_by_label("任务期望内容").fill("old content")
+    consent = page.get_by_role(
+        "checkbox", name="确认任务、项目资料及工作区内容均可发送给所选远程模型"
+    )
+    consent.check()
+    selected_model = page.get_by_label("任务模型").input_value()
+    page.get_by_role("button", name="新任务", exact=False).click()
+    expect(goal).to_be_focused()
+    expect(goal).to_have_value("")
+    expect(consent).not_to_be_checked()
+    expect(page.get_by_label("真实任务边界")).to_have_value("")
+    expect(page.get_by_label("任务验收类型")).to_have_value("research")
+    expect(page.get_by_label("任务项目")).to_have_value("composer-reset")
+    expect(page.get_by_label("任务工作区")).to_have_value("composer-reset")
+    expect(page.get_by_label("任务模型")).to_have_value(selected_model)
+    page.get_by_label("任务验收类型").select_option("file")
+    expect(page.get_by_label("任务目标路径")).to_have_value("notes.md")
+    expect(page.get_by_label("任务期望内容")).to_have_value("")
+    screenshot(page, "new-task-composer-desktop.png")
+
+
 def test_workbench_default_ime_retry_artifact_feedback_and_url(page: Page) -> None:
     seed_workbench(page, "main-workbench")
     page.goto(BASE)

@@ -28,8 +28,10 @@ export function Agent({
   feature,
   renderTrajectory,
   renderArtifact,
+  onNavigate,
 }: {
   feature: AgentFeature;
+  onNavigate?: (view: 'genome' | 'tools') => void;
   renderArtifact?: (text: string) => ReactNode;
   renderTrajectory?: (run: AgentRun, onRecovered: (run: AgentRun) => void) => ReactNode;
 }) {
@@ -53,6 +55,7 @@ export function Agent({
   const [workspace, setWorkspace] = useState(feature.draft.workspace);
   const [model, setModel] = useState(feature.draft.model);
   const [goal, setGoal] = useState(feature.draft.goal);
+  const goalInput = useRef<HTMLTextAreaElement>(null);
   const [boundaries, setBoundaries] = useState(feature.draft.boundaries);
   const [kind, setKind] = useState<'research' | 'file'>(feature.draft.kind);
   const [path, setPath] = useState(feature.draft.path);
@@ -76,8 +79,21 @@ export function Agent({
       draftRevision.current = draftVersion;
       setGoal(feature.draft.goal);
       setContent(feature.draft.content);
+      setBoundaries(feature.draft.boundaries);
+      setKind(feature.draft.kind);
+      setPath(feature.draft.path);
+      setPublic(feature.draft.isPublic);
     }
   }, [draftVersion, feature]);
+  useEffect(() => {
+    if (run || (draftVersion === 0 && new URL(window.location.href).searchParams.has('run')))
+      return;
+    const frame = requestAnimationFrame(() => {
+      goalInput.current?.focus({ preventScroll: true });
+      goalInput.current?.scrollIntoView({ block: 'center' });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [draftVersion, run]);
   const [previewWidth, setPreviewWidth] = useState(460);
   const [revision, setRevision] = useState('');
   const [feedbackNote, setFeedbackNote] = useState('');
@@ -196,21 +212,62 @@ export function Agent({
       <p className="module-description">
         从明确目标开始，通过模型和受控工具完成任务，由宿主核对交付。
       </p>
-      <p className="module-note">
-        Laya
-        提供建议，执行模型由你选择。文件任务需逐项批准写入；调研仅使用已有项目资料和只读工具。每次任务保留独立记录。
-      </p>
       {loading && <p role="status">正在加载任务连接…</p>}
       {error && (
         <p className="notice-banner" role="alert">
           {error}
         </p>
       )}
-      {!loading && (!projects.length || !workspaces.length) && (
-        <p>请先在资产页创建项目并上传资料，在工具页创建工作区。权限和公开外发由你明确选择。</p>
-      )}
       <article className="settings-card">
         <h2>创建任务</h2>
+        <label className="judgment-label">
+          你想完成什么？
+          <textarea
+            ref={goalInput}
+            className="judgment-input task-composer"
+            aria-label="真实任务目标"
+            placeholder="描述你的任务，例如：总结项目资料中的主要内容，并给出引用。"
+            rows={5}
+            maxLength={2000}
+            value={goal}
+            onChange={(e) => setGoal(e.target.value)}
+            onKeyDown={(event) => {
+              if (
+                event.key === 'Enter' &&
+                !event.shiftKey &&
+                !event.nativeEvent.isComposing &&
+                event.keyCode !== 229
+              ) {
+                event.preventDefault();
+                if (!busy && !loading && project && workspace && model && goal.trim())
+                  void create();
+              }
+            }}
+          />
+        </label>
+        {!loading && (!projects.length || !workspaces.length) && (
+          <div className="task-setup" role="status">
+            <p>可以先输入任务目标。开始执行前，请准备项目资料和工作区。</p>
+            {!projects.length && (
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={() => onNavigate?.('genome')}
+              >
+                创建项目与添加资料
+              </button>
+            )}
+            {!workspaces.length && (
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={() => onNavigate?.('tools')}
+              >
+                创建工作区
+              </button>
+            )}
+          </div>
+        )}
         <div className="run-config-grid">
           <label className="judgment-label">
             项目
@@ -220,6 +277,7 @@ export function Agent({
               disabled={busy}
               onChange={(e) => void controller.project(e.target.value)}
             >
+              {!projects.length && <option value="">请先创建项目</option>}
               {projects.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.title}
@@ -235,6 +293,7 @@ export function Agent({
               disabled={busy}
               onChange={(e) => setWorkspace(e.target.value)}
             >
+              {!workspaces.length && <option value="">请先创建工作区</option>}
               {workspaces.map((w) => (
                 <option key={w.id} value={w.id}>
                   {w.title} {w.read_only ? '· 只读' : '· 可申请写入'}
@@ -272,29 +331,6 @@ export function Agent({
             </select>
           </label>
         </div>
-        <label className="judgment-label">
-          目标
-          <textarea
-            className="judgment-input"
-            aria-label="真实任务目标"
-            rows={3}
-            maxLength={2000}
-            value={goal}
-            onChange={(e) => setGoal(e.target.value)}
-            onKeyDown={(event) => {
-              if (
-                event.key === 'Enter' &&
-                !event.shiftKey &&
-                !event.nativeEvent.isComposing &&
-                event.keyCode !== 229
-              ) {
-                event.preventDefault();
-                if (!busy && !loading && project && workspace && model && goal.trim())
-                  void create();
-              }
-            }}
-          />
-        </label>
         <details>
           <summary>任务边界（可选）</summary>
           <label className="judgment-label">

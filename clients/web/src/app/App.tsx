@@ -797,6 +797,7 @@ export function App({ application }: { application: Application }) {
             ) : view === 'agent' ? (
               <Agent
                 feature={application.agent}
+                onNavigate={navigate}
                 renderArtifact={application.artifacts.renderText}
                 renderTrajectory={(run, onRecovered) => (
                   <Trajectory
