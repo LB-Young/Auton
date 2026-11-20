@@ -4,10 +4,11 @@ PROJECT_ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 PYTHON ?= python3
 DEV_PYTHON ?= $(PROJECT_ROOT).venv/bin/python
 
-.PHONY: operations-smoke help setup dev api web check contracts decision-review-smoke evolution-smoke delegation-smoke workbench-smoke agent-smoke context-setup context-smoke judgment-setup judgment-smoke browser-install e2e clean clean-preview clean-cache clean-build clean-empty
+.PHONY: server operations-smoke help setup dev api web check contracts decision-review-smoke evolution-smoke delegation-smoke workbench-smoke agent-smoke context-setup context-smoke judgment-setup judgment-smoke browser-install e2e clean clean-preview clean-cache clean-build clean-empty
 
 help:
 	@printf '%s\n' \
+	  'make server         只需 .env 配置 key，自动准备并启动真实工作台' \
 	  'make setup          安装锁定的 Python 与浏览器界面依赖' \
 	  'make dev            启动本机前后端任务工作台' \
 	  'make decision-review-smoke 独立决策复核验收（使用 API 额度）' \
@@ -26,6 +27,9 @@ help:
 	  'make clean-cache    只清理工具缓存和 Python 字节码' \
 	  'make clean-build    只清理构建产物和打包元数据' \
 	  'make clean-empty    只递归删除空目录'
+
+server:
+	@$(PYTHON) "$(PROJECT_ROOT)scripts/server.py"
 
 setup:
 	@$(PYTHON) "$(PROJECT_ROOT)scripts/setup.py"

@@ -20,6 +20,7 @@
 
 | 命令 | 作用 |
 | --- | --- |
+| make server | 自动准备完整推理资源并用预设真实配置启动；仅需 key |
 | make setup | 安装锁定的核心/开发与前端依赖 |
 | make dev / api / web | 同时/分别启动本机服务 |
 | make check | Ruff、格式、strict mypy、非浏览器测试、依赖边界、敏感信息、契约漂移、前端 lint/build |

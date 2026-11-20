@@ -382,3 +382,39 @@ def test_template_tool_pair_and_unsupported_boundary_fail_closed() -> None:
     }
     with pytest.raises(ValueError, match="truncated_tool_pair"):
         encode_record(record, FixtureTokenizer(), 1000)
+
+
+async def test_output_budget_scan_tolerates_atomically_renamed_temporary_entries(
+    training: tuple[ExecutorTraining, FixtureBackend],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    service, _ = training
+    job = TrainingJob(
+        id="a" * 64,
+        command=TrainingJobCommand(
+            request_id="scan", plan_id="b" * 64, expected_plan_digest="c" * 64
+        ),
+        project_id="project",
+        plan_digest="c" * 64,
+        status="queued",
+        created_at=0,
+    )
+    output = service.directory(job) / "output"
+
+    class Vanished:
+        def is_symlink(self) -> bool:
+            return False
+
+        def is_file(self) -> bool:
+            return True
+
+        def stat(self) -> Any:
+            raise FileNotFoundError("temporary file renamed by worker")
+
+    original = Path.rglob
+
+    def scan(path: Path, pattern: str) -> Any:
+        return iter((Vanished(),)) if path == output else original(path, pattern)
+
+    monkeypatch.setattr(Path, "rglob", scan)
+    assert service.read_progress(job) is None

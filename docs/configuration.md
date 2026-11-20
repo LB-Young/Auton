@@ -4,6 +4,8 @@
 
 ## 文件与覆盖规则
 
+`make server` 固定使用 `config/server.toml` 预设，自动准备依赖和推理资源，忽略 AUTON_CONFIG；自定义配置使用 `make dev/api`。
+
 `AUTON_CONFIG` 指定一个完整 TOML 文件；未指定时读取仓库的 `config/demo.toml`。不会自动合并多个 TOML，未写的字段使用代码默认值。示例 training.example.toml/operations.example.toml 的内容需要合并到你的部署配置中；不是额外读取的文件。
 
 从项目根目录启动。相对 AUTON_CONFIG、数据目录、权重目录和 `.env` 按启动工作目录解析；在其他目录运行时使用绝对路径。未知字段、未知实现、错误枚举和越界值会拒绝启动，不自动回退。

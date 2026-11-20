@@ -4,7 +4,24 @@
 
 在克隆后的 Auton 根目录执行命令。当前依赖基线：Python 3.12、uv、Node.js 22.14.0（22.x）、npm 11.8.0、Git；版本文件为 `.python-version`、`.node-version` 和 `clients/web/package.json`。Python/Node 依赖分别由 uv.lock/package-lock.json 固定。项目使用 POSIX 文件锁与受控目录；完整运行使用 Linux/macOS，Windows 可在 Linux 环境中运行。
 
-## 先启动界面
+## 推荐：一个命令启动真实工作台
+
+只需在根目录 `.env` 填写 `DEEPSEEK_API_KEY`，执行：
+
+```bash
+make server
+```
+
+缺少 .env 时会创建私有模板并提示填写，不覆盖已有 key。脚本自动使用 `config/server.toml`：真实 DeepSeek、允许明确 public 的输入外发、Laya 建议模式、关闭 Demo、关闭训练和后台自动工作。无需手动创建 TOML。系统仍需预装 uv、Node/npm 和 Git；Python 3.12 由 uv 按项目要求准备。
+
+首次会同步 `uv.lock` 中含 judgment extra 的依赖、安装前端并下载固定 tokenizer/Laya（模型/tokenizer 约 700 MB，依赖下载量另计）；后续复用前端依赖和通过摘要检查的资源。key 只供模型网关读取，不放在下载命令参数中。下载失败可重跑，通过校验的文件会复用。
+
+默认监听前端 5173、后端 8000；启动前检查端口，拒绝覆盖旧服务，并以锁阻止并发安装。先在旧终端 Ctrl+C 再重启。启动本身不调用 DeepSeek，也不自动创建实际任务、训练或批准发布。
+
+打开页面后按“资产建项目→工具建工作区→任务提交”使用，详见下文和功能指南。诊断已有环境可执行 `.venv/bin/python scripts/server.py --check`，该选项不安装、下载或启动服务。需要自定义配置/端口时，使用下方手动启动方式；`make server` 固定使用预设配置，不读取 AUTON_CONFIG 覆盖。
+
+## 手动启动：先体验界面
+
 
 ```bash
 make setup
@@ -21,6 +38,8 @@ make dev
 Ctrl+C 停止本次启动的服务。打开网页不代表真实模型资源已经齐备；缺少 key/tokenizer/判断权重时，任务会显示不可用或阻塞。
 
 ## 真实任务启动
+
+以下是手动配置步骤；使用 `make server` 时不必重复执行资源安装和 TOML 配置。
 
 1. 在项目根目录创建 `.env`，填写 `DEEPSEEK_API_KEY`。仅首次创建时执行复制命令，已有文件不要覆盖：
 

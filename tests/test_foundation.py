@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
 
+from auton.agent.contracts import AgentConfig
 from auton.assess.contracts import AssessConfig
 from auton.bootstrap.app import ApplicationFactory, ApplicationRuntime
 from auton.bootstrap.config import ApplicationConfig
@@ -16,6 +17,8 @@ from auton.demo.config import DemoConfig
 from auton.demo.factory import DemoConversationFactory
 from auton.demo.ports import ConversationPort
 from auton.evolve.contracts import EvolutionConfig
+from auton.experience.contracts import ExperienceConfig
+from auton.genome.contracts import GenomeConfig
 from auton.judgment.config import JudgmentConfig
 from auton.kernel.config import KernelConfig
 from auton.kernel.modules import ModuleDescriptor, resolve_modules
@@ -24,6 +27,7 @@ from auton.model.config import ModelConfig
 from auton.operations.contracts import OperationsConfig
 from auton.release.contracts import ReleaseConfig
 from auton.server.identity import ServerSettings
+from auton.tools.config import ToolConfig
 from auton.training.contracts import DecisionTrainingConfig, TrainingConfig
 
 
@@ -33,6 +37,10 @@ def test_factory_swap_has_identical_http_and_event_contract(
 ) -> None:
     app = ApplicationFactory().create(
         ApplicationConfig(
+            agent=AgentConfig(directory=str(tmp_path / "agent")),
+            tools=ToolConfig(directory=tmp_path / "tools"),
+            genome=GenomeConfig(directory=tmp_path / "genome"),
+            experience=ExperienceConfig(directory=tmp_path / "experience"),
             datasets=DatasetConfig(directory=tmp_path / "datasets"),
             training=TrainingConfig(directory=tmp_path / "training"),
             release=ReleaseConfig(directory=tmp_path / "release"),
@@ -108,6 +116,10 @@ def test_invalid_configuration_is_rejected(config: dict[str, object]) -> None:
 def test_real_profile_never_uses_demo(deps: RuntimeDependencies, tmp_path: Path) -> None:
     app = ApplicationFactory().create(
         ApplicationConfig(
+            agent=AgentConfig(directory=str(tmp_path / "agent")),
+            tools=ToolConfig(directory=tmp_path / "tools"),
+            genome=GenomeConfig(directory=tmp_path / "genome"),
+            experience=ExperienceConfig(directory=tmp_path / "experience"),
             datasets=DatasetConfig(directory=tmp_path / "datasets"),
             training=TrainingConfig(directory=tmp_path / "training"),
             release=ReleaseConfig(directory=tmp_path / "release"),

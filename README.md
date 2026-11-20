@@ -4,16 +4,23 @@
 
 ## 快速启动
 
-准备 Python 3.12、uv、Node.js 22（至少 22.14）、npm 11.8 和 Git，在项目根目录执行：
+准备 Python、uv、Node.js 22（至少 22.14）、npm 和 Git。在项目根目录的 `.env` 中填写：
 
-```bash
-make setup
-make dev
+```dotenv
+DEEPSEEK_API_KEY=你的实际密钥
 ```
 
-打开 [工作台](http://127.0.0.1:5173)。后端地址为 `http://127.0.0.1:8000`，`Ctrl+C` 停止服务。
+然后执行：
 
-仅体验界面可进入 [演示对话](http://127.0.0.1:5173/?view=chat)，不需要模型 key。运行真实任务前，还需配置 DeepSeek key、tokenizer 和本地判断资源，见 [真实任务启动步骤](docs/quickstart.md#真实任务启动)。
+```bash
+make server
+```
+
+自动准备依赖、tokenizer 和本地判断资源，并使用预设真实任务配置启动。首次需要联网下载约 700 MB 模型/tokenizer 资源（另需安装依赖），后续复用已校验文件；不自动训练或调用付费验收。
+
+打开 [工作台](http://127.0.0.1:5173)，`Ctrl+C` 停止。没有 `.env` 时首次执行会创建模板，填写 key 后重试即可。
+
+手动开发启动、环境要求和首次创建项目/工作区的步骤见 [快速启动](docs/quickstart.md)。
 
 ## 文档
 

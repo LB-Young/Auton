@@ -375,8 +375,14 @@ class ExecutorTraining:
                 raise ApplicationError(
                     409, "training_output_symlink", "Worker outputs cannot be symlinks"
                 )
-            if path.is_file():
-                total += path.stat().st_size
+            try:
+                if path.is_file():
+                    total += path.stat().st_size
+            except FileNotFoundError:
+                # The worker atomically renames temporary files/directories while
+                # this budget scan runs. Published checkpoint verification below
+                # remains strict; only vanished scan entries are skipped.
+                continue
         if total > self.config.max_output_bytes:
             raise ApplicationError(
                 429, "training_output_limit", "Worker disk output budget exceeded"
