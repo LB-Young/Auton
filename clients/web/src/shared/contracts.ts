@@ -182,3 +182,5 @@ export type WorkspaceConversation = components['schemas']['WorkspaceConversation
 export type ConversationView = components['schemas']['ConversationView'];
 export type ConversationTurn = components['schemas']['ConversationTurn'];
 export type ConversationCreate = components['schemas']['ConversationCreate'];
+
+export type LocalDirectories = components['schemas']['LocalDirectories'];

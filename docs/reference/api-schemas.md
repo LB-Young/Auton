@@ -735,6 +735,7 @@
 
 | 参数 | 类型 / 可选值 | 必填 | 默认值 | 约束 / 说明 |
 | --- | --- | --- | --- | --- |
+| `project_path` | string / null | 否 | — |  |
 | `request_id` | string | 是 | — | 格式 ^[a-zA-Z0-9_-]{1,100}$ |
 | `title` | string | 是 | — | 最短 1; 最长 100 |
 
@@ -763,7 +764,7 @@
 | 参数 | 类型 / 可选值 | 必填 | 默认值 | 约束 / 说明 |
 | --- | --- | --- | --- | --- |
 | `acceptance` | [Acceptance-Input](#acceptance-input) | 是 | — |  |
-| `allowed_tools` | array&lt;`"file.read"`, `"file.write"`, `"process.run"`, `"mcp.sha256"`&gt; | 否 | `["file.read", "mcp.sha256"]` | 最多项 4 |
+| `allowed_tools` | array&lt;`"file.read"`, `"file.list"`, `"file.write"`, `"process.run"`, `"mcp.sha256"`&gt; | 否 | `["file.read", "mcp.sha256"]` | 最多项 4 |
 | `asset_snapshot_id` | string / null | 否 | — |  |
 | `boundaries` | array&lt;string&gt; | 否 | `[]` | 最多项 16 |
 | `data_domain` | `"public"`, `"local-only"` | 否 | `"local-only"` |  |
@@ -781,7 +782,7 @@
 | 参数 | 类型 / 可选值 | 必填 | 默认值 | 约束 / 说明 |
 | --- | --- | --- | --- | --- |
 | `acceptance` | [Acceptance-Output](#acceptance-output) | 是 | — |  |
-| `allowed_tools` | array&lt;`"file.read"`, `"file.write"`, `"process.run"`, `"mcp.sha256"`&gt; | 是 | `["file.read", "mcp.sha256"]` | 最多项 4 |
+| `allowed_tools` | array&lt;`"file.read"`, `"file.list"`, `"file.write"`, `"process.run"`, `"mcp.sha256"`&gt; | 是 | `["file.read", "mcp.sha256"]` | 最多项 4 |
 | `asset_snapshot_id` | string / null | 是 | — |  |
 | `boundaries` | array&lt;string&gt; | 是 | `[]` | 最多项 16 |
 | `data_domain` | `"public"`, `"local-only"` | 是 | `"local-only"` |  |
@@ -1552,6 +1553,16 @@ object
 | 参数 | 类型 / 可选值 | 必填 | 默认值 | 约束 / 说明 |
 | --- | --- | --- | --- | --- |
 | `project_id` | string | 是 | — | 格式 ^[a-zA-Z0-9_-]{1,80}$ |
+
+<a id="localdirectories"></a>
+### LocalDirectories
+
+| 参数 | 类型 / 可选值 | 必填 | 默认值 | 约束 / 说明 |
+| --- | --- | --- | --- | --- |
+| `directories` | array&lt;string&gt; | 是 | — |  |
+| `parent` | string / null | 是 | — |  |
+| `path` | string | 是 | — |  |
+| `truncated` | boolean | 是 | `false` |  |
 
 <a id="maintenanceoperation"></a>
 ### MaintenanceOperation
@@ -2732,7 +2743,7 @@ Executable train/dev input, with no meta human answer or calibration label.
 | --- | --- | --- | --- | --- |
 | `approval_required` | boolean | 是 | — |  |
 | `effect` | `"read"`, `"write"`, `"process"` | 是 | — |  |
-| `id` | `"file.read"`, `"file.write"`, `"process.run"`, `"mcp.sha256"` | 是 | — |  |
+| `id` | `"file.read"`, `"file.list"`, `"file.write"`, `"process.run"`, `"mcp.sha256"` | 是 | — |  |
 | `input_schema` | map&lt;[JsonValue](#jsonvalue)&gt; | 是 | — |  |
 | `isolation` | string | 是 | — |  |
 | `title` | string | 是 | — |  |
@@ -2756,7 +2767,7 @@ Executable train/dev input, with no meta human answer or calibration label.
 | `requires_approval` | boolean | 是 | — |  |
 | `status` | `"prepared"` | 是 | `"prepared"` |  |
 | `title` | string | 是 | — |  |
-| `tool` | `"file.read"`, `"file.write"`, `"process.run"`, `"mcp.sha256"` | 是 | — |  |
+| `tool` | `"file.read"`, `"file.list"`, `"file.write"`, `"process.run"`, `"mcp.sha256"` | 是 | — |  |
 | `workspace_id` | string | 是 | — |  |
 
 <a id="toolpreparecommand"></a>
@@ -2766,7 +2777,7 @@ Executable train/dev input, with no meta human answer or calibration label.
 | --- | --- | --- | --- | --- |
 | `arguments` | map&lt;[JsonValue](#jsonvalue)&gt; | 是 | — |  |
 | `operation_id` | string | 是 | — | 格式 ^[a-zA-Z0-9_-]{1,100}$ |
-| `tool` | `"file.read"`, `"file.write"`, `"process.run"`, `"mcp.sha256"` | 是 | — |  |
+| `tool` | `"file.read"`, `"file.list"`, `"file.write"`, `"process.run"`, `"mcp.sha256"` | 是 | — |  |
 | `workspace_id` | string | 是 | — | 格式 ^[a-zA-Z0-9_-]{1,80}$ |
 
 <a id="toolreceipt"></a>
@@ -2785,7 +2796,7 @@ Executable train/dev input, with no meta human answer or calibration label.
 | `reconciled` | boolean | 是 | `false` |  |
 | `request_digest` | string | 是 | — |  |
 | `source` | `"local"` | 是 | `"local"` |  |
-| `tool` | `"file.read"`, `"file.write"`, `"process.run"`, `"mcp.sha256"` | 是 | — |  |
+| `tool` | `"file.read"`, `"file.list"`, `"file.write"`, `"process.run"`, `"mcp.sha256"` | 是 | — |  |
 | `untrusted` | `true` | 是 | `true` |  |
 | `workspace_id` | string | 是 | — |  |
 
@@ -3139,6 +3150,7 @@ Executable train/dev input, with no meta human answer or calibration label.
 | --- | --- | --- | --- | --- |
 | `id` | string | 是 | — |  |
 | `project_id` | string | 是 | — |  |
+| `project_path` | string / null | 是 | — |  |
 | `title` | string | 是 | — |  |
 | `workspace_id` | string | 是 | — |  |
 

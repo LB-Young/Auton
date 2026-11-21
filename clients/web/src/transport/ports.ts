@@ -29,6 +29,7 @@ import type {
 } from '../shared/contracts';
 
 export interface ApiClient {
+  localDirectories(path?: string): Promise<import('../shared/contracts').LocalDirectories>;
   conversations: {
     list(): Promise<import('../shared/contracts').WorkspaceConversation[]>;
     create(

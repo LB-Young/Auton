@@ -1,6 +1,7 @@
 """Owner-scoped durable conversations; agent runs remain the execution/learning unit."""
 
 import asyncio
+import hashlib
 from dataclasses import dataclass
 
 from auton.agent.contracts import Acceptance, AgentRun, CreateRun
@@ -73,7 +74,15 @@ class WorkspaceConversations:
             found = await self.deps.events.lookup(event_id)
             if found:
                 value = WorkspaceConversation.model_validate(found.event.payload["conversation"])
-                if value.title != command.title:
+                stored_digest = found.event.payload.get("creation_digest")
+                current_digest = hashlib.sha256(command.model_dump_json().encode()).hexdigest()
+                if (stored_digest and stored_digest != current_digest) or (
+                    not stored_digest
+                    and (
+                        value.title != command.title
+                        or (command.project_path or None) != value.project_path
+                    )
+                ):
                     raise ApplicationError(409, "conversation_conflict", "Request id already used")
                 return value
             value = WorkspaceConversation(
@@ -81,6 +90,7 @@ class WorkspaceConversations:
                 title=command.title,
                 project_id="chat-" + identity,
                 workspace_id="chat-" + identity,
+                project_path=command.project_path,
             )
             # Isolated empty project: selecting a remote model never grants access to other assets.
             try:
@@ -90,9 +100,15 @@ class WorkspaceConversations:
             except ApplicationError as error:
                 if error.code != "project_exists":
                     raise
-            await self.deps.tools.create_workspace(
-                principal, value.workspace_id, value.title, False
-            )
+            if command.project_path:
+                workspace = await self.deps.tools.bind_project_workspace(
+                    principal, value.workspace_id, value.title, command.project_path, False
+                )
+                value = value.model_copy(update={"project_path": workspace.root_path})
+            else:
+                await self.deps.tools.create_workspace(
+                    principal, value.workspace_id, value.title, False
+                )
             await self.append(
                 Event(
                     event_id=event_id,
@@ -100,7 +116,12 @@ class WorkspaceConversations:
                     timestamp=self.deps.runtime.now(),
                     scope=self.scope(principal),
                     source="runtime",
-                    payload={"conversation": value.model_dump(mode="json")},
+                    payload={
+                        "conversation": value.model_dump(mode="json"),
+                        "creation_digest": hashlib.sha256(
+                            command.model_dump_json().encode()
+                        ).hexdigest(),
+                    },
                 )
             )
             return value
@@ -196,6 +217,12 @@ class WorkspaceConversations:
                     "conversation_remote_consent",
                     "Remote history transfer requires explicit selection",
                 )
+            if view.conversation.project_path and "tools" not in model.capabilities:
+                raise ApplicationError(
+                    409,
+                    "project_model_tools_required",
+                    "所选模型不支持文件工具，请选择支持工具调用的模型处理本地项目",
+                )
             history: list[ModelMessage] = []
             for run in view.turns:
                 history.append(ModelMessage(role="user", content=run.command.goal))
@@ -212,15 +239,26 @@ class WorkspaceConversations:
                     model_id=model.id,
                     goal=command.text,
                     prior_messages=tuple(history),
+                    boundaries=(
+                        "The workspace is the user's selected project directory. "
+                        "Use file_list to discover relative paths, then file_read to inspect "
+                        "relevant files in small chunks with start_line and max_lines=40. ",
+                        "Use the full file sha256 returned by partial reads as expected_sha256 "
+                        "when proposing edits to existing files. File writes need approval; "
+                        "do not access hidden paths "
+                        "or other projects.",
+                    )
+                    if view.conversation.project_path
+                    else (),
                     data_domain="public"
                     if model.location == "remote" and command.allow_remote
                     else "local-only",
                     allowed_tools=()
                     if "tools" not in model.capabilities
                     else (
-                        ("file.read", "mcp.sha256")
+                        ("file.list", "file.read", "mcp.sha256")
                         if workspace.read_only
-                        else ("file.read", "file.write", "mcp.sha256")
+                        else ("file.list", "file.read", "file.write", "mcp.sha256")
                     ),
                     acceptance=Acceptance(kind="response"),
                 ),

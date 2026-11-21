@@ -5,6 +5,7 @@ import {
   Check,
   Download,
   FileText,
+  Folder,
   Menu,
   MessageSquare,
   Moon,
@@ -19,6 +20,7 @@ import { Markdown } from '../../shared/Markdown';
 import type { AgentRun } from '../../shared/contracts';
 import { finished } from './controller';
 import type { ConversationFeature } from './factory';
+import { ProjectPicker } from './ProjectPicker';
 
 const statuses: Record<AgentRun['status'], string> = {
   queued: '等待执行',
@@ -48,6 +50,7 @@ export function ConversationWorkspace({ feature }: { feature: ConversationFeatur
   const controller = feature.controller;
   const state = useSyncExternalStore(controller.subscribe, controller.getSnapshot);
   const [panel, setPanel] = useState(false);
+  const [projectPicker, setProjectPicker] = useState(false);
   const [sidebar, setSidebar] = useState(false);
   const [search, setSearch] = useState('');
   const [theme, setTheme] = useState(() => localStorage.getItem('auton.theme') ?? 'light');
@@ -150,6 +153,23 @@ export function ConversationWorkspace({ feature }: { feature: ConversationFeatur
   }
   return (
     <div className={`cw-app ${panel ? 'cw-with-panel' : ''}`}>
+      {projectPicker && (
+        <ProjectPicker
+          feature={feature}
+          initial={state.projectPath}
+          hasConversation={Boolean(current)}
+          onClose={() => {
+            setProjectPicker(false);
+            input.current?.focus();
+          }}
+          onSelect={(path) => {
+            controller.project(path);
+            setProjectPicker(false);
+            setPanel(false);
+            input.current?.focus();
+          }}
+        />
+      )}
       {sidebar && (
         <button
           className="cw-overlay"
@@ -339,7 +359,34 @@ export function ConversationWorkspace({ feature }: { feature: ConversationFeatur
                 }
               }}
             />
+            {state.projectPath && (
+              <div className="cw-project-chip" title={state.projectPath}>
+                <Folder size={14} />
+                <span>{state.projectPath.split('/').at(-1)}</span>
+                <button
+                  type="button"
+                  aria-label="切回普通对话"
+                  disabled={state.busy || state.loading}
+                  onClick={() => {
+                    controller.project(null);
+                    setPanel(false);
+                  }}
+                >
+                  <X size={13} />
+                </button>
+              </div>
+            )}
             <div className="cw-composer-toolbar">
+              <button
+                type="button"
+                className="cw-icon cw-project-button"
+                aria-label="选择项目目录"
+                title="选择本地项目目录"
+                disabled={state.busy || state.loading}
+                onClick={() => setProjectPicker(true)}
+              >
+                <Folder size={18} />
+              </button>
               <Sparkles size={15} />
               <select
                 aria-label="选择模型"
@@ -427,6 +474,16 @@ export function ConversationWorkspace({ feature }: { feature: ConversationFeatur
             </button>
           </header>
           <div className="cw-panel-body">
+            {state.projectPath && (
+              <section>
+                <h2>当前项目</h2>
+                <div className="cw-project-location">
+                  <Folder size={15} />
+                  <span>{state.projectPath}</span>
+                </div>
+              </section>
+            )}
+
             {!run ? (
               <div className="cw-panel-empty">
                 <FileText size={28} />
@@ -437,6 +494,7 @@ export function ConversationWorkspace({ feature }: { feature: ConversationFeatur
               <>
                 <section>
                   <h2>当前进度</h2>
+
                   <p className="cw-run-status" role="status">
                     {statuses[run.status]}
                   </p>

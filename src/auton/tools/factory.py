@@ -11,6 +11,7 @@ class ToolAdapterFactory:
         files = FileAdapter(sandbox)
         adapters: dict[str, ToolAdapterPort] = {
             "file.read": files,
+            "file.list": files,
             "file.write": files,
             "process.run": ProcessAdapter(config),
         }

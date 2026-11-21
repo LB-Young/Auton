@@ -16,9 +16,11 @@ from auton.kernel.storage import EventLogPort, StorageError
 from auton.tools.config import ToolConfig
 from auton.tools.contracts import (
     AdapterResult,
+    FileList,
     FileRead,
     FileWrite,
     HashText,
+    LocalDirectories,
     ProcessRun,
     ToolApproval,
     ToolArtifact,
@@ -82,6 +84,13 @@ class ToolHost:
             for tool, title, effect, schema, isolation in (
                 ("file.read", "读取文本文件", "read", FileRead, "Descriptor-relative POSIX files"),
                 (
+                    "file.list",
+                    "浏览项目目录（相对路径，空字符串表示根目录）",
+                    "read",
+                    FileList,
+                    "Descriptor-relative POSIX directories",
+                ),
+                (
                     "file.write",
                     "原子写入文本文件",
                     "write",
@@ -133,6 +142,37 @@ class ToolHost:
             goal_id="tool-goal-" + OperationLedger.key(principal.owner, workspace_id),
             read_only=read_only or self.config.read_only,
         )
+        return await self._store_workspace(principal, workspace)
+
+    async def browse_directories(self, principal: Principal, path: str | None) -> LocalDirectories:
+        if principal.role != "user":
+            raise ToolError("human_required", "只有用户可以浏览本机项目目录")
+        return await anyio.to_thread.run_sync(lambda: self.sandbox.browse_directories(path))
+
+    async def bind_project_workspace(
+        self, principal: Principal, workspace_id: str, title: str, path: str, read_only: bool
+    ) -> ToolWorkspace:
+        if principal.role != "user":
+            raise ToolError("human_required", "只有用户可以选择本机项目目录")
+        root, device, inode = await anyio.to_thread.run_sync(
+            lambda: self.sandbox.selected_directory(path)
+        )
+        workspace = ToolWorkspace(
+            id=workspace_id,
+            owner=principal.owner,
+            title=title,
+            goal_id="tool-goal-" + OperationLedger.key(principal.owner, workspace_id),
+            read_only=read_only or self.config.read_only,
+            root_path=root,
+            root_device=device,
+            root_inode=inode,
+        )
+        return await self._store_workspace(principal, workspace)
+
+    async def _store_workspace(
+        self, principal: Principal, workspace: ToolWorkspace
+    ) -> ToolWorkspace:
+        workspace_id = workspace.id
         existing = await self.deps.events.lookup(
             self.workspace_event(principal.owner, workspace_id)
         )
@@ -185,6 +225,7 @@ class ToolHost:
             raise ToolError("read_only", "This task cannot write files or start processes")
         schemas: dict[str, type[BaseModel]] = {
             "file.read": FileRead,
+            "file.list": FileList,
             "file.write": FileWrite,
             "process.run": ProcessRun,
             "mcp.sha256": HashText,
@@ -195,7 +236,9 @@ class ToolHost:
             raise ToolError(
                 "invalid_tool_input", "Tool arguments do not match its schema"
             ) from error
-        if isinstance(args, FileRead):
+        if isinstance(args, (FileRead, FileWrite)):
+            components(args.path)
+        if isinstance(args, FileList) and args.path not in {"", "."}:
             components(args.path)
         if isinstance(args, FileWrite) and len(args.content.encode()) > self.config.max_file_bytes:
             raise ToolError("file_too_large", "Content exceeds the configured byte limit")
@@ -257,6 +300,10 @@ class ToolHost:
                 preview = f"{args_process.program}\n" + args_process.source
             elif request.tool == "file.read":
                 preview = FileRead.model_validate(request.arguments).path
+            elif request.tool == "file.list":
+                preview = "List directory: " + (
+                    FileList.model_validate(request.arguments).path or "."
+                )
             else:
                 preview = HashText.model_validate(request.arguments).text
             plan = ToolPlan(

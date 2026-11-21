@@ -9,6 +9,7 @@ from auton.model.contracts import Contract
 class ConversationCreate(Contract):
     request_id: str = Field(pattern=r"^[a-zA-Z0-9_-]{1,100}$")
     title: str = Field(min_length=1, max_length=100)
+    project_path: str | None = Field(default=None, max_length=4096)
 
 
 class WorkspaceConversation(Contract):
@@ -16,6 +17,7 @@ class WorkspaceConversation(Contract):
     title: str
     project_id: str
     workspace_id: str
+    project_path: str | None = None
 
 
 class ConversationTurn(Contract):

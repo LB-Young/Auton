@@ -133,6 +133,7 @@ from auton.server.ports import BootstrapResponse, HealthResponse, ServerDependen
 from auton.server.run_events import EventStreamFactory, RunSnapshot
 from auton.server.uploads import UploadCommand, UploadIntent, UploadReceipt
 from auton.tools.contracts import (
+    LocalDirectories,
     ToolApproval,
     ToolDescriptor,
     ToolName,
@@ -1077,6 +1078,19 @@ class ServerFactory:
         @app.get("/api/v1/assessment/calibrations")
         async def assessment_calibrations(request: Request) -> tuple[CalibrationReport, ...]:
             return await deps.assess.calibrations(Principal(owner=owner(request), role="user"))
+
+        @app.get("/api/v1/local/directories")
+        async def local_directories(
+            request: Request, path: str | None = Query(default=None, max_length=4096)
+        ) -> LocalDirectories:
+            if request.headers.get("sec-fetch-site") == "cross-site" or (
+                request.headers.get("origin") is not None
+                and request.headers["origin"] not in config.allowed_origins
+            ):
+                raise ApplicationError(403, "origin_denied", "目录浏览仅允许来自本机工作台")
+            return await deps.tools.browse_directories(
+                Principal(owner=owner(request), role="user"), path
+            )
 
         @app.get("/api/v1/conversations")
         async def conversations(request: Request) -> list[WorkspaceConversation]:

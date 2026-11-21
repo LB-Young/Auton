@@ -562,3 +562,158 @@
     width: min(350px, 100vw);
   }
 }
+.cw-project-button {
+  flex-shrink: 0;
+}
+.cw-project-chip {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: fit-content;
+  max-width: 100%;
+  font-size: 12px;
+  padding: 5px 9px;
+  margin: 0 0 10px;
+  border-radius: 7px;
+  background: var(--surface-soft);
+  color: var(--muted);
+}
+.cw-project-chip span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cw-project-chip button {
+  background: transparent;
+  border: 0;
+  color: var(--muted);
+  display: flex;
+  padding: 2px;
+}
+.cw-project-location {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+.cw-project-location svg {
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+.cw-project-location span {
+  overflow-wrap: anywhere;
+}
+.cw-project-picker {
+  width: min(600px, calc(100vw - 28px));
+  max-height: 80dvh;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 22px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 20px 80px #0002;
+}
+.cw-project-picker::backdrop {
+  background: #0005;
+}
+.cw-project-picker header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.cw-project-picker h2 {
+  font-size: 16px;
+  margin: 0;
+}
+.cw-project-picker button,
+.cw-project-picker input {
+  font: inherit;
+}
+.cw-project-picker button {
+  cursor: pointer;
+}
+.cw-project-picker button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.cw-picker-note {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.8;
+}
+.cw-project-picker form {
+  display: flex;
+  gap: 8px;
+  margin: 18px 0;
+}
+.cw-project-picker form input {
+  width: 100%;
+  min-width: 0;
+  padding: 9px;
+  color: var(--text);
+  background: var(--surface-soft);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 13px;
+}
+.cw-project-picker form button {
+  flex-shrink: 0;
+  border: 1px solid var(--line);
+  background: var(--surface-soft);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+}
+.cw-directory-list {
+  min-height: 140px;
+  max-height: 38dvh;
+  overflow-y: auto;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 8px 0;
+}
+.cw-directory-list > button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  text-align: left;
+  background: transparent;
+  color: var(--text);
+  border: 0;
+  border-radius: 7px;
+}
+.cw-directory-list > button:hover {
+  background: var(--surface-soft);
+}
+.cw-directory-list > button svg {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+.cw-directory-list > button span {
+  overflow-wrap: anywhere;
+}
+.cw-directory-list > p {
+  font-size: 12px;
+  padding: 12px;
+  color: var(--muted);
+}
+.cw-project-picker footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 14px;
+}
+@media (max-width: 600px) {
+  .cw-composer-toolbar {
+    gap: 5px;
+  }
+  .cw-project-picker {
+    padding: 16px;
+  }
+}

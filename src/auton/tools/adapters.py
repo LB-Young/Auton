@@ -11,6 +11,7 @@ from pydantic import ValidationError
 from auton.tools.config import ToolConfig
 from auton.tools.contracts import (
     AdapterResult,
+    FileList,
     FileRead,
     FileWrite,
     HashText,
@@ -40,6 +41,12 @@ class FileAdapter:
         self.sandbox = sandbox
 
     async def invoke(self, request: ToolRequest, workspace: ToolWorkspace) -> AdapterResult:
+        if request.tool == "file.list":
+            args_list = FileList.model_validate(request.arguments)
+            text = await anyio.to_thread.run_sync(
+                lambda: self.sandbox.list_files(workspace, args_list.path)
+            )
+            return AdapterResult(output=text)
         if request.tool == "file.read":
             args = FileRead.model_validate(request.arguments)
             data = await anyio.to_thread.run_sync(lambda: self.sandbox.read(workspace, args.path))
@@ -50,9 +57,23 @@ class FileAdapter:
                 raise ToolError(
                     "binary_file_unsupported", "Only UTF-8 text files are supported"
                 ) from error
-            return AdapterResult(
-                output=text, sha256=hashlib.sha256(data).hexdigest(), size_bytes=len(data)
-            )
+            sha = hashlib.sha256(data).hexdigest()
+            if args.start_line != 1 or args.max_lines is not None:
+                lines = text.splitlines(keepends=True)
+                stop = args.start_line - 1 + (args.max_lines or 200)
+                chunk = lines[args.start_line - 1 : stop]
+                text = json.dumps(
+                    {
+                        "path": args.path,
+                        "sha256": sha,
+                        "start_line": args.start_line,
+                        "end_line": args.start_line - 1 + len(chunk),
+                        "total_lines": len(lines),
+                        "content": "".join(chunk),
+                    },
+                    ensure_ascii=False,
+                )
+            return AdapterResult(output=text, sha256=sha, size_bytes=len(data))
         args_write = FileWrite.model_validate(request.arguments)
         sha, size = await anyio.to_thread.run_sync(
             lambda: self.sandbox.write(

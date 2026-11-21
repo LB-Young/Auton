@@ -1,4 +1,5 @@
 import asyncio
+from pathlib import Path
 from typing import cast
 
 import pytest
@@ -253,3 +254,55 @@ async def test_text_only_local_executor_does_not_require_tool_protocol(
     assert done.status == "succeeded", done.reason
     assert not done.command.allowed_tools
     assert not calls[-1].tools
+
+
+async def test_selected_project_is_persistently_bound_and_read_through_agent_tools(
+    agent: AgentRuntime, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    project = tmp_path / "selected"
+    project.mkdir()
+    (project / "README.md").write_text("This is the selected project, marker: selected-project.")
+    conversations = service(agent)
+    create = ConversationCreate(
+        request_id="selected-project",
+        title="分析项目",
+        project_path=str(project / ".." / "selected"),
+    )
+    conversation = await conversations.create(USER, create)
+    assert conversation.project_path == str(project.resolve())
+    assert await conversations.create(USER, create) == conversation
+    calls: list[ModelRequest] = []
+
+    async def respond(request: ModelRequest) -> ModelResult:
+        calls.append(request)
+        if len(calls) == 1:
+            return result(
+                request, calls=(ToolCall(id="list", name="file_list", arguments={"path": ""}),)
+            )
+        if len(calls) == 2:
+            return result(
+                request,
+                calls=(ToolCall(id="read", name="file_read", arguments={"path": "README.md"}),),
+            )
+        assert any(
+            m.role == "tool" and "selected-project" in (m.content or "") for m in request.messages
+        )
+        return result(request, "已读取所选项目的 README。")
+
+    generate(agent, monkeypatch, respond)
+    run = await conversations.send(
+        USER,
+        conversation.id,
+        ConversationTurn(
+            request_id="analyze", expected_turns=0, text="分析这个项目", model_id="fixture-model"
+        ),
+    )
+    done = await wait(agent, run.id)
+    assert done.status == "succeeded", done.reason
+    assert [receipt.tool for receipt in done.receipts] == ["file.list", "file.read"]
+    assert (await agent.deps.tools.workspace(USER, conversation.workspace_id)).root_path == str(
+        project.resolve()
+    )
+    restored = await service(agent).view(USER, conversation.id)
+    assert restored.conversation.project_path == str(project.resolve())
+    assert len(restored.turns) == 1

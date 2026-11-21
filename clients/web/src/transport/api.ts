@@ -54,6 +54,8 @@ export class ApiClientFactory {
       return (await response.json()) as T;
     }
     return {
+      localDirectories: (path) =>
+        request(`/local/directories${path ? `?${new URLSearchParams({ path })}` : ''}`),
       conversations: {
         list: () => request('/conversations'),
         create: (command) => request('/conversations', command),

@@ -4,6 +4,7 @@ from auton.constitution.config import Principal
 from auton.kernel.ports import ApplicationError, LifecycleHandle
 from auton.tools.contracts import (
     AdapterResult,
+    LocalDirectories,
     ToolApproval,
     ToolDescriptor,
     ToolPlan,
@@ -32,6 +33,12 @@ class ToolHostPort(LifecycleHandle, Protocol):
     async def create_workspace(
         self, principal: Principal, workspace_id: str, title: str, read_only: bool
     ) -> ToolWorkspace: ...
+    async def bind_project_workspace(
+        self, principal: Principal, workspace_id: str, title: str, path: str, read_only: bool
+    ) -> ToolWorkspace: ...
+    async def browse_directories(
+        self, principal: Principal, path: str | None
+    ) -> LocalDirectories: ...
     async def workspaces(self, principal: Principal) -> list[ToolWorkspace]: ...
     async def prepare(self, request: ToolRequest) -> ToolPlan: ...
     async def approve(self, principal: Principal, operation_id: str) -> ToolApproval: ...

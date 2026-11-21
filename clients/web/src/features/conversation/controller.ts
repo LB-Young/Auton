@@ -15,6 +15,7 @@ export interface ConversationState {
   models: ModelInfo[];
   model: string;
   draft: string;
+  projectPath: string | null;
   loading: boolean;
   busy: boolean;
   error: string;
@@ -30,6 +31,7 @@ export function createConversationController(api: ApiClient) {
     models: [],
     model: '',
     draft: '',
+    projectPath: null,
     loading: true,
     busy: false,
     error: '',
@@ -151,8 +153,22 @@ export function createConversationController(api: ApiClient) {
       drafts.delete('new');
       pending.clear();
       controls.clear();
-      update({ current: null, draft: '', progress: null, error: '', loading: false });
+      update({
+        current: null,
+        draft: '',
+        projectPath: null,
+        progress: null,
+        error: '',
+        loading: false,
+      });
       route();
+    },
+    project(path: string | null) {
+      if (state.busy || state.loading) return;
+      const draft = state.draft;
+      controller.newConversation();
+      update({ projectPath: path, draft });
+      drafts.set('new', draft);
     },
     async select(id: string) {
       if (state.busy) return;
@@ -175,7 +191,12 @@ export function createConversationController(api: ApiClient) {
             if (drafts.get(id)?.trim() === command.text) drafts.delete(id);
           }
         }
-        update({ current, draft: drafts.get(id) ?? '', loading: false });
+        update({
+          current,
+          projectPath: current.conversation.project_path,
+          draft: drafts.get(id) ?? '',
+          loading: false,
+        });
         route();
         watch();
       } catch (error) {
@@ -206,6 +227,7 @@ export function createConversationController(api: ApiClient) {
           const conversation = await api.conversations.create({
             request_id: createRequest,
             title: text.slice(0, 80),
+            project_path: state.projectPath,
           });
           current = { conversation, turns: [] };
           update({

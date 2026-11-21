@@ -1207,6 +1207,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/local/directories': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Local Directories */
+    get: operations['local_directories_api_v1_local_directories_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/models': {
     parameters: {
       query?: never;
@@ -3786,6 +3803,8 @@ export interface components {
     };
     /** ConversationCreate */
     ConversationCreate: {
+      /** Project Path */
+      project_path?: string | null;
       /** Request Id */
       request_id: string;
       /** Title */
@@ -3826,7 +3845,7 @@ export interface components {
        *       "mcp.sha256"
        *     ]
        */
-      allowed_tools: ('file.read' | 'file.write' | 'process.run' | 'mcp.sha256')[];
+      allowed_tools: ('file.read' | 'file.list' | 'file.write' | 'process.run' | 'mcp.sha256')[];
       /** Asset Snapshot Id */
       asset_snapshot_id?: string | null;
       /**
@@ -3867,7 +3886,7 @@ export interface components {
        *       "mcp.sha256"
        *     ]
        */
-      allowed_tools: ('file.read' | 'file.write' | 'process.run' | 'mcp.sha256')[];
+      allowed_tools: ('file.read' | 'file.list' | 'file.write' | 'process.run' | 'mcp.sha256')[];
       /** Asset Snapshot Id */
       asset_snapshot_id: string | null;
       /**
@@ -5346,6 +5365,20 @@ export interface components {
     LegacyIdentityCommand: {
       /** Project Id */
       project_id: string;
+    };
+    /** LocalDirectories */
+    LocalDirectories: {
+      /** Directories */
+      directories: string[];
+      /** Parent */
+      parent: string | null;
+      /** Path */
+      path: string;
+      /**
+       * Truncated
+       * @default false
+       */
+      truncated: boolean;
     };
     /** MaintenanceOperation */
     MaintenanceOperation: {
@@ -7519,7 +7552,7 @@ export interface components {
        * Id
        * @enum {string}
        */
-      id: 'file.read' | 'file.write' | 'process.run' | 'mcp.sha256';
+      id: 'file.read' | 'file.list' | 'file.write' | 'process.run' | 'mcp.sha256';
       /** Input Schema */
       input_schema: {
         [key: string]: components['schemas']['JsonValue'];
@@ -7558,7 +7591,7 @@ export interface components {
        * Tool
        * @enum {string}
        */
-      tool: 'file.read' | 'file.write' | 'process.run' | 'mcp.sha256';
+      tool: 'file.read' | 'file.list' | 'file.write' | 'process.run' | 'mcp.sha256';
       /** Workspace Id */
       workspace_id: string;
     };
@@ -7574,7 +7607,7 @@ export interface components {
        * Tool
        * @enum {string}
        */
-      tool: 'file.read' | 'file.write' | 'process.run' | 'mcp.sha256';
+      tool: 'file.read' | 'file.list' | 'file.write' | 'process.run' | 'mcp.sha256';
       /** Workspace Id */
       workspace_id: string;
     };
@@ -7618,7 +7651,7 @@ export interface components {
        * Tool
        * @enum {string}
        */
-      tool: 'file.read' | 'file.write' | 'process.run' | 'mcp.sha256';
+      tool: 'file.read' | 'file.list' | 'file.write' | 'process.run' | 'mcp.sha256';
       /**
        * Untrusted
        * @default true
@@ -8316,6 +8349,8 @@ export interface components {
       id: string;
       /** Project Id */
       project_id: string;
+      /** Project Path */
+      project_path: string | null;
       /** Title */
       title: string;
       /** Workspace Id */
@@ -17608,6 +17643,118 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['JudgmentResult'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  local_directories_api_v1_local_directories_get: {
+    parameters: {
+      query?: {
+        path?: string | null;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LocalDirectories'];
         };
       };
       /** @description Unauthorized */

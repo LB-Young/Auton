@@ -3765,6 +3765,18 @@
       "ConversationCreate": {
         "additionalProperties": false,
         "properties": {
+          "project_path": {
+            "anyOf": [
+              {
+                "maxLength": 4096,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Project Path"
+          },
           "request_id": {
             "pattern": "^[a-zA-Z0-9_-]{1,100}$",
             "title": "Request Id",
@@ -3861,6 +3873,7 @@
             "items": {
               "enum": [
                 "file.read",
+                "file.list",
                 "file.write",
                 "process.run",
                 "mcp.sha256"
@@ -3974,6 +3987,7 @@
             "items": {
               "enum": [
                 "file.read",
+                "file.list",
                 "file.write",
                 "process.run",
                 "mcp.sha256"
@@ -7651,6 +7665,46 @@
           "project_id"
         ],
         "title": "LegacyIdentityCommand",
+        "type": "object"
+      },
+      "LocalDirectories": {
+        "additionalProperties": false,
+        "properties": {
+          "directories": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Directories",
+            "type": "array"
+          },
+          "parent": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent"
+          },
+          "path": {
+            "title": "Path",
+            "type": "string"
+          },
+          "truncated": {
+            "default": false,
+            "title": "Truncated",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "path",
+          "parent",
+          "directories",
+          "truncated"
+        ],
+        "title": "LocalDirectories",
         "type": "object"
       },
       "MaintenanceOperation": {
@@ -12979,6 +13033,7 @@
           "id": {
             "enum": [
               "file.read",
+              "file.list",
               "file.write",
               "process.run",
               "mcp.sha256"
@@ -13068,6 +13123,7 @@
           "tool": {
             "enum": [
               "file.read",
+              "file.list",
               "file.write",
               "process.run",
               "mcp.sha256"
@@ -13112,6 +13168,7 @@
           "tool": {
             "enum": [
               "file.read",
+              "file.list",
               "file.write",
               "process.run",
               "mcp.sha256"
@@ -13206,6 +13263,7 @@
           "tool": {
             "enum": [
               "file.read",
+              "file.list",
               "file.write",
               "process.run",
               "mcp.sha256"
@@ -14794,6 +14852,17 @@
             "title": "Project Id",
             "type": "string"
           },
+          "project_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Project Path"
+          },
           "title": {
             "title": "Title",
             "type": "string"
@@ -14807,7 +14876,8 @@
           "id",
           "title",
           "project_id",
-          "workspace_id"
+          "workspace_id",
+          "project_path"
         ],
         "title": "WorkspaceConversation",
         "type": "object"
@@ -25546,6 +25616,143 @@
           }
         },
         "summary": "Judgment Preview"
+      }
+    },
+    "/api/v1/local/directories": {
+      "get": {
+        "operationId": "local_directories_api_v1_local_directories_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "path",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 4096,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Path"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocalDirectories"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Local Directories"
       }
     },
     "/api/v1/models": {

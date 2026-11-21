@@ -6,7 +6,7 @@ from pydantic import Field, JsonValue
 from auton.constitution.config import Principal
 from auton.model.contracts import Contract
 
-ToolName = Literal["file.read", "file.write", "process.run", "mcp.sha256"]
+ToolName = Literal["file.read", "file.list", "file.write", "process.run", "mcp.sha256"]
 
 
 class ToolDescriptor(Contract):
@@ -25,6 +25,20 @@ class ToolWorkspace(Contract):
     goal_id: str
     read_only: bool
     revision: int = 1
+    root_path: str | None = None
+    root_device: int | None = None
+    root_inode: int | None = None
+
+
+class LocalDirectories(Contract):
+    path: str
+    parent: str | None
+    directories: tuple[str, ...]
+    truncated: bool = False
+
+
+class FileList(Contract):
+    path: str = Field(default="", max_length=400)
 
 
 class ToolRequest(Contract):
@@ -43,9 +57,12 @@ class ToolRequest(Contract):
 
 class FileRead(Contract):
     path: str = Field(min_length=1, max_length=400)
+    start_line: int = Field(default=1, ge=1)
+    max_lines: int | None = Field(default=None, ge=1, le=200)
 
 
-class FileWrite(FileRead):
+class FileWrite(Contract):
+    path: str = Field(min_length=1, max_length=400)
     content: str = Field(max_length=131072)
     expected_sha256: str | None = Field(
         default=None,

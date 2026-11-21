@@ -344,7 +344,13 @@ def test_real_tool_http_approval_receipt_and_download(client: TestClient) -> Non
     )
     assert ws.status_code == 201
     assert "owner" not in ws.json() and client.cookies.get("auton_owner") not in ws.text
-    assert len(client.get("/api/v1/tools").json()) == 4
+    assert {tool["id"] for tool in client.get("/api/v1/tools").json()} == {
+        "file.read",
+        "file.list",
+        "file.write",
+        "process.run",
+        "mcp.sha256",
+    }
     prepared = client.post(
         "/api/v1/tools/operations",
         json={
