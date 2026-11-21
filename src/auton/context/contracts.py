@@ -25,7 +25,7 @@ class TaskState(Contract):
     delivery: dict[str, JsonValue] = Field(default_factory=dict)
     goal: str = Field(min_length=1, max_length=4000)
     boundaries: tuple[Annotated[str, Field(max_length=300)], ...] = Field(default=(), max_length=20)
-    pending: tuple[PendingOperation, ...] = Field(default=(), max_length=30)
+    pending: tuple[PendingOperation, ...] = Field(default=(), max_length=200)
 
 
 class ContextRequest(Contract):
@@ -37,7 +37,7 @@ class ContextRequest(Contract):
     state_cutoff: int = Field(default=0, ge=0)
     model_id: str = Field(min_length=1, max_length=100)
     state: TaskState
-    history: tuple[ModelMessage, ...] = Field(default=(), max_length=300)
+    history: tuple[ModelMessage, ...] = Field(default=(), max_length=512)
     tools: tuple[ToolSpec, ...] = Field(default=(), max_length=16)
     data_domain: Literal["public", "local-only", "secret"] = "local-only"
     max_output_tokens: int = Field(default=256, ge=1, le=2048)

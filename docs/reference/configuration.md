@@ -39,10 +39,10 @@
 | 参数 | 类型 / 可选值 | 必填 | 默认值 | 约束 / 说明 |
 | --- | --- | --- | --- | --- |
 | `judgment_wait_seconds` | number | 否 | `120.0` | ≥ 1; ≤ 180 |
-| `max_steps` | integer | 否 | `8` | ≥ 1; ≤ 20 |
+| `max_steps` | integer | 否 | `8` | ≥ 1; ≤ 100 |
 | `max_tokens` | integer | 否 | `16000` | ≥ 512; ≤ 100000 |
 | `max_cost_microusd` | integer | 否 | `10000` | ≥ 1; ≤ 1000000 |
-| `max_tool_calls` | integer | 否 | `8` | ≥ 1; ≤ 30 |
+| `max_tool_calls` | integer | 否 | `8` | ≥ 1; ≤ 200 |
 | `max_active_runs` | integer | 否 | `2` | ≥ 1; ≤ 4 |
 | `max_output_tokens` | integer | 否 | `512` | ≥ 32; ≤ 2048 |
 | `directory` | string | 否 | `".auton_local/agent"` |  |

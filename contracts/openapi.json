@@ -11120,7 +11120,7 @@
             "type": "integer"
           },
           "max_steps": {
-            "maximum": 20.0,
+            "maximum": 100.0,
             "minimum": 1.0,
             "title": "Max Steps",
             "type": "integer"
@@ -11132,7 +11132,7 @@
             "type": "integer"
           },
           "max_tool_calls": {
-            "maximum": 30.0,
+            "maximum": 200.0,
             "minimum": 1.0,
             "title": "Max Tool Calls",
             "type": "integer"
@@ -11164,7 +11164,7 @@
             "type": "integer"
           },
           "max_steps": {
-            "maximum": 20.0,
+            "maximum": 100.0,
             "minimum": 1.0,
             "title": "Max Steps",
             "type": "integer"
@@ -11176,7 +11176,7 @@
             "type": "integer"
           },
           "max_tool_calls": {
-            "maximum": 30.0,
+            "maximum": 200.0,
             "minimum": 1.0,
             "title": "Max Tool Calls",
             "type": "integer"
@@ -12718,7 +12718,7 @@
             "items": {
               "$ref": "#/components/schemas/PendingOperation"
             },
-            "maxItems": 30,
+            "maxItems": 200,
             "title": "Pending",
             "type": "array"
           }

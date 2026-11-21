@@ -2326,9 +2326,9 @@ Executable train/dev input, with no meta human answer or calibration label.
 | --- | --- | --- | --- | --- |
 | `max_cost_microusd` | integer | 是 | — | ≥ 1.0; ≤ 1000000.0 |
 | `max_output_tokens` | integer | 否 | `512` | ≥ 32.0; ≤ 2048.0 |
-| `max_steps` | integer | 是 | — | ≥ 1.0; ≤ 20.0 |
+| `max_steps` | integer | 是 | — | ≥ 1.0; ≤ 100.0 |
 | `max_tokens` | integer | 是 | — | ≥ 512.0; ≤ 100000.0 |
-| `max_tool_calls` | integer | 是 | — | ≥ 1.0; ≤ 30.0 |
+| `max_tool_calls` | integer | 是 | — | ≥ 1.0; ≤ 200.0 |
 
 <a id="runlimits-output"></a>
 ### RunLimits-Output
@@ -2337,9 +2337,9 @@ Executable train/dev input, with no meta human answer or calibration label.
 | --- | --- | --- | --- | --- |
 | `max_cost_microusd` | integer | 是 | — | ≥ 1.0; ≤ 1000000.0 |
 | `max_output_tokens` | integer | 是 | `512` | ≥ 32.0; ≤ 2048.0 |
-| `max_steps` | integer | 是 | — | ≥ 1.0; ≤ 20.0 |
+| `max_steps` | integer | 是 | — | ≥ 1.0; ≤ 100.0 |
 | `max_tokens` | integer | 是 | — | ≥ 512.0; ≤ 100000.0 |
-| `max_tool_calls` | integer | 是 | — | ≥ 1.0; ≤ 30.0 |
+| `max_tool_calls` | integer | 是 | — | ≥ 1.0; ≤ 200.0 |
 
 <a id="runpage"></a>
 ### RunPage
@@ -2656,7 +2656,7 @@ Executable train/dev input, with no meta human answer or calibration label.
 | `boundaries` | array&lt;string&gt; | 否 | `[]` | 最多项 20 |
 | `delivery` | map&lt;[JsonValue](#jsonvalue)&gt; | 否 | — |  |
 | `goal` | string | 是 | — | 最短 1; 最长 4000 |
-| `pending` | array&lt;[PendingOperation](#pendingoperation)&gt; | 否 | `[]` | 最多项 30 |
+| `pending` | array&lt;[PendingOperation](#pendingoperation)&gt; | 否 | `[]` | 最多项 200 |
 
 <a id="teacheruse-input"></a>
 ### TeacherUse-Input

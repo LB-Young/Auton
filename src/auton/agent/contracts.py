@@ -10,20 +10,20 @@ from auton.tools.contracts import ToolName, ToolPlan, ToolReceipt
 
 class AgentConfig(Contract):
     judgment_wait_seconds: float = Field(default=120, ge=1, le=180)
-    max_steps: int = Field(default=8, ge=1, le=20)
+    max_steps: int = Field(default=8, ge=1, le=100)
     max_tokens: int = Field(default=16000, ge=512, le=100000)
     max_cost_microusd: int = Field(default=10000, ge=1, le=1000000)
-    max_tool_calls: int = Field(default=8, ge=1, le=30)
+    max_tool_calls: int = Field(default=8, ge=1, le=200)
     max_active_runs: int = Field(default=2, ge=1, le=4)
     max_output_tokens: int = Field(default=512, ge=32, le=2048)
     directory: str = ".auton_local/agent"
 
 
 class RunLimits(Contract):
-    max_steps: int = Field(ge=1, le=20)
+    max_steps: int = Field(ge=1, le=100)
     max_tokens: int = Field(ge=512, le=100000)
     max_cost_microusd: int = Field(ge=1, le=1000000)
-    max_tool_calls: int = Field(ge=1, le=30)
+    max_tool_calls: int = Field(ge=1, le=200)
     max_output_tokens: int = Field(default=512, ge=32, le=2048)
 
 

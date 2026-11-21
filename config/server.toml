@@ -6,6 +6,12 @@ allowed_origins = ["http://127.0.0.1:5173", "http://localhost:5173", "http://127
 [constitution]
 remote_providers = ["deepseek"]
 
+# Match the requested tool allowance without zeroing the other policy budgets.
+[constitution.budget]
+tokens = 100000
+cost_microusd = 5000000
+tool_calls = 200
+
 [models]
 backend = "deepseek"
 hosted_context_tokens = 65536
@@ -26,8 +32,8 @@ enabled = false
 
 # Practical interactive project budgets. Recorded per-run budgets remain immutable.
 [agent]
-max_steps = 20
-max_tool_calls = 30
+max_steps = 100
+max_tool_calls = 200
 max_tokens = 100000
-max_cost_microusd = 100000
+max_cost_microusd = 1000000
 max_output_tokens = 2048
