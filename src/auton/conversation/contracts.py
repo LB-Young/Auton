@@ -35,3 +35,12 @@ class ConversationTurn(Contract):
 class ConversationView(Contract):
     conversation: WorkspaceConversation
     turns: tuple[AgentRun, ...] = ()
+
+
+class ConversationHistoryPath(Contract):
+    path: str
+    exported_at: str
+    size_bytes: int
+    conversation_id: str
+    format: str = "json"
+    snapshot: bool = True

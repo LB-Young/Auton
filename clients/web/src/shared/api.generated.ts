@@ -434,6 +434,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/conversations/{identity}/history-export': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Conversation History Export */
+    post: operations['conversation_history_export_api_v1_conversations__identity__history_export_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/conversations/{identity}/turns': {
     parameters: {
       query?: never;
@@ -3809,6 +3826,27 @@ export interface components {
       request_id: string;
       /** Title */
       title: string;
+    };
+    /** ConversationHistoryPath */
+    ConversationHistoryPath: {
+      /** Conversation Id */
+      conversation_id: string;
+      /** Exported At */
+      exported_at: string;
+      /**
+       * Format
+       * @default json
+       */
+      format: string;
+      /** Path */
+      path: string;
+      /** Size Bytes */
+      size_bytes: number;
+      /**
+       * Snapshot
+       * @default true
+       */
+      snapshot: boolean;
     };
     /** ConversationTurn */
     ConversationTurn: {
@@ -11657,6 +11695,118 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['ConversationView'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  conversation_history_export_api_v1_conversations__identity__history_export_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        identity: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ConversationHistoryPath'];
         };
       };
       /** @description Unauthorized */

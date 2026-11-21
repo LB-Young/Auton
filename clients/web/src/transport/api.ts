@@ -58,6 +58,8 @@ export class ApiClientFactory {
         request(`/local/directories${path ? `?${new URLSearchParams({ path })}` : ''}`),
       conversations: {
         list: () => request('/conversations'),
+        exportHistory: (id) =>
+          request(`/conversations/${encodeURIComponent(id)}/history-export`, {}),
         create: (command) => request('/conversations', command),
         view: (id) => request(`/conversations/${encodeURIComponent(id)}`),
         send: (id, command) => request(`/conversations/${encodeURIComponent(id)}/turns`, command),

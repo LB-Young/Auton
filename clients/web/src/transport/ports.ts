@@ -32,6 +32,7 @@ export interface ApiClient {
   localDirectories(path?: string): Promise<import('../shared/contracts').LocalDirectories>;
   conversations: {
     list(): Promise<import('../shared/contracts').WorkspaceConversation[]>;
+    exportHistory(id: string): Promise<import('../shared/contracts').ConversationHistoryPath>;
     create(
       command: import('../shared/contracts').ConversationCreate,
     ): Promise<import('../shared/contracts').WorkspaceConversation>;

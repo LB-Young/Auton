@@ -43,6 +43,7 @@ from auton.constitution.config import (
 from auton.context.contracts import ContextRequest, ContextSnapshot, TaskState
 from auton.conversation.contracts import (
     ConversationCreate,
+    ConversationHistoryPath,
     ConversationTurn,
     ConversationView,
     WorkspaceConversation,
@@ -1107,6 +1108,14 @@ class ServerFactory:
         @app.get("/api/v1/conversations/{identity}")
         async def conversation_view(request: Request, identity: str) -> ConversationView:
             return await deps.conversations.view(
+                Principal(owner=owner(request), role="user"), identity
+            )
+
+        @app.post("/api/v1/conversations/{identity}/history-export")
+        async def conversation_history_export(
+            request: Request, identity: str
+        ) -> ConversationHistoryPath:
+            return await deps.conversations.export_history(
                 Principal(owner=owner(request), role="user"), identity
             )
 

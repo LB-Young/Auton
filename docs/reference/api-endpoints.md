@@ -555,6 +555,26 @@ Conversation View
 - `501` Not Implemented：[ErrorBody](api-schemas.md#errorbody)
 - `503` Service Unavailable：[ErrorBody](api-schemas.md#errorbody)
 
+## POST /api/v1/conversations/{identity}/history-export
+
+Conversation History Export
+
+| 参数 | 位置 | 必填 | 类型 | 默认值 | 约束 |
+| --- | --- | --- | --- | --- | --- |
+| `identity` | path | 是 | string | — |  |
+
+- `200` Successful Response：[ConversationHistoryPath](api-schemas.md#conversationhistorypath)
+- `401` Unauthorized：[ErrorBody](api-schemas.md#errorbody)
+- `403` Forbidden：[ErrorBody](api-schemas.md#errorbody)
+- `404` Not Found：[ErrorBody](api-schemas.md#errorbody)
+- `409` Conflict：[ErrorBody](api-schemas.md#errorbody)
+- `410` Gone：[ErrorBody](api-schemas.md#errorbody)
+- `413` Request Entity Too Large：[ErrorBody](api-schemas.md#errorbody)
+- `422` Unprocessable Entity：[ErrorBody](api-schemas.md#errorbody)
+- `429` Too Many Requests：[ErrorBody](api-schemas.md#errorbody)
+- `501` Not Implemented：[ErrorBody](api-schemas.md#errorbody)
+- `503` Service Unavailable：[ErrorBody](api-schemas.md#errorbody)
+
 ## POST /api/v1/conversations/{identity}/turns
 
 Conversation Turn

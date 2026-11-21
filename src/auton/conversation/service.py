@@ -4,16 +4,20 @@ import asyncio
 import hashlib
 from dataclasses import dataclass
 
+import anyio
+
 from auton.agent.contracts import Acceptance, AgentRun, CreateRun
 from auton.agent.ports import AgentRuntimePort
 from auton.constitution.config import Principal
 from auton.constitution.secrets import Redactor
 from auton.conversation.contracts import (
     ConversationCreate,
+    ConversationHistoryPath,
     ConversationTurn,
     ConversationView,
     WorkspaceConversation,
 )
+from auton.conversation.history import HistoryExporter
 from auton.genome.contracts import Project
 from auton.genome.ports import GenomePort
 from auton.kernel.documents import key
@@ -36,8 +40,9 @@ class ConversationDependencies:
 
 
 class WorkspaceConversations:
-    def __init__(self, deps: ConversationDependencies) -> None:
+    def __init__(self, deps: ConversationDependencies, history: HistoryExporter) -> None:
         self.deps = deps
+        self.history = history
         self.lock = asyncio.Lock()
         self.active: set[asyncio.Task[AgentRun]] = set()
         self.closing = False
@@ -160,6 +165,22 @@ class WorkspaceConversations:
                 break
             turns.append(await self.deps.agent.get(principal, str(event.event.payload["run_id"])))
         return ConversationView(conversation=conversation, turns=tuple(turns))
+
+    async def export_history(self, principal: Principal, identity: str) -> ConversationHistoryPath:
+        if principal.role != "user":
+            raise ApplicationError(403, "conversation_user_required", "只有用户可以导出会话记录")
+        async with self.lock:
+            view = await self.view(principal, identity)
+            exported_at = self.deps.runtime.now().isoformat()
+            path, size = await anyio.to_thread.run_sync(
+                lambda: self.history.write(principal.owner, view, exported_at)
+            )
+            return ConversationHistoryPath(
+                path=path,
+                size_bytes=size,
+                exported_at=exported_at,
+                conversation_id=view.conversation.id,
+            )
 
     async def send(
         self, principal: Principal, identity: str, command: ConversationTurn

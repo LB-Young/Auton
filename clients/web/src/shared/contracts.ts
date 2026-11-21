@@ -184,3 +184,5 @@ export type ConversationTurn = components['schemas']['ConversationTurn'];
 export type ConversationCreate = components['schemas']['ConversationCreate'];
 
 export type LocalDirectories = components['schemas']['LocalDirectories'];
+
+export type ConversationHistoryPath = components['schemas']['ConversationHistoryPath'];

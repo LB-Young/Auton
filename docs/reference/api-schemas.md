@@ -739,6 +739,18 @@
 | `request_id` | string | 是 | — | 格式 ^[a-zA-Z0-9_-]{1,100}$ |
 | `title` | string | 是 | — | 最短 1; 最长 100 |
 
+<a id="conversationhistorypath"></a>
+### ConversationHistoryPath
+
+| 参数 | 类型 / 可选值 | 必填 | 默认值 | 约束 / 说明 |
+| --- | --- | --- | --- | --- |
+| `conversation_id` | string | 是 | — |  |
+| `exported_at` | string | 是 | — |  |
+| `format` | string | 是 | `"json"` |  |
+| `path` | string | 是 | — |  |
+| `size_bytes` | integer | 是 | — |  |
+| `snapshot` | boolean | 是 | `true` |  |
+
 <a id="conversationturn"></a>
 ### ConversationTurn
 

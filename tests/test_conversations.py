@@ -1,4 +1,5 @@
 import asyncio
+import json
 from pathlib import Path
 from typing import cast
 
@@ -34,7 +35,8 @@ def service(agent: AgentRuntime) -> WorkspaceConversationPort:
             agent.deps.models,
             agent.deps.events,
             agent.deps.runtime,
-        )
+        ),
+        Path(agent.config.directory) / "conversation-history",
     )
 
 
@@ -306,3 +308,93 @@ async def test_selected_project_is_persistently_bound_and_read_through_agent_too
     restored = await service(agent).view(USER, conversation.id)
     assert restored.conversation.project_path == str(project.resolve())
     assert len(restored.turns) == 1
+
+
+async def test_history_path_exports_owned_durable_snapshot_and_refreshes_same_file(
+    agent: AgentRuntime, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    conversations = service(agent)
+    conversation = await conversations.create(
+        USER, ConversationCreate(request_id="history", title="历史分析")
+    )
+    calls = 0
+
+    async def respond(request: ModelRequest) -> ModelResult:
+        nonlocal calls
+        calls += 1
+        return result(request, f"第 {calls} 轮回复")
+
+    generate(agent, monkeypatch, respond)
+    first = await conversations.send(
+        USER,
+        conversation.id,
+        ConversationTurn(request_id="one", expected_turns=0, text="你好", model_id="fixture-model"),
+    )
+    await wait(agent, first.id)
+    record = await conversations.export_history(USER, conversation.id)
+    path = Path(record.path)
+    assert path.is_absolute() and (await asyncio.to_thread(path.is_file))
+    assert (await asyncio.to_thread(path.stat)).st_mode & 0o777 == 0o600
+    assert (await asyncio.to_thread(path.parent.stat)).st_mode & 0o777 == 0o700
+    body = json.loads(await asyncio.to_thread(path.read_text))
+    assert body["durable_snapshot"] and body["conversation"]["id"] == conversation.id
+    assert [m["content"] for m in body["messages"]] == ["你好", "第 1 轮回复"]
+    assert body["turns"][0]["status"] == "succeeded"
+    assert body["turns"][0]["judgments"]
+    assert record.size_bytes == (await asyncio.to_thread(path.stat)).st_size
+    second = await conversations.send(
+        USER,
+        conversation.id,
+        ConversationTurn(request_id="two", expected_turns=1, text="继续", model_id="fixture-model"),
+    )
+    await wait(agent, second.id)
+    assert (await conversations.export_history(USER, conversation.id)).path == record.path
+    assert len(json.loads(await asyncio.to_thread(path.read_text))["messages"]) == 4
+    assert calls == 2, "Export must not replay model requests"
+    with pytest.raises(ApplicationError) as denied:
+        await conversations.export_history(Principal(owner="other", role="user"), conversation.id)
+    assert denied.value.status == 404
+    with pytest.raises(ApplicationError) as runtime:
+        await conversations.export_history(
+            USER.model_copy(update={"role": "runtime"}), conversation.id
+        )
+    assert runtime.value.status == 403
+    # Replacing the export filename cannot redirect a write outside the private directory.
+    victim = path.parent.parent / "untouched.txt"
+    await asyncio.to_thread(victim.write_text, "untouched")
+    await asyncio.to_thread(path.unlink)
+    await asyncio.to_thread(path.symlink_to, victim)
+    await conversations.export_history(USER, conversation.id)
+    assert (await asyncio.to_thread(victim.read_text)) == "untouched" and not (
+        await asyncio.to_thread(path.is_symlink)
+    )
+
+
+async def test_history_export_includes_blocking_reason_before_any_assistant_reply(
+    agent: AgentRuntime, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    async def blocked(request: ModelRequest) -> ModelResult:
+        raise ApplicationError(503, "fixture_blocked", "Temporary model failure")
+
+    generate(agent, monkeypatch, blocked)
+    conversations = service(agent)
+    conversation = await conversations.create(
+        USER, ConversationCreate(request_id="blocked-history", title="分析阻塞原因")
+    )
+    run = await conversations.send(
+        USER,
+        conversation.id,
+        ConversationTurn(
+            request_id="blocked-turn",
+            expected_turns=0,
+            text="分析项目",
+            model_id="fixture-model",
+        ),
+    )
+    done = await wait(agent, run.id)
+    assert done.status == "blocked"
+    record = await conversations.export_history(USER, conversation.id)
+    body = json.loads(await asyncio.to_thread(Path(record.path).read_text))
+    assert body["turns"][0]["reason"] == done.reason
+    assert body["messages"][1]["status"] == "blocked"
+    assert body["messages"][1]["content"] == ""

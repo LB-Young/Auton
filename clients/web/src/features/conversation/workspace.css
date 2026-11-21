@@ -717,3 +717,34 @@
     padding: 16px;
   }
 }
+.cw-history-toast {
+  flex-shrink: 0;
+  width: calc(100% - 36px);
+  max-width: 800px;
+  margin: 10px auto 0;
+  padding: 8px 12px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+}
+.cw-history-toast > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.cw-history-toast p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--muted);
+}
+.cw-history-toast input {
+  width: 100%;
+  padding: 7px 9px;
+  font-size: 11px;
+  background: var(--surface-soft);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--text);
+}

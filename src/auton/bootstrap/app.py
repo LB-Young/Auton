@@ -1,5 +1,6 @@
 from collections.abc import AsyncIterator
 from contextlib import AsyncExitStack, asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
 
@@ -118,7 +119,8 @@ class ApplicationFactory:
             ),
         )
         workspace_conversations = WorkspaceConversationFactory().create(
-            ConversationDependencies(agent, genome, tools, models, kernel.events, deps)
+            ConversationDependencies(agent, genome, tools, models, kernel.events, deps),
+            Path(config.agent.directory) / "conversation-history",
         )
         experience = ExperienceFactory().create(
             config.experience, ExperienceDependencies(kernel.events, agent, genome, context, deps)

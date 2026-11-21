@@ -4,6 +4,7 @@ from auton.agent.contracts import AgentRun
 from auton.constitution.config import Principal
 from auton.conversation.contracts import (
     ConversationCreate,
+    ConversationHistoryPath,
     ConversationTurn,
     ConversationView,
     WorkspaceConversation,
@@ -20,3 +21,6 @@ class WorkspaceConversationPort(LifecycleHandle, Protocol):
     async def send(
         self, principal: Principal, identity: str, command: ConversationTurn
     ) -> AgentRun: ...
+    async def export_history(
+        self, principal: Principal, identity: str
+    ) -> ConversationHistoryPath: ...

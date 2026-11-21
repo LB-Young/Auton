@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import {
   ArrowUp,
   Check,
+  Copy,
   Download,
   FileText,
   Folder,
@@ -57,6 +58,13 @@ export function ConversationWorkspace({ feature }: { feature: ConversationFeatur
   const [preview, setPreview] = useState<{ title: string; text: string } | null>(null);
   const [previewError, setPreviewError] = useState('');
   const [previewLoading, setPreviewLoading] = useState(false);
+  const [historyBusy, setHistoryBusy] = useState(false);
+  const [historyNotice, setHistoryNotice] = useState<{
+    path: string;
+    text: string;
+    copied: boolean;
+  } | null>(null);
+  const historyEpoch = useRef(0);
   const input = useRef<HTMLTextAreaElement>(null);
   const scroll = useRef<HTMLDivElement>(null);
   const follow = useRef(true);
@@ -109,6 +117,9 @@ export function ConversationWorkspace({ feature }: { feature: ConversationFeatur
     setPreview(null);
     setPreviewError('');
     setPreviewLoading(false);
+    historyEpoch.current++;
+    setHistoryBusy(false);
+    setHistoryNotice(null);
   }, [current?.conversation.id]);
   useEffect(() => {
     if (follow.current && scroll.current) scroll.current.scrollTop = scroll.current.scrollHeight;
@@ -128,6 +139,54 @@ export function ConversationWorkspace({ feature }: { feature: ConversationFeatur
     follow.current = true;
     await controller.send();
     input.current?.focus();
+  }
+  async function copyHistoryPath() {
+    if (!current?.turns.length || historyBusy) return;
+    const epoch = ++historyEpoch.current;
+    setHistoryBusy(true);
+    setHistoryNotice(null);
+    const record = feature.historyPath(current.conversation.id);
+    try {
+      if (navigator.clipboard?.write && typeof ClipboardItem !== 'undefined') {
+        // Invoke the clipboard API during the click gesture, including on Safari.
+        const text = record.then((value) => {
+          if (epoch !== historyEpoch.current) throw new Error('会话已切换');
+          return new Blob([value.path], { type: 'text/plain' });
+        });
+        await navigator.clipboard.write([new ClipboardItem({ 'text/plain': text })]);
+      } else {
+        const value = await record;
+        if (epoch !== historyEpoch.current) return;
+        if (!navigator.clipboard?.writeText) throw new Error('浏览器无法自动复制');
+        await navigator.clipboard.writeText(value.path);
+      }
+      const value = await record;
+      if (epoch === historyEpoch.current)
+        setHistoryNotice({
+          path: value.path,
+          copied: true,
+          text: '已复制会话记录路径（当前快照）',
+        });
+    } catch {
+      try {
+        const value = await record;
+        if (epoch === historyEpoch.current)
+          setHistoryNotice({
+            path: value.path,
+            copied: false,
+            text: '会话记录已保存，浏览器未允许自动复制。点击下方路径后手动复制。',
+          });
+      } catch (error) {
+        if (epoch === historyEpoch.current)
+          setHistoryNotice({
+            path: '',
+            copied: false,
+            text: error instanceof Error ? error.message : '导出会话记录失败，请重试',
+          });
+      }
+    } finally {
+      if (epoch === historyEpoch.current) setHistoryBusy(false);
+    }
   }
   async function openArtifact(title: string, url: string) {
     const epoch = ++previewEpoch.current;
@@ -242,6 +301,19 @@ export function ConversationWorkspace({ feature }: { feature: ConversationFeatur
           <span className="cw-title">{current?.conversation.title ?? '新对话'}</span>
           <button
             className="cw-icon"
+            aria-label="复制会话记录路径"
+            title={
+              current?.turns.length
+                ? '导出当前会话 JSON 快照并复制记录路径'
+                : '发送首条消息后可复制会话记录路径'
+            }
+            disabled={!current?.turns.length || state.loading || state.busy || historyBusy}
+            onClick={() => void copyHistoryPath()}
+          >
+            {historyNotice?.copied ? <Check size={19} /> : <Copy size={19} />}
+          </button>
+          <button
+            className="cw-icon"
             aria-label="切换主题"
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
           >
@@ -258,6 +330,28 @@ export function ConversationWorkspace({ feature }: { feature: ConversationFeatur
             <PanelRight size={20} />
           </button>
         </header>
+        {historyNotice && (
+          <div className="cw-history-toast">
+            <div>
+              <p role="status">{historyNotice.text}</p>
+              <button
+                className="cw-icon"
+                aria-label="关闭记录路径提示"
+                onClick={() => setHistoryNotice(null)}
+              >
+                <X size={16} />
+              </button>
+            </div>
+            {historyNotice.path && (
+              <input
+                aria-label="会话记录路径"
+                readOnly
+                value={historyNotice.path}
+                onFocus={(e) => e.currentTarget.select()}
+              />
+            )}
+          </div>
+        )}
         <div
           ref={scroll}
           className="cw-messages"
