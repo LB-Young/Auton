@@ -16,7 +16,10 @@ class RunFactory:
             {
                 "id": key(owner, command.request_id),
                 "command": command,
-                "history": (ModelMessage(role="user", content=command.goal),),
+                "history": (
+                    *command.prior_messages,
+                    ModelMessage(role="user", content=command.goal),
+                ),
                 "source": source,
             }
         )

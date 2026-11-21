@@ -267,11 +267,13 @@ async def test_per_run_limits_pin_budget_and_keep_legacy_request_digest(
 
     command = create()
     old_payload = json.dumps(
-        command.model_dump(mode="json", exclude={"limits", "asset_snapshot_id"}),
+        command.model_dump(mode="json", exclude={"limits", "asset_snapshot_id", "prior_messages"}),
         ensure_ascii=False,
         separators=(",", ":"),
     )
     assert command.digest == hashlib.sha256(old_payload.encode()).hexdigest()
+    # Frozen pre-conversation digest: an empty new field must not invalidate old retries.
+    assert command.digest == "d6cefb175ecc4771a014fd327f64ad973c28a0e253ab537fc344fa54bd801c0c"
     with pytest.raises(ApplicationError) as denied:
         await agent.create(
             USER,

@@ -12,6 +12,7 @@ from auton.assess.ports import AssessPort
 from auton.constitution.config import PublicPolicy
 from auton.constitution.ports import PolicyControlPort
 from auton.context.ports import ContextEnginePort
+from auton.conversation.ports import WorkspaceConversationPort
 from auton.datasets.ports import DatasetPort
 from auton.decision_review.ports import DecisionReviewPort
 from auton.delegation.ports import DelegationPort
@@ -52,6 +53,7 @@ class HealthResponse(BaseModel):
 
 @dataclass(frozen=True)
 class ServerDependencies:
+    conversations: WorkspaceConversationPort
     conversation: ConversationPort | None
     modules: list[ModuleDescriptor]
     implementation: str

@@ -2,6 +2,7 @@
 
 | 想做什么 | 阅读 |
 | --- | --- |
+| 多轮对话、模型选择与工作面板 | [对话工作区](conversation-workspace.md) |
 | 安装并启动 | [快速启动](quickstart.md) |
 | 按页面使用全部功能 | [功能与使用指南](usage.md) |
 | 配置模块、密钥、预算与目录 | [配置指南](configuration.md) / [所有配置字段](reference/configuration.md) |

@@ -1,3 +1,4 @@
+import { ConversationWorkspace } from '../features/conversation/ConversationWorkspace';
 import { Operations } from '../features/operations/Operations';
 import { Releases } from '../features/release/Releases';
 import { Training } from '../features/training/Training';
@@ -151,6 +152,15 @@ function Brand({ small = false }: { small?: boolean }) {
 }
 
 export function App({ application }: { application: Application }) {
+  const legacy = new URL(window.location.href).searchParams.get('legacy') === '1';
+  return legacy ? (
+    <LegacyApp application={application} />
+  ) : (
+    <ConversationWorkspace feature={application.conversations} />
+  );
+}
+
+function LegacyApp({ application }: { application: Application }) {
   const controller = application.chat.controller;
   const state = useSyncExternalStore(controller.subscribe, controller.getSnapshot);
   const session = state.sessions.find((item) => item.id === state.selected);

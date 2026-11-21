@@ -20,7 +20,7 @@ make server
 
 打开 [工作台](http://127.0.0.1:5173)，`Ctrl+C` 停止。没有 `.env` 时首次执行会创建模板，填写 key 后重试即可。
 
-手动开发启动、环境要求和首次创建项目/工作区的步骤见 [快速启动](docs/quickstart.md)。
+打开页面即可开始多轮对话，输入框旁选择远程或本地模型，右侧工作面板按需展开。详见 [对话工作区](docs/conversation-workspace.md)；手动开发启动与环境要求见 [快速启动](docs/quickstart.md)。
 
 ## 文档
 

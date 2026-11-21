@@ -54,6 +54,12 @@ export class ApiClientFactory {
       return (await response.json()) as T;
     }
     return {
+      conversations: {
+        list: () => request('/conversations'),
+        create: (command) => request('/conversations', command),
+        view: (id) => request(`/conversations/${encodeURIComponent(id)}`),
+        send: (id, command) => request(`/conversations/${encodeURIComponent(id)}/turns`, command),
+      },
       operations: {
         status: () => request('/operations/status'),
         schedules: (project) =>

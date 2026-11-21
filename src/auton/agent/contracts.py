@@ -28,7 +28,7 @@ class RunLimits(Contract):
 
 
 class Acceptance(Contract):
-    kind: Literal["file", "research"]
+    kind: Literal["file", "research", "response"]
     path: str | None = Field(default=None, max_length=400)
     sha256: str | None = Field(default=None, pattern=r"^[a-f0-9]{64}$")
     min_sources: int = Field(default=1, ge=1, le=6)
@@ -41,6 +41,7 @@ class Acceptance(Contract):
 
 
 class CreateRun(Contract):
+    prior_messages: tuple[ModelMessage, ...] = Field(default=(), max_length=78)
     limits: RunLimits | None = None
     asset_snapshot_id: str | None = Field(default=None, max_length=100)
     request_id: str = Field(pattern=r"^[a-zA-Z0-9_-]{1,100}$")
@@ -55,6 +56,10 @@ class CreateRun(Contract):
 
     @model_validator(mode="after")
     def tools_match_acceptance(self) -> "CreateRun":
+        if self.prior_messages and self.acceptance.kind != "response":
+            raise ValueError("Prior conversation messages require response acceptance")
+        if any(m.role not in {"user", "assistant"} or m.tool_calls for m in self.prior_messages):
+            raise ValueError("Conversation history only includes user and assistant text")
         if len(set(self.allowed_tools)) != len(self.allowed_tools):
             raise ValueError("Duplicate allowed tool")
         if self.acceptance.kind == "research" and any(
@@ -69,6 +74,8 @@ class CreateRun(Contract):
     def digest(self) -> str:
         # Preserve M09-M13 request digests when new optional fields are absent.
         excluded = {name for name in ("limits", "asset_snapshot_id") if getattr(self, name) is None}
+        if not self.prior_messages:
+            excluded.add("prior_messages")
         return hashlib.sha256(self.model_dump_json(exclude=excluded).encode()).hexdigest()
 
 
@@ -102,7 +109,7 @@ class RunCommand(Contract):
 
 class AcceptanceCheck(Contract):
     outcome: Literal["passed", "failed", "unknown"]
-    checker: Literal["file-sha256-v1", "retrieval-citations-v1"]
+    checker: Literal["file-sha256-v1", "retrieval-citations-v1", "response-present-v1"]
     evidence: tuple[str, ...]
     semantic_quality_verified: Literal[False] = False
 

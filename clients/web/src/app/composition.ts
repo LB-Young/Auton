@@ -1,3 +1,4 @@
+import { ConversationFeatureFactory } from '../features/conversation/factory';
 import { OperationsFeatureFactory } from '../features/operations/factory';
 import { ReleaseFeatureFactory } from '../features/release/factory';
 import {
@@ -29,6 +30,7 @@ export function createApplication() {
   const events = new EventStreamFactory().create();
   return {
     projects,
+    conversations: new ConversationFeatureFactory().create({ api }),
     operations: new OperationsFeatureFactory().create({ api }),
     releases: new ReleaseFeatureFactory().create({ api }),
     decisionTraining: new DecisionTrainingFeatureFactory().create({ api }),

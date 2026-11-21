@@ -9,7 +9,7 @@
 
 | 参数 | 类型 / 可选值 | 必填 | 默认值 | 约束 / 说明 |
 | --- | --- | --- | --- | --- |
-| `kind` | `"file"`, `"research"` | 是 | — |  |
+| `kind` | `"file"`, `"research"`, `"response"` | 是 | — |  |
 | `min_sources` | integer | 否 | `1` | ≥ 1.0; ≤ 6.0 |
 | `path` | string / null | 否 | — |  |
 | `sha256` | string / null | 否 | — |  |
@@ -19,7 +19,7 @@
 
 | 参数 | 类型 / 可选值 | 必填 | 默认值 | 约束 / 说明 |
 | --- | --- | --- | --- | --- |
-| `kind` | `"file"`, `"research"` | 是 | — |  |
+| `kind` | `"file"`, `"research"`, `"response"` | 是 | — |  |
 | `min_sources` | integer | 是 | `1` | ≥ 1.0; ≤ 6.0 |
 | `path` | string / null | 是 | — |  |
 | `sha256` | string / null | 是 | — |  |
@@ -29,7 +29,7 @@
 
 | 参数 | 类型 / 可选值 | 必填 | 默认值 | 约束 / 说明 |
 | --- | --- | --- | --- | --- |
-| `checker` | `"file-sha256-v1"`, `"retrieval-citations-v1"` | 是 | — |  |
+| `checker` | `"file-sha256-v1"`, `"retrieval-citations-v1"`, `"response-present-v1"` | 是 | — |  |
 | `evidence` | array&lt;string&gt; | 是 | — |  |
 | `outcome` | `"passed"`, `"failed"`, `"unknown"` | 是 | — |  |
 | `semantic_quality_verified` | `false` | 是 | `false` |  |
@@ -730,6 +730,33 @@
 | `explanation` | string | 是 | — | 最短 1; 最长 1500 |
 | `verdict` | `"beneficial"`, `"harmful"`, `"environment_only"`, `"unknown"` | 是 | — |  |
 
+<a id="conversationcreate"></a>
+### ConversationCreate
+
+| 参数 | 类型 / 可选值 | 必填 | 默认值 | 约束 / 说明 |
+| --- | --- | --- | --- | --- |
+| `request_id` | string | 是 | — | 格式 ^[a-zA-Z0-9_-]{1,100}$ |
+| `title` | string | 是 | — | 最短 1; 最长 100 |
+
+<a id="conversationturn"></a>
+### ConversationTurn
+
+| 参数 | 类型 / 可选值 | 必填 | 默认值 | 约束 / 说明 |
+| --- | --- | --- | --- | --- |
+| `allow_remote` | boolean | 否 | `false` |  |
+| `expected_turns` | integer | 是 | — | ≥ 0.0; < 40.0 |
+| `model_id` | string | 是 | — | 最短 1; 最长 100 |
+| `request_id` | string | 是 | — | 格式 ^[a-zA-Z0-9_-]{1,100}$ |
+| `text` | string | 是 | — | 最短 1; 最长 4000 |
+
+<a id="conversationview"></a>
+### ConversationView
+
+| 参数 | 类型 / 可选值 | 必填 | 默认值 | 约束 / 说明 |
+| --- | --- | --- | --- | --- |
+| `conversation` | [WorkspaceConversation](#workspaceconversation) | 是 | — |  |
+| `turns` | array&lt;[AgentRun](#agentrun)&gt; | 是 | `[]` |  |
+
 <a id="createrun-input"></a>
 ### CreateRun-Input
 
@@ -743,6 +770,7 @@
 | `goal` | string | 是 | — | 最短 1; 最长 4000 |
 | `limits` | [RunLimits-Input](#runlimits-input) / null | 否 | — |  |
 | `model_id` | string | 是 | — | 最短 1; 最长 100 |
+| `prior_messages` | array&lt;[ModelMessage-Input](#modelmessage-input)&gt; | 否 | `[]` | 最多项 78 |
 | `project_id` | string | 是 | — | 格式 ^[a-zA-Z0-9_-]{1,80}$ |
 | `request_id` | string | 是 | — | 格式 ^[a-zA-Z0-9_-]{1,100}$ |
 | `workspace_id` | string | 是 | — | 格式 ^[a-zA-Z0-9_-]{1,80}$ |
@@ -760,6 +788,7 @@
 | `goal` | string | 是 | — | 最短 1; 最长 4000 |
 | `limits` | [RunLimits-Output](#runlimits-output) / null | 是 | — |  |
 | `model_id` | string | 是 | — | 最短 1; 最长 100 |
+| `prior_messages` | array&lt;[ModelMessage-Output](#modelmessage-output)&gt; | 是 | `[]` | 最多项 78 |
 | `project_id` | string | 是 | — | 格式 ^[a-zA-Z0-9_-]{1,80}$ |
 | `request_id` | string | 是 | — | 格式 ^[a-zA-Z0-9_-]{1,100}$ |
 | `workspace_id` | string | 是 | — | 格式 ^[a-zA-Z0-9_-]{1,80}$ |
@@ -3102,6 +3131,16 @@ Executable train/dev input, with no meta human answer or calibration label.
 | --- | --- | --- | --- | --- |
 | `command` | [DatasetWithdrawal-Output](#datasetwithdrawal-output) | 是 | — |  |
 | `kind` | `"withdraw"` | 是 | — |  |
+
+<a id="workspaceconversation"></a>
+### WorkspaceConversation
+
+| 参数 | 类型 / 可选值 | 必填 | 默认值 | 约束 / 说明 |
+| --- | --- | --- | --- | --- |
+| `id` | string | 是 | — |  |
+| `project_id` | string | 是 | — |  |
+| `title` | string | 是 | — |  |
+| `workspace_id` | string | 是 | — |  |
 
 <a id="workspaceview"></a>
 ### WorkspaceView

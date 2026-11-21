@@ -177,3 +177,8 @@ export type TelemetrySample = components['schemas']['TelemetrySample'];
 export type OperationsAlert = components['schemas']['OperationsAlert'];
 export type BackupManifest = components['schemas']['BackupManifest'];
 export type RestoreCommand = components['schemas']['RestoreCommand'];
+
+export type WorkspaceConversation = components['schemas']['WorkspaceConversation'];
+export type ConversationView = components['schemas']['ConversationView'];
+export type ConversationTurn = components['schemas']['ConversationTurn'];
+export type ConversationCreate = components['schemas']['ConversationCreate'];

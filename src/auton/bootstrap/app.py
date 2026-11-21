@@ -14,6 +14,8 @@ from auton.constitution.factory import ConstitutionDependencies, ConstitutionFac
 from auton.constitution.secrets import LoggerFactory, Redactor, SecretStoreFactory
 from auton.context.factory import ContextEngineFactory
 from auton.context.service import ContextDependencies
+from auton.conversation.factory import WorkspaceConversationFactory
+from auton.conversation.service import ConversationDependencies
 from auton.datasets.dependencies import DatasetDependencies
 from auton.datasets.factory import DatasetPipelineFactory
 from auton.decision_review.dependencies import ReviewDependencies
@@ -114,6 +116,9 @@ class ApplicationFactory:
             AgentDependencies(
                 context, models, tools, judgment, genome, kernel.events, deps, control
             ),
+        )
+        workspace_conversations = WorkspaceConversationFactory().create(
+            ConversationDependencies(agent, genome, tools, models, kernel.events, deps)
         )
         experience = ExperienceFactory().create(
             config.experience, ExperienceDependencies(kernel.events, agent, genome, context, deps)
@@ -283,6 +288,7 @@ class ApplicationFactory:
                 genome,
                 context,
                 agent,
+                workspace_conversations,
                 experience,
                 judge_kernel,
                 judge_models,
@@ -313,6 +319,7 @@ class ApplicationFactory:
                 genome,
                 context,
                 agent,
+                workspace_conversations,
                 experience,
                 judge_kernel,
                 judge_models,
@@ -340,6 +347,7 @@ class ApplicationFactory:
                 settings=config.server,
             ),
             ServerDependencies(
+                conversations=workspace_conversations,
                 conversation=conversation,
                 modules=modules,
                 implementation=config.implementation,

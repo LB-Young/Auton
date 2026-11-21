@@ -28,7 +28,7 @@ def page(browser: Browser) -> Iterator[Page]:
     page = context.new_page()
     errors: list[str] = []
     page.on("pageerror", lambda error: errors.append(str(error)))
-    page.goto(BASE + "?view=chat")
+    page.goto(BASE + "?legacy=1&view=chat")
     expect(page.get_by_role("textbox", name="任务输入")).to_be_enabled()
     yield page
     context.close()
@@ -460,7 +460,7 @@ def open_task_settings(page: Page) -> None:
 
 
 def test_new_task_composer_without_setup_and_draft_navigation(page: Page) -> None:
-    page.goto(BASE)
+    page.goto(BASE + "?legacy=1&view=agent")
     goal = page.get_by_label("真实任务目标")
     expect(goal).to_be_focused()
     expect(goal).to_be_in_viewport()
@@ -501,7 +501,7 @@ def test_new_task_composer_without_setup_and_draft_navigation(page: Page) -> Non
 
 def test_new_task_resets_content_boundaries_and_public_consent(page: Page) -> None:
     seed_workbench(page, "composer-reset")
-    page.goto(BASE)
+    page.goto(BASE + "?legacy=1&view=agent")
     goal = page.get_by_label("真实任务目标")
     expect(page.get_by_label("任务项目")).to_have_value("composer-reset")
     expect(page.get_by_label("任务工作区")).to_have_value("composer-reset")
@@ -540,7 +540,7 @@ def test_new_task_resets_content_boundaries_and_public_consent(page: Page) -> No
 
 def test_workbench_default_ime_retry_artifact_feedback_and_url(page: Page) -> None:
     seed_workbench(page, "main-workbench")
-    page.goto(BASE)
+    page.goto(BASE + "?legacy=1&view=agent")
     expect(page.get_by_role("heading", name="开始一件值得完成的事")).to_be_visible()
     expect(page.get_by_label("任务项目")).to_have_value("main-workbench")
     expect(page.get_by_text("正在加载任务连接…", exact=True)).to_have_count(0)
@@ -663,7 +663,7 @@ def test_workbench_history_pagination_search_and_late_snapshot(page: Page) -> No
         )
         for index in range(23)
     ]
-    page.goto(BASE + "?view=agent&project=history-workbench")
+    page.goto(BASE + "?legacy=1&view=agent&project=history-workbench")
     page.locator(".task-history > summary").click()
     history = page.get_by_role("article").filter(
         has=page.get_by_role("heading", name="项目会话与任务")
@@ -694,7 +694,7 @@ def test_workbench_history_pagination_search_and_late_snapshot(page: Page) -> No
     assert str(runs[1]["id"]) in page.url
     screenshot(page, "M12-history.png")
     # Cross-project or unavailable deep links do not silently show a different run.
-    page.goto(BASE + "?view=agent&project=not-owned&run=" + first_id)
+    page.goto(BASE + "?legacy=1&view=agent&project=not-owned&run=" + first_id)
     expect(page.get_by_role("alert")).to_contain_text("项目不可访问")
     expect(page.get_by_label("真实任务执行记录")).to_have_count(0)
 
@@ -746,7 +746,7 @@ def test_assessment_checkpoint_evidence_unknown_gate_comparison_and_mobile(page:
         },
     ).ok
     await_run("succeeded")
-    page.goto(BASE + "?view=assess")
+    page.goto(BASE + "?legacy=1&view=assess")
     expect(page.get_by_role("heading", name="评测", exact=True)).to_be_visible()
     expect(page.get_by_text("尚无人工元评测校准，语义可信门禁关闭。", exact=True)).to_be_visible()
     page.get_by_label("评测项目", exact=True).select_option(identity)
@@ -793,7 +793,7 @@ def test_assessment_unavailable_error_is_explicit(page: Page) -> None:
             body='{"code":"assessment_forbidden","message":"当前身份不能读取评测"}',
         ),
     )
-    page.goto(BASE + "?view=assess")
+    page.goto(BASE + "?legacy=1&view=assess")
     expect(page.get_by_role("alert")).to_have_text("当前身份不能读取评测")
     expect(page.get_by_role("button", name="评测当前检查点")).to_be_disabled()
 
@@ -803,7 +803,7 @@ def test_delegation_private_dag_approvals_conflict_and_mobile(page: Page) -> Non
 
     identity = "delegation-browser"
     seed_workbench(page, identity)
-    page.goto(BASE + "?view=delegation")
+    page.goto(BASE + "?legacy=1&view=delegation")
     expect(page.get_by_role("heading", name="多 Agent", exact=True)).to_be_visible()
     page.get_by_label("委派项目", exact=True).select_option(identity)
     page.get_by_text("新建任务契约", exact=True).click()
@@ -948,7 +948,7 @@ def test_evolution_local_patch_arena_gate_failure_restart_and_mobile(page: Page)
             "expected_version": run["version"],
         },
     )["report"]
-    page.goto(BASE + "?view=evolve")
+    page.goto(BASE + "?legacy=1&view=evolve")
     expect(page.get_by_role("heading", name="资产进化", exact=True)).to_be_visible()
     page.get_by_label("进化项目", exact=True).select_option(identity)
     page.get_by_label("进化命令 JSON", exact=True).fill(
@@ -1105,7 +1105,7 @@ def test_decision_review_shadow_exclusion_manual_revision_reload_and_mobile(page
         assert time.monotonic() < deadline
         page.wait_for_timeout(100)
     assert run["judgments"] and not run["judgments"][0]["adopted"]
-    page.goto(BASE + "?view=decision_review")
+    page.goto(BASE + "?legacy=1&view=decision_review")
     expect(page.get_by_role("heading", name="决策轨迹复核", exact=True)).to_be_visible()
     page.get_by_label("复核项目", exact=True).select_option(project)
     page.get_by_role("button", name="填写复核命令", exact=True).click()
@@ -1148,7 +1148,7 @@ def test_datasets_scoped_grant_defaults_withdraw_reload_and_mobile(page: Page) -
 
     project = "dataset-" + uuid4().hex[:10]
     seed_workbench(page, project)
-    page.goto(BASE + "?view=datasets")
+    page.goto(BASE + "?legacy=1&view=datasets")
     expect(page.get_by_role("heading", name="数据集与谱系", exact=True)).to_be_visible()
     page.get_by_label("数据项目", exact=True).select_option(project)
     expect(page.get_by_text("暂无数据快照。", exact=True)).to_be_visible()
@@ -1180,7 +1180,7 @@ def test_portable_training_disabled_defaults_plan_and_mobile(page: Page) -> None
 
     project = "training-" + uuid4().hex[:10]
     seed_workbench(page, project)
-    page.goto(BASE + "?view=training")
+    page.goto(BASE + "?legacy=1&view=training")
     expect(page.get_by_role("heading", name="执行模型训练", exact=True)).to_be_visible()
     expect(page.get_by_text("训练后端未配置。", exact=False)).to_be_visible()
     page.get_by_label("训练项目", exact=True).select_option(project)
@@ -1208,7 +1208,7 @@ def test_decision_training_is_separate_and_preserves_teacher_only(page: Page) ->
 
     project = "student-" + uuid4().hex[:10]
     seed_workbench(page, project)
-    page.goto(BASE + "?view=decision_training")
+    page.goto(BASE + "?legacy=1&view=decision_training")
     expect(page.get_by_role("heading", name="决策模型训练与评估", exact=True)).to_be_visible()
     page.get_by_label("训练项目", exact=True).select_option(project)
     expect(page.get_by_text("线上不引入 student 路由。", exact=False)).to_be_visible()
@@ -1235,7 +1235,7 @@ def test_release_control_empty_errors_reload_and_mobile(page: Page) -> None:
 
     project = "release-" + uuid4().hex[:10]
     seed_workbench(page, project)
-    page.goto(BASE + "?view=release")
+    page.goto(BASE + "?legacy=1&view=release")
     expect(page.get_by_role("heading", name="发布与回滚", exact=True)).to_be_visible()
     page.get_by_label("发布项目", exact=True).select_option(project)
     expect(page.get_by_text("当前项目还没有发布报告。", exact=True)).to_be_visible()
@@ -1263,7 +1263,7 @@ def test_background_operations_disabled_plan_pause_backup_and_mobile(page: Page)
 
     project = "operations-" + uuid4().hex[:10]
     seed_workbench(page, project)
-    page.goto(BASE + "?view=operations")
+    page.goto(BASE + "?legacy=1&view=operations")
     expect(page.get_by_role("heading", name="后台运行与监控", exact=True)).to_be_visible()
     page.get_by_label("后台项目", exact=True).select_option(project)
     expect(page.get_by_text("宿主调度未启用。", exact=False)).to_be_visible()

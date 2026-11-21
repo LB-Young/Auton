@@ -501,6 +501,82 @@ Event Contract
 - `501` Not Implemented：[ErrorBody](api-schemas.md#errorbody)
 - `503` Service Unavailable：[ErrorBody](api-schemas.md#errorbody)
 
+## GET /api/v1/conversations
+
+Conversations
+
+- `200` Successful Response：array&lt;[WorkspaceConversation](api-schemas.md#workspaceconversation)&gt;
+- `401` Unauthorized：[ErrorBody](api-schemas.md#errorbody)
+- `403` Forbidden：[ErrorBody](api-schemas.md#errorbody)
+- `404` Not Found：[ErrorBody](api-schemas.md#errorbody)
+- `409` Conflict：[ErrorBody](api-schemas.md#errorbody)
+- `410` Gone：[ErrorBody](api-schemas.md#errorbody)
+- `413` Request Entity Too Large：[ErrorBody](api-schemas.md#errorbody)
+- `422` Unprocessable Entity：[ErrorBody](api-schemas.md#errorbody)
+- `429` Too Many Requests：[ErrorBody](api-schemas.md#errorbody)
+- `501` Not Implemented：[ErrorBody](api-schemas.md#errorbody)
+- `503` Service Unavailable：[ErrorBody](api-schemas.md#errorbody)
+
+## POST /api/v1/conversations
+
+Create Conversation
+
+请求体 `application/json`：[ConversationCreate](api-schemas.md#conversationcreate)
+
+- `200` Successful Response：[WorkspaceConversation](api-schemas.md#workspaceconversation)
+- `401` Unauthorized：[ErrorBody](api-schemas.md#errorbody)
+- `403` Forbidden：[ErrorBody](api-schemas.md#errorbody)
+- `404` Not Found：[ErrorBody](api-schemas.md#errorbody)
+- `409` Conflict：[ErrorBody](api-schemas.md#errorbody)
+- `410` Gone：[ErrorBody](api-schemas.md#errorbody)
+- `413` Request Entity Too Large：[ErrorBody](api-schemas.md#errorbody)
+- `422` Unprocessable Entity：[ErrorBody](api-schemas.md#errorbody)
+- `429` Too Many Requests：[ErrorBody](api-schemas.md#errorbody)
+- `501` Not Implemented：[ErrorBody](api-schemas.md#errorbody)
+- `503` Service Unavailable：[ErrorBody](api-schemas.md#errorbody)
+
+## GET /api/v1/conversations/{identity}
+
+Conversation View
+
+| 参数 | 位置 | 必填 | 类型 | 默认值 | 约束 |
+| --- | --- | --- | --- | --- | --- |
+| `identity` | path | 是 | string | — |  |
+
+- `200` Successful Response：[ConversationView](api-schemas.md#conversationview)
+- `401` Unauthorized：[ErrorBody](api-schemas.md#errorbody)
+- `403` Forbidden：[ErrorBody](api-schemas.md#errorbody)
+- `404` Not Found：[ErrorBody](api-schemas.md#errorbody)
+- `409` Conflict：[ErrorBody](api-schemas.md#errorbody)
+- `410` Gone：[ErrorBody](api-schemas.md#errorbody)
+- `413` Request Entity Too Large：[ErrorBody](api-schemas.md#errorbody)
+- `422` Unprocessable Entity：[ErrorBody](api-schemas.md#errorbody)
+- `429` Too Many Requests：[ErrorBody](api-schemas.md#errorbody)
+- `501` Not Implemented：[ErrorBody](api-schemas.md#errorbody)
+- `503` Service Unavailable：[ErrorBody](api-schemas.md#errorbody)
+
+## POST /api/v1/conversations/{identity}/turns
+
+Conversation Turn
+
+| 参数 | 位置 | 必填 | 类型 | 默认值 | 约束 |
+| --- | --- | --- | --- | --- | --- |
+| `identity` | path | 是 | string | — |  |
+
+请求体 `application/json`：[ConversationTurn](api-schemas.md#conversationturn)
+
+- `200` Successful Response：[AgentRun](api-schemas.md#agentrun)
+- `401` Unauthorized：[ErrorBody](api-schemas.md#errorbody)
+- `403` Forbidden：[ErrorBody](api-schemas.md#errorbody)
+- `404` Not Found：[ErrorBody](api-schemas.md#errorbody)
+- `409` Conflict：[ErrorBody](api-schemas.md#errorbody)
+- `410` Gone：[ErrorBody](api-schemas.md#errorbody)
+- `413` Request Entity Too Large：[ErrorBody](api-schemas.md#errorbody)
+- `422` Unprocessable Entity：[ErrorBody](api-schemas.md#errorbody)
+- `429` Too Many Requests：[ErrorBody](api-schemas.md#errorbody)
+- `501` Not Implemented：[ErrorBody](api-schemas.md#errorbody)
+- `503` Service Unavailable：[ErrorBody](api-schemas.md#errorbody)
+
 ## GET /api/v1/datasets/artifacts/{artifact_id}
 
 Read Dataset Artifact

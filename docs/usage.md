@@ -1,5 +1,8 @@
 # 功能与使用指南
 
+默认前端已改为 [对话工作区](conversation-workspace.md)：左侧历史、中间多轮对话、右侧按需工作面板。下文的模块页面描述保留给 `?legacy=1&view=模块ID` 的开发入口及后端接口使用；日常对话不需要逐项配置这些模块。
+
+
 先阅读 [快速启动](quickstart.md)。配置字段与约束见 [配置指南](configuration.md) / [完整参数表](reference/configuration.md)，每个 HTTP 请求/响应的全部字段见 [API 参数](reference/api-schemas.md)。
 
 ## 工作台入口

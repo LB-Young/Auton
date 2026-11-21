@@ -29,6 +29,14 @@ import type {
 } from '../shared/contracts';
 
 export interface ApiClient {
+  conversations: {
+    list(): Promise<import('../shared/contracts').WorkspaceConversation[]>;
+    create(
+      command: import('../shared/contracts').ConversationCreate,
+    ): Promise<import('../shared/contracts').WorkspaceConversation>;
+    view(id: string): Promise<import('../shared/contracts').ConversationView>;
+    send(id: string, command: import('../shared/contracts').ConversationTurn): Promise<AgentRun>;
+  };
   operations: OperationsApi;
   releases: ReleaseApi;
   decisionTraining: DecisionTrainingApi;

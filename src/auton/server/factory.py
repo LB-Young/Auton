@@ -41,6 +41,12 @@ from auton.constitution.config import (
     PublicPolicy,
 )
 from auton.context.contracts import ContextRequest, ContextSnapshot, TaskState
+from auton.conversation.contracts import (
+    ConversationCreate,
+    ConversationTurn,
+    ConversationView,
+    WorkspaceConversation,
+)
 from auton.datasets.contracts import (
     DataGrant,
     DataGrantCommand,
@@ -1071,6 +1077,32 @@ class ServerFactory:
         @app.get("/api/v1/assessment/calibrations")
         async def assessment_calibrations(request: Request) -> tuple[CalibrationReport, ...]:
             return await deps.assess.calibrations(Principal(owner=owner(request), role="user"))
+
+        @app.get("/api/v1/conversations")
+        async def conversations(request: Request) -> list[WorkspaceConversation]:
+            return await deps.conversations.list(Principal(owner=owner(request), role="user"))
+
+        @app.post("/api/v1/conversations")
+        async def create_conversation(
+            request: Request, command: ConversationCreate
+        ) -> WorkspaceConversation:
+            return await deps.conversations.create(
+                Principal(owner=owner(request), role="user"), command
+            )
+
+        @app.get("/api/v1/conversations/{identity}")
+        async def conversation_view(request: Request, identity: str) -> ConversationView:
+            return await deps.conversations.view(
+                Principal(owner=owner(request), role="user"), identity
+            )
+
+        @app.post("/api/v1/conversations/{identity}/turns")
+        async def conversation_turn(
+            request: Request, identity: str, command: ConversationTurn
+        ) -> AgentRun:
+            return await deps.conversations.send(
+                Principal(owner=owner(request), role="user"), identity, command
+            )
 
         @app.get("/api/v1/agent/history")
         async def run_history(

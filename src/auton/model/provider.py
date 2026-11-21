@@ -284,6 +284,18 @@ class MockProvider:
                     arguments={"path": str(delivery.get("path", "notes.md")), "content": "hello\n"},
                 ),
             )
+        if isinstance(delivery, dict) and delivery.get("kind") == "response":
+            if state.get("goal") == "[TEST FIXTURE] Create hello.txt" and not any(
+                m.role == "tool" for m in request.messages
+            ):
+                return "", (
+                    ToolCall(
+                        id="fixture-chat-write",
+                        name="file_write",
+                        arguments={"path": "hello.txt", "content": "hello\n"},
+                    ),
+                )
+            return "[TEST FIXTURE] A conversational response with previous turns available.", ()
         text = (
             "[TEST FIXTURE] Context retrieval preserves project boundaries and source provenance. "
             * 3

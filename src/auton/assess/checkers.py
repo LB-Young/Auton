@@ -143,6 +143,16 @@ class DeterministicChecker:
                     critical=case.critical if case else False,
                 )
             )
+        elif run.command.acceptance.kind == "response":
+            signals.append(
+                Signal(
+                    name="business",
+                    source="deterministic",
+                    verdict="unknown",
+                    evidence=evidence,
+                    reason="conversation_quality_requires_independent_review",
+                )
+            )
         else:
             allowed: set[str] = set()
             try:
