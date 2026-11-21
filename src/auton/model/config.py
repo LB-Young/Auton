@@ -6,6 +6,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 class ModelConfig(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True, hide_input_in_errors=True)
     backend: Literal["deepseek", "mock"] = "deepseek"
+    hosted_context_tokens: int = Field(default=65536, ge=8192, le=131072)
     local_targets: tuple["ModelSpec", ...] = ()
     fixture_scenario: Literal["baseline", "agent_acceptance"] = "baseline"
 

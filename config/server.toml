@@ -8,6 +8,7 @@ remote_providers = ["deepseek"]
 
 [models]
 backend = "deepseek"
+hosted_context_tokens = 65536
 secret_reference = "DEEPSEEK_API_KEY"
 
 [judgment]
@@ -22,3 +23,11 @@ backend = "disabled"
 
 [operations]
 enabled = false
+
+# Practical interactive project budgets. Recorded per-run budgets remain immutable.
+[agent]
+max_steps = 20
+max_tool_calls = 30
+max_tokens = 100000
+max_cost_microusd = 100000
+max_output_tokens = 2048

@@ -44,7 +44,7 @@
 | `max_cost_microusd` | integer | 否 | `10000` | ≥ 1; ≤ 1000000 |
 | `max_tool_calls` | integer | 否 | `8` | ≥ 1; ≤ 30 |
 | `max_active_runs` | integer | 否 | `2` | ≥ 1; ≤ 4 |
-| `max_output_tokens` | integer | 否 | `512` | ≥ 32; ≤ 1024 |
+| `max_output_tokens` | integer | 否 | `512` | ≥ 32; ≤ 2048 |
 | `directory` | string | 否 | `".auton_local/agent"` |  |
 
 <a id="assessconfig"></a>
@@ -236,6 +236,7 @@
 | 参数 | 类型 / 可选值 | 必填 | 默认值 | 约束 / 说明 |
 | --- | --- | --- | --- | --- |
 | `backend` | `"deepseek"`, `"mock"` | 否 | `"deepseek"` |  |
+| `hosted_context_tokens` | integer | 否 | `65536` | ≥ 8192; ≤ 131072 |
 | `local_targets` | array&lt;[ModelSpec](#modelspec)&gt; | 否 | `[]` |  |
 | `fixture_scenario` | `"baseline"`, `"agent_acceptance"` | 否 | `"baseline"` |  |
 | `secret_reference` | string | 否 | `"DEEPSEEK_API_KEY"` | 格式 ^[A-Z][A-Z0-9_]{2,99}$ |

@@ -94,6 +94,7 @@ class ModelRegistryFactory:
             (
                 ModelSpec(
                     id="deepseek-flash",
+                    context_tokens=config.hosted_context_tokens,
                     provider="deepseek",
                     location="remote",
                     declared_revision="DeepSeek-V4.1-Flash-1017",
@@ -102,6 +103,7 @@ class ModelRegistryFactory:
                 ),
                 ModelSpec(
                     id="deepseek-v4-pro",
+                    context_tokens=config.hosted_context_tokens,
                     provider="deepseek",
                     location="remote",
                     declared_revision="DeepSeek-V4-Pro-0813",

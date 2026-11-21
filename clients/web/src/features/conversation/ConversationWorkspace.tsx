@@ -36,6 +36,14 @@ const statuses: Record<AgentRun['status'], string> = {
   failed: '未完成',
 };
 function reason(run: AgentRun) {
+  if (run.reason.includes('critical_context_limit') || run.reason === 'context_limit')
+    return '本轮文件和工具记录超过上下文上限，已读取的记录仍然保留。可缩小读取范围；更新后端预算后，请停止此轮并重新发送任务，旧任务的预算不会自动改变。';
+  if (run.reason === 'model_output_incomplete')
+    return '模型输出达到单次长度上限，本轮尚未完成。请停止此轮，将较大的代码修改拆成小步骤后重新发送。';
+  if (run.reason === 'run_step_or_tool_limit' || run.reason === 'run_tool_limit')
+    return '本轮达到执行步数或工具调用上限。请停止此轮，再继续一个范围更明确的任务。';
+  if (run.reason === 'tool_result_too_large')
+    return '读取结果过大。请停止此轮，并要求按行分段读取相关文件后继续分析。';
   if (run.reason.includes('data_egress_denied'))
     return '当前任务未允许发送给远程模型。请停止这一轮，再选择合适的模型发送。';
   if (run.reason.includes('model_unavailable') || run.reason.includes('credential'))

@@ -111,7 +111,7 @@ async def test_stream_usage_replay_conflict_and_durable_settlement(gateway: Mode
         ({"data_domain": "local-only"}, "data_egress_denied"),
         ({"data_domain": "secret"}, "data_egress_denied"),
         ({"model_id": "missing"}, "model_not_found"),
-        ({"messages": [{"role": "user", "content": "x" * 9000}]}, "context_limit"),
+        ({"messages": [{"role": "user", "content": "x" * 15000}] * 5}, "context_limit"),
         ({"messages": [{"role": "user", "content": "sk-" + "a" * 32}]}, "credential_in_input"),
     ],
 )
@@ -367,3 +367,14 @@ async def test_failure_replay_preserves_dispatch_uncertainty_and_known_usage_wit
     assert calls == 1 and replayed.value.code == "request_result_unknown"
     assert replayed.value.dispatched is dispatched
     assert replayed.value.usage == usage
+
+
+def test_hosted_project_context_accepts_more_than_legacy_eight_kib_but_keeps_a_cap() -> None:
+    project = request(messages=[{"role": "user", "content": "project source\n" * 1000}])
+    current = ModelRegistryFactory().create(ModelConfig())
+    spec, reserved = current.select(project)
+    assert 8192 < reserved < spec.context_tokens == 65536
+    constrained = ModelRegistryFactory().create(ModelConfig(hosted_context_tokens=8192))
+    with pytest.raises(ModelError) as rejected:
+        constrained.select(project)
+    assert rejected.value.code == "context_limit"

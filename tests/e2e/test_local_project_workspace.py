@@ -80,3 +80,27 @@ def test_invalid_directory_does_not_bind_or_clear_draft(page: Page, tmp_path: Pa
     picker.get_by_role("button", name="取消", exact=True).click()
     expect(text).to_have_value("保留这个草稿")
     expect(page.locator(".cw-project-chip")).to_have_count(0)
+
+
+def test_context_limit_explains_why_project_processing_stopped(page: Page) -> None:
+    from playwright.sync_api import Route
+
+    def blocked_snapshot(route: Route) -> None:
+        response = route.fetch()
+        body = response.json()
+        body["run"]["status"] = "blocked"
+        body["run"]["reason"] = "context:critical_context_limit"
+        body["run"]["final_text"] = ""
+        body["transient"] = None
+        route.fulfill(response=response, json=body)
+
+    page.route("**/api/v1/agent/runs/*/snapshot", blocked_snapshot)
+    page.goto(BASE)
+    text = page.get_by_role("textbox", name="对话输入", exact=True)
+    expect(text).to_be_enabled()
+    text.fill("Context explanation fixture")
+    page.get_by_role("button", name="发送消息", exact=True).click()
+    expect(page.get_by_label("助手消息", exact=True)).to_contain_text(
+        "超过上下文上限", timeout=15000
+    )
+    expect(page.get_by_label("工作面板", exact=True)).to_contain_text("旧任务的预算不会自动改变")

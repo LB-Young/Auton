@@ -2325,7 +2325,7 @@ Executable train/dev input, with no meta human answer or calibration label.
 | 参数 | 类型 / 可选值 | 必填 | 默认值 | 约束 / 说明 |
 | --- | --- | --- | --- | --- |
 | `max_cost_microusd` | integer | 是 | — | ≥ 1.0; ≤ 1000000.0 |
-| `max_output_tokens` | integer | 否 | `512` | ≥ 32.0; ≤ 1024.0 |
+| `max_output_tokens` | integer | 否 | `512` | ≥ 32.0; ≤ 2048.0 |
 | `max_steps` | integer | 是 | — | ≥ 1.0; ≤ 20.0 |
 | `max_tokens` | integer | 是 | — | ≥ 512.0; ≤ 100000.0 |
 | `max_tool_calls` | integer | 是 | — | ≥ 1.0; ≤ 30.0 |
@@ -2336,7 +2336,7 @@ Executable train/dev input, with no meta human answer or calibration label.
 | 参数 | 类型 / 可选值 | 必填 | 默认值 | 约束 / 说明 |
 | --- | --- | --- | --- | --- |
 | `max_cost_microusd` | integer | 是 | — | ≥ 1.0; ≤ 1000000.0 |
-| `max_output_tokens` | integer | 是 | `512` | ≥ 32.0; ≤ 1024.0 |
+| `max_output_tokens` | integer | 是 | `512` | ≥ 32.0; ≤ 2048.0 |
 | `max_steps` | integer | 是 | — | ≥ 1.0; ≤ 20.0 |
 | `max_tokens` | integer | 是 | — | ≥ 512.0; ≤ 100000.0 |
 | `max_tool_calls` | integer | 是 | — | ≥ 1.0; ≤ 30.0 |

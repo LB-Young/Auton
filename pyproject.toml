@@ -52,7 +52,7 @@ select = ["E", "F", "I", "UP", "B", "ASYNC"]
 [tool.mypy]
 python_version = "3.12"
 strict = true
-files = ["src", "tests", "scripts/export_contracts.py", "scripts/dev.py", "scripts/check_boundaries.py", "scripts/setup.py", "scripts/check_secrets.py", "scripts/model_smoke.py", "scripts/judgment_smoke.py", "scripts/download_laya.py", "scripts/download_context_tokenizers.py", "scripts/context_smoke.py", "scripts/agent_cli.py", "scripts/agent_smoke.py", "scripts/delegation_smoke.py", "scripts/evolution_smoke.py", "scripts/decision_review_smoke.py", "scripts/dataset_smoke.py", "scripts/operations_smoke.py", "scripts/server.py", "scripts/export_user_docs.py"]
+files = ["src", "tests", "scripts/export_contracts.py", "scripts/dev.py", "scripts/check_boundaries.py", "scripts/setup.py", "scripts/check_secrets.py", "scripts/model_smoke.py", "scripts/project_smoke.py", "scripts/judgment_smoke.py", "scripts/download_laya.py", "scripts/download_context_tokenizers.py", "scripts/context_smoke.py", "scripts/agent_cli.py", "scripts/agent_smoke.py", "scripts/delegation_smoke.py", "scripts/evolution_smoke.py", "scripts/decision_review_smoke.py", "scripts/dataset_smoke.py", "scripts/operations_smoke.py", "scripts/server.py", "scripts/export_user_docs.py"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
