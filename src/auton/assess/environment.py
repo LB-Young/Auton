@@ -14,6 +14,7 @@ async def conditions(
     source: StoredEvent,
     events: EventLogPort,
     context: ContextEnginePort,
+    ancestors: tuple[AgentRun, ...] = (),
 ) -> tuple[str, bool, tuple[str, ...], dict[str, str]]:
     reasons: list[str] = []
     evidence_text: dict[str, str] = {}
@@ -67,6 +68,21 @@ async def conditions(
         operations = {plan.operation_id for plan in run.plans} | {
             r.operation_id for r in run.receipts
         }
+        prior_operations = {p.operation_id for prior in ancestors for p in prior.plans} | {
+            receipt.operation_id for prior in ancestors for receipt in prior.receipts
+        }
+        for prior in ancestors:
+            if (
+                prior.model_request_id
+                or prior.pending_calls
+                or any(r.outcome == "unknown" for r in prior.receipts)
+            ):
+                reasons.append("conversation_predecessor_effect_unknown")
+            checkpoint = await events.lookup(
+                checkpoint_event_id(principal.owner, prior.id, prior.version)
+            )
+            if checkpoint is None or seed is None or checkpoint.cursor >= seed.cursor:
+                reasons.append("conversation_predecessor_provenance_missing")
         cursor, scanned = 0, 0
         while scanned < 10000:
             batch = await events.read(
@@ -90,7 +106,8 @@ async def conditions(
                         403, "assessment_tool_scope", "Unexpected operation ownership"
                     )
                 if row.cursor < seed.cursor:
-                    reasons.append("workspace_was_previously_used")
+                    if str(operation) not in prior_operations:
+                        reasons.append("workspace_was_previously_used")
                 elif str(operation) not in operations:
                     reasons.append("concurrent_or_external_workspace_operation")
             if len(batch) < 200 or batch[-1].cursor > source.cursor:
@@ -114,6 +131,7 @@ async def conditions(
         reasons.append("user_revisions_change_the_experiment")
     signature = {
         "goal": run.command.goal,
+        "prior_runs": [p.model_dump(mode="json") for p in run.command.prior_runs],
         "initial_messages_digest": initial_messages_digest,
         "pricing_revision": run.executor_spec.get("price_revision"),
         "boundaries": run.command.boundaries,

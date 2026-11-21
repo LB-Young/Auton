@@ -40,6 +40,7 @@ def main(reuse_completed: bool = False, assess: bool = False) -> None:
         ("evolve", "evolve"),
         ("decision_review", "decision-review"),
         ("datasets", "datasets"),
+        ("learning", "learning"),
         ("training", "training"),
         ("decision_training", "decision-training"),
         ("release", "release"),

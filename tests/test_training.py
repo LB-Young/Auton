@@ -418,3 +418,29 @@ async def test_output_budget_scan_tolerates_atomically_renamed_temporary_entries
 
     monkeypatch.setattr(Path, "rglob", scan)
     assert service.read_progress(job) is None
+
+
+def test_response_supervision_masks_all_prior_turns_and_has_no_fake_tool_pair() -> None:
+    record: dict[str, Any] = {
+        "id": "response-fixture",
+        "kind": "executor",
+        "input_message_count": 3,
+        "loss_message_indices": [3],
+        "tools": [],
+        "messages": [
+            {"role": "user", "content": "My name is Lee."},
+            {"role": "assistant", "content": "I remember."},
+            {"role": "user", "content": "What is my name?"},
+            {"role": "assistant", "content": "Your name is Lee.", "tool_calls": []},
+        ],
+    }
+    encoded = encode_record(record, FixtureTokenizer(), 2000)
+    start = len(encoded["prompt"])
+    assert all(label == -100 for label in encoded["labels"][:start])
+    assert all(label != -100 for label in encoded["labels"][start:])
+    assert encoded["target"]["content"] == "Your name is Lee."
+    with pytest.raises(ValueError, match="sequence_limit_no_truncation"):
+        encode_record(record, FixtureTokenizer(), 10)
+    record["messages"][-1]["content"] = ""
+    with pytest.raises(ValueError, match="invalid_response_target"):
+        encode_record(record, FixtureTokenizer(), 2000)

@@ -74,6 +74,9 @@ class TrainingPlanCommand(Contract):
     project_id: Id
     base_model_id: Id
     train_artifact_id: Digest
+    additional_train_artifact_ids: tuple[Digest, ...] = Field(default=(), max_length=199)
+    additional_validation_artifact_ids: tuple[Digest, ...] = Field(default=(), max_length=199)
+    allow_cross_project_sources: bool = False
     validation_artifact_id: Digest | None = None
     replay_artifact_id: Digest | None = None
     anchor_artifact_id: Digest | None = None

@@ -72,6 +72,9 @@ class ExecutorCurator:
         examples = []
         for source in sources:
             run = source.run
+            if run.command.acceptance.kind == "response":
+                examples.append(self.response(source))
+                continue
             if run.command.acceptance.kind != "file" or set(run.command.allowed_tools) != {
                 "file.write"
             }:
@@ -137,6 +140,75 @@ class ExecutorCurator:
                 validate_loss_mask(example)
                 examples.append(example)
         return tuple(examples)
+
+    @staticmethod
+    def response(source: SourceSubject) -> TrainingExample:
+        report, run = source.report, source.run
+        if (
+            report is None
+            or report.semantic_verdict != "pass"
+            or len(report.judges) < 2
+            or any(
+                j.self_eval_bias
+                or j.verdict != "pass"
+                or j.source != "remote"
+                or j.dispatch_outcome != "confirmed"
+                for j in report.judges
+            )
+        ):
+            raise ApplicationError(
+                409,
+                "dataset_response_review_unqualified",
+                "Responses require repeated independently calibrated semantic review",
+            )
+        if any(receipt.tool == "file.write" for receipt in run.receipts):
+            raise ApplicationError(
+                409,
+                "dataset_code_execution_verification_required",
+                "Code edits need independently checked delivery, not prose approval",
+            )
+        if not source.frames:
+            raise ApplicationError(
+                409, "dataset_response_frame_missing", "Original final model frame required"
+            )
+        frame = source.frames[-1]
+        if (
+            frame.result.tool_calls
+            or frame.result.finish_reason != "stop"
+            or frame.result.content != run.final_text
+            or not run.final_text.strip()
+        ):
+            raise ApplicationError(
+                409,
+                "dataset_response_target_mismatch",
+                "Use the exact completed assistant response",
+            )
+        target = ModelMessage(role="assistant", content=frame.result.content)
+        example = TrainingExample(
+            id=digest(
+                {
+                    "kind": "executor",
+                    "input": frame.request.digest,
+                    "target": target.model_dump(mode="json"),
+                }
+            ),
+            kind="executor",
+            family=source.ref.family,
+            origin_group=source.ref.origin_group,
+            split=source.ref.split,
+            normalized_input=normalize_protected_input(run.command.goal),
+            normalized_target=normalize_protected_input(run.final_text),
+            input_messages=frame.request.messages,
+            target_message=target,
+            tools=frame.request.tools,
+            loss_message_indices=(len(frame.request.messages),),
+            proofs=(source.proof,),
+            input_fingerprints=source.fingerprints,
+            lineage_tokens=source.group_tokens,
+            engineering_only=source.proof.source == "test",
+        )
+        validate_loss_mask(example)
+        return example
 
 
 class DecisionCurator:

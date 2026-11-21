@@ -1,6 +1,6 @@
 # Auton 开发里程碑
 
-> v0.1，2026-11-16。M01 项目框架已实现并通过本地验收，见 [验收记录](./evidence/M01.md)。M02 已完成，见 [验收](./evidence/M02.md)。M03 已完成，见 [验收](./evidence/M03.md)。M04 已接入真实 DeepSeek，见 [验收](./evidence/M04.md)。M05 已完成本地工程接入，当前质量未达自动采用门槛，见 [验收](./evidence/M05.md)。M06 受控工具范围已完成，见 [验收](./evidence/M06.md)。M07 人工资产与记忆治理已完成，见 [验收](./evidence/M07.md)。M08 固定检索与完整轮次压缩已完成，见 [验收](./evidence/M08.md)。M09 受控单 Agent 执行闭环已完成，见 [验收](./evidence/M09.md)。M10 单机轨迹投影与恢复已完成，见 [验收](./evidence/M10.md)。M11 本机服务协议已完成，见 [验收](./evidence/M11.md)。M12 真实任务工作台已完成，见 [验收](./evidence/M12.md)。M13–M21 计划中。
+> v0.1，2026-11-16。M01 项目框架已实现并通过本地验收，见 [验收记录](./evidence/M01.md)。M02 已完成，见 [验收](./evidence/M02.md)。M03 已完成，见 [验收](./evidence/M03.md)。M04 已接入真实 DeepSeek，见 [验收](./evidence/M04.md)。M05 已完成本地工程接入，当前质量未达自动采用门槛，见 [验收](./evidence/M05.md)。M06 受控工具范围已完成，见 [验收](./evidence/M06.md)。M07 人工资产与记忆治理已完成，见 [验收](./evidence/M07.md)。M08 固定检索与完整轮次压缩已完成，见 [验收](./evidence/M08.md)。M09 受控单 Agent 执行闭环已完成，见 [验收](./evidence/M09.md)。M10 单机轨迹投影与恢复已完成，见 [验收](./evidence/M10.md)。M11 本机服务协议已完成，见 [验收](./evidence/M11.md)。M12 真实任务工作台已完成，见 [验收](./evidence/M12.md)。M13–M21 的实际范围见下表和验收记录；M22 补齐新对话自动数据整理。
 > 开发顺序以本目录为准，替代总架构原先 M1–M6 的粗粒度安排；旧 M/J/R/D/T 编号只是研究阶段参考，不直接等同本目录编号。
 
 ## 1. 必须先做什么
@@ -40,6 +40,7 @@
 | [M19 本地类 Jev 训练与四层评估](./M19-decision-training.md) | M05、M13、M17 | DecisionTrainingFactory、DecisionBackendFactory、ShadowEvaluatorFactory | 新模型不靠只测 KEEP、只看一致率或几乎全弃权取得通过。 | 通用流程/描述性评估已实现，四层实证待验（[证据](./evidence/M19.md)） |
 | [M20 统一发布控制面、灰度与回滚](./M20-release.md) | M13、M15；模型发布另需 M18 或 M19 | ReleaseFactory、GenomeReleaseFactory、ModelReleaseFactory、RolloutPolicyFactory | 未经批准或报告范围不匹配的候选不能激活；自动训练不获得发布权。 | 控制面与运行链路工程实现，生产效果待验（[证据](./evidence/M20.md)） |
 | [M21 后台调度、运行监控与长期验证](./M21-scheduler-operations.md) | M10、M15、M17、M18/M19、M20 | SchedulerFactory、JobQueueFactory、TelemetryFactory、RetentionPolicyFactory | 进程重启不重复训练或发布，worker 失联可恢复且不会双重执行。 | 通用调度与恢复工程实现，长期效果待验（[证据](./evidence/M21.md)） |
+| [M22 新对话自动学习数据](../conversation-learning.md) | M10、M13、M16、M17、M18/M19 | ConversationLearningFactory、持久队列、来源校验、自动复核/入库/导出 | 新对话自动登记；授权后合格数据可入库，未知和测试证据不被提升。 | 工程实现；生产校准与独立代码执行验收仍是门禁（[证据](./evidence/M22.md)） |
 
 ## 3. 用户可见的交付节奏
 

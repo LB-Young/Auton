@@ -3987,6 +3987,15 @@
             "title": "Prior Messages",
             "type": "array"
           },
+          "prior_runs": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/PriorRun"
+            },
+            "maxItems": 39,
+            "title": "Prior Runs",
+            "type": "array"
+          },
           "project_id": {
             "pattern": "^[a-zA-Z0-9_-]{1,80}$",
             "title": "Project Id",
@@ -4101,6 +4110,15 @@
             "title": "Prior Messages",
             "type": "array"
           },
+          "prior_runs": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/PriorRun"
+            },
+            "maxItems": 39,
+            "title": "Prior Runs",
+            "type": "array"
+          },
           "project_id": {
             "pattern": "^[a-zA-Z0-9_-]{1,80}$",
             "title": "Project Id",
@@ -4118,6 +4136,7 @@
           }
         },
         "required": [
+          "prior_runs",
           "prior_messages",
           "limits",
           "asset_snapshot_id",
@@ -5834,7 +5853,8 @@
           "kind": {
             "enum": [
               "file",
-              "research"
+              "research",
+              "response"
             ],
             "title": "Kind",
             "type": "string"
@@ -5984,7 +6004,8 @@
           "kind": {
             "enum": [
               "file",
-              "research"
+              "research",
+              "response"
             ],
             "title": "Kind",
             "type": "string"
@@ -7693,6 +7714,455 @@
         "title": "JudgmentResult",
         "type": "object"
       },
+      "LearningCase": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_ids": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Artifact Ids",
+            "type": "array"
+          },
+          "assessment_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assessment Id"
+          },
+          "attempt": {
+            "default": 0,
+            "title": "Attempt",
+            "type": "integer"
+          },
+          "conversation_id": {
+            "title": "Conversation Id",
+            "type": "string"
+          },
+          "dataset_ids": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Dataset Ids",
+            "type": "array"
+          },
+          "decision_outcomes": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Decision Outcomes",
+            "type": "object"
+          },
+          "example_keys": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Example Keys",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "policy_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Policy Version"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "reasons": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "reserved_review_calls": {
+            "default": 0,
+            "title": "Reserved Review Calls",
+            "type": "integer"
+          },
+          "review_ids": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Review Ids",
+            "type": "array"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          },
+          "run_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Version"
+          },
+          "split": {
+            "default": "train",
+            "enum": [
+              "train",
+              "validation"
+            ],
+            "title": "Split",
+            "type": "string"
+          },
+          "stage": {
+            "default": "collected",
+            "enum": [
+              "collected",
+              "assessing",
+              "reviewing",
+              "building",
+              "ready",
+              "hold",
+              "rejected"
+            ],
+            "title": "Stage",
+            "type": "string"
+          },
+          "version": {
+            "default": 0,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "conversation_id",
+          "project_id",
+          "run_id",
+          "run_version",
+          "attempt",
+          "stage",
+          "reasons",
+          "reserved_review_calls",
+          "assessment_id",
+          "review_ids",
+          "decision_outcomes",
+          "dataset_ids",
+          "artifact_ids",
+          "example_keys",
+          "split",
+          "policy_version"
+        ],
+        "title": "LearningCase",
+        "type": "object"
+      },
+      "LearningManifest": {
+        "additionalProperties": false,
+        "properties": {
+          "activation": {
+            "const": "no_training_started",
+            "default": "no_training_started",
+            "title": "Activation",
+            "type": "string"
+          },
+          "decision_train_artifact_ids": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Decision Train Artifact Ids",
+            "type": "array"
+          },
+          "decision_validation_artifact_ids": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Decision Validation Artifact Ids",
+            "type": "array"
+          },
+          "executor_train_artifact_ids": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Executor Train Artifact Ids",
+            "type": "array"
+          },
+          "executor_validation_artifact_ids": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Executor Validation Artifact Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "executor_train_artifact_ids",
+          "executor_validation_artifact_ids",
+          "decision_train_artifact_ids",
+          "decision_validation_artifact_ids",
+          "activation"
+        ],
+        "title": "LearningManifest",
+        "type": "object"
+      },
+      "LearningPolicy": {
+        "additionalProperties": false,
+        "properties": {
+          "command": {
+            "$ref": "#/components/schemas/LearningPolicyCommand-Output"
+          },
+          "version": {
+            "default": 0,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version",
+          "command"
+        ],
+        "title": "LearningPolicy",
+        "type": "object"
+      },
+      "LearningPolicyCommand-Input": {
+        "additionalProperties": false,
+        "properties": {
+          "allow_local_only_data": {
+            "default": false,
+            "title": "Allow Local Only Data",
+            "type": "boolean"
+          },
+          "allow_remote_review": {
+            "default": false,
+            "title": "Allow Remote Review",
+            "type": "boolean"
+          },
+          "data_license_reference": {
+            "default": "",
+            "maxLength": 1000,
+            "title": "Data License Reference",
+            "type": "string"
+          },
+          "enabled": {
+            "default": false,
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "expected_version": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Version"
+          },
+          "external_asset_uses": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/AssetUse-Input"
+            },
+            "maxItems": 100,
+            "title": "External Asset Uses",
+            "type": "array"
+          },
+          "local_training_authorized": {
+            "default": false,
+            "title": "Local Training Authorized",
+            "type": "boolean"
+          },
+          "max_review_calls": {
+            "default": 0,
+            "maximum": 100000.0,
+            "minimum": 0.0,
+            "title": "Max Review Calls",
+            "type": "integer"
+          },
+          "review_decisions": {
+            "default": true,
+            "title": "Review Decisions",
+            "type": "boolean"
+          },
+          "teacher_uses": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/TeacherUse-Input"
+            },
+            "maxItems": 20,
+            "title": "Teacher Uses",
+            "type": "array"
+          }
+        },
+        "title": "LearningPolicyCommand",
+        "type": "object"
+      },
+      "LearningPolicyCommand-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "allow_local_only_data": {
+            "default": false,
+            "title": "Allow Local Only Data",
+            "type": "boolean"
+          },
+          "allow_remote_review": {
+            "default": false,
+            "title": "Allow Remote Review",
+            "type": "boolean"
+          },
+          "data_license_reference": {
+            "default": "",
+            "maxLength": 1000,
+            "title": "Data License Reference",
+            "type": "string"
+          },
+          "enabled": {
+            "default": false,
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "expected_version": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Version"
+          },
+          "external_asset_uses": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/AssetUse-Output"
+            },
+            "maxItems": 100,
+            "title": "External Asset Uses",
+            "type": "array"
+          },
+          "local_training_authorized": {
+            "default": false,
+            "title": "Local Training Authorized",
+            "type": "boolean"
+          },
+          "max_review_calls": {
+            "default": 0,
+            "maximum": 100000.0,
+            "minimum": 0.0,
+            "title": "Max Review Calls",
+            "type": "integer"
+          },
+          "review_decisions": {
+            "default": true,
+            "title": "Review Decisions",
+            "type": "boolean"
+          },
+          "teacher_uses": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/TeacherUse-Output"
+            },
+            "maxItems": 20,
+            "title": "Teacher Uses",
+            "type": "array"
+          }
+        },
+        "required": [
+          "expected_version",
+          "enabled",
+          "local_training_authorized",
+          "data_license_reference",
+          "teacher_uses",
+          "external_asset_uses",
+          "allow_local_only_data",
+          "allow_remote_review",
+          "max_review_calls",
+          "review_decisions"
+        ],
+        "title": "LearningPolicyCommand",
+        "type": "object"
+      },
+      "LearningRetry": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_version": {
+            "minimum": 0.0,
+            "title": "Expected Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "expected_version"
+        ],
+        "title": "LearningRetry",
+        "type": "object"
+      },
+      "LearningStatus": {
+        "additionalProperties": false,
+        "properties": {
+          "activation": {
+            "const": "no_training_started",
+            "default": "no_training_started",
+            "title": "Activation",
+            "type": "string"
+          },
+          "cases": {
+            "items": {
+              "$ref": "#/components/schemas/LearningCase"
+            },
+            "title": "Cases",
+            "type": "array"
+          },
+          "policy": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LearningPolicy"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reserved_review_calls": {
+            "title": "Reserved Review Calls",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "policy",
+          "reserved_review_calls",
+          "cases",
+          "activation"
+        ],
+        "title": "LearningStatus",
+        "type": "object"
+      },
       "LegacyIdentityCommand": {
         "additionalProperties": false,
         "properties": {
@@ -8867,6 +9337,28 @@
           "owner"
         ],
         "title": "Principal",
+        "type": "object"
+      },
+      "PriorRun": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Id",
+            "type": "string"
+          },
+          "version": {
+            "maximum": 65535.0,
+            "minimum": 0.0,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "version"
+        ],
+        "title": "PriorRun",
         "type": "object"
       },
       "Project-Input": {
@@ -14140,6 +14632,31 @@
             "title": "Abstention Threshold",
             "type": "number"
           },
+          "additional_train_artifact_ids": {
+            "default": [],
+            "items": {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            "maxItems": 199,
+            "title": "Additional Train Artifact Ids",
+            "type": "array"
+          },
+          "additional_validation_artifact_ids": {
+            "default": [],
+            "items": {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            "maxItems": 199,
+            "title": "Additional Validation Artifact Ids",
+            "type": "array"
+          },
+          "allow_cross_project_sources": {
+            "default": false,
+            "title": "Allow Cross Project Sources",
+            "type": "boolean"
+          },
           "anchor_artifact_id": {
             "anyOf": [
               {
@@ -14256,6 +14773,31 @@
             "title": "Abstention Threshold",
             "type": "number"
           },
+          "additional_train_artifact_ids": {
+            "default": [],
+            "items": {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            "maxItems": 199,
+            "title": "Additional Train Artifact Ids",
+            "type": "array"
+          },
+          "additional_validation_artifact_ids": {
+            "default": [],
+            "items": {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            "maxItems": 199,
+            "title": "Additional Validation Artifact Ids",
+            "type": "array"
+          },
+          "allow_cross_project_sources": {
+            "default": false,
+            "title": "Allow Cross Project Sources",
+            "type": "boolean"
+          },
           "anchor_artifact_id": {
             "anyOf": [
               {
@@ -14358,6 +14900,9 @@
           "project_id",
           "base_model_id",
           "train_artifact_id",
+          "additional_train_artifact_ids",
+          "additional_validation_artifact_ids",
+          "allow_cross_project_sources",
           "validation_artifact_id",
           "replay_artifact_id",
           "anchor_artifact_id",
@@ -25786,6 +26331,627 @@
           }
         },
         "summary": "Judgment Preview"
+      }
+    },
+    "/api/v1/learning": {
+      "get": {
+        "operationId": "learning_status_api_v1_learning_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LearningStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Learning Status"
+      }
+    },
+    "/api/v1/learning/cases/{identity}/retry": {
+      "post": {
+        "operationId": "learning_retry_api_v1_learning_cases__identity__retry_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "identity",
+            "required": true,
+            "schema": {
+              "title": "Identity",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LearningRetry"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LearningCase"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Learning Retry"
+      }
+    },
+    "/api/v1/learning/manifest": {
+      "get": {
+        "operationId": "learning_manifest_api_v1_learning_manifest_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LearningManifest"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Learning Manifest"
+      }
+    },
+    "/api/v1/learning/policy": {
+      "put": {
+        "operationId": "learning_policy_api_v1_learning_policy_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LearningPolicyCommand-Input"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LearningPolicy"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Learning Policy"
+      }
+    },
+    "/api/v1/learning/tick": {
+      "post": {
+        "operationId": "learning_tick_api_v1_learning_tick_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LearningStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Learning Tick"
       }
     },
     "/api/v1/local/directories": {

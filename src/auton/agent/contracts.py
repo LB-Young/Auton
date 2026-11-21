@@ -40,7 +40,13 @@ class Acceptance(Contract):
         return self
 
 
+class PriorRun(Contract):
+    id: str = Field(pattern=r"^[a-f0-9]{64}$")
+    version: int = Field(ge=0, le=65535)
+
+
 class CreateRun(Contract):
+    prior_runs: tuple[PriorRun, ...] = Field(default=(), max_length=39)
     prior_messages: tuple[ModelMessage, ...] = Field(default=(), max_length=78)
     limits: RunLimits | None = None
     asset_snapshot_id: str | None = Field(default=None, max_length=100)
@@ -76,6 +82,8 @@ class CreateRun(Contract):
         excluded = {name for name in ("limits", "asset_snapshot_id") if getattr(self, name) is None}
         if not self.prior_messages:
             excluded.add("prior_messages")
+        if not self.prior_runs:
+            excluded.add("prior_runs")
         return hashlib.sha256(self.model_dump_json(exclude=excluded).encode()).hexdigest()
 
 

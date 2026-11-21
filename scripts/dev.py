@@ -174,6 +174,7 @@ def e2e() -> None:
             "[decision_training]\n"
             f"directory = {json.dumps(str(Path(directory) / 'decision-training'))}\n"
             f"[training]\ndirectory = {json.dumps(str(Path(directory) / 'training'))}\n"
+            f"[learning]\ndirectory = {json.dumps(str(Path(directory) / 'learning'))}\n"
             f"[datasets]\ndirectory = {json.dumps(str(Path(directory) / 'datasets'))}\n"
             '[decision_review]\nreviewer_model = "fixture-model"\n'
             f"directory = {json.dumps(str(Path(directory) / 'decision-review'))}\n"

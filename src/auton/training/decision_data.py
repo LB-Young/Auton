@@ -8,7 +8,7 @@ from auton.constitution.config import Principal
 from auton.judgment.contracts import Question
 from auton.kernel.ports import ApplicationError
 from auton.training.contracts import TrainingPlanCommand
-from auton.training.data import TrainingDataReader
+from auton.training.data import TrainingDataReader, source_artifacts
 from auton.training.dependencies import TrainingDependencies
 
 
@@ -47,13 +47,17 @@ class DecisionDataReader(TrainingDataReader):
     ) -> tuple[dict[str, bytes], dict[str, str], dict[str, int], dict[str, int]]:
         inputs, manifests, examples, groups = await super().read(principal, command)
         for scope, content in tuple(inputs.items()):
-            artifact, _ = await self.deps.datasets.read_artifact(
-                principal, getattr(command, scope + "_artifact_id")
-            )
-            snapshot = await self.deps.datasets.get(principal, artifact.snapshot_id)
-            lineage = {
-                e.id: e.group_id for e in snapshot.examples if e.split == artifact.command.split
-            }
+            lineage = {}
+            for identity in source_artifacts(command, scope):
+                artifact, _ = await self.deps.datasets.read_artifact(principal, identity)
+                snapshot = await self.deps.datasets.get(principal, artifact.snapshot_id)
+                lineage.update(
+                    {
+                        e.id: e.group_id
+                        for e in snapshot.examples
+                        if e.split == artifact.command.split
+                    }
+                )
             derived = []
             try:
                 for line in content.splitlines():

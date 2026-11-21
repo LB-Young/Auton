@@ -19,6 +19,7 @@ from auton.genome.contracts import GenomeConfig
 from auton.judgment.config import JudgmentConfig
 from auton.kernel.config import KernelConfig
 from auton.kernel.ports import RuntimeDependencies
+from auton.learning.contracts import LearningConfig
 from auton.model.config import ModelConfig
 from auton.operations.contracts import OperationsConfig
 from auton.release.contracts import ReleaseConfig
@@ -36,6 +37,7 @@ def deps() -> RuntimeDependencies:
 def client(deps: RuntimeDependencies, tmp_path: Path) -> Iterator[TestClient]:
     app = ApplicationFactory().create(
         ApplicationConfig(
+            learning=LearningConfig(directory=tmp_path / "learning", background=False),
             datasets=DatasetConfig(directory=tmp_path / "datasets"),
             training=TrainingConfig(directory=tmp_path / "training"),
             release=ReleaseConfig(directory=tmp_path / "release"),

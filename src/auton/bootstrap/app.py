@@ -38,6 +38,8 @@ from auton.kernel.config import KernelConfig
 from auton.kernel.factory import ClockFactory, IdentifierFactory, KernelFactory
 from auton.kernel.modules import resolve_modules
 from auton.kernel.ports import LifecycleHandle, ModuleFactory, RuntimeDependencies
+from auton.learning.dependencies import LearningDependencies
+from auton.learning.factory import ConversationLearningFactory
 from auton.model.factory import ModelGatewayFactory
 from auton.model.gateway import GatewayDependencies
 from auton.model.publications import ModelPublications
@@ -215,6 +217,20 @@ class ApplicationFactory:
                 config.models.backend == "mock",
             ),
         )
+        learning = ConversationLearningFactory().create(
+            config.learning,
+            LearningDependencies(
+                workspace_conversations,
+                agent,
+                assess,
+                decision_review,
+                datasets,
+                kernel.events,
+                deps,
+                config.models.backend == "mock",
+            ),
+        )
+        workspace_conversations.bind_observer(learning)
         training = ExecutorTrainingFactory().create(
             config.training,
             TrainingDependencies(
@@ -301,6 +317,7 @@ class ApplicationFactory:
                 review_models,
                 decision_review,
                 datasets,
+                learning,
                 training,
                 decision_training,
                 release,
@@ -332,6 +349,7 @@ class ApplicationFactory:
                 review_models,
                 decision_review,
                 datasets,
+                learning,
                 training,
                 decision_training,
                 release,
@@ -369,6 +387,7 @@ class ApplicationFactory:
                 evolve=evolve,
                 decision_review=decision_review,
                 datasets=datasets,
+                learning=learning,
                 training=training,
                 decision_training=decision_training,
                 release=release,

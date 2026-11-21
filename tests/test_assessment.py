@@ -29,6 +29,7 @@ from auton.evolve.contracts import EvolutionConfig
 from auton.kernel.config import KernelConfig
 from auton.kernel.factory import EventLogFactory
 from auton.kernel.ports import ApplicationError
+from auton.learning.contracts import LearningConfig
 from auton.model.config import ModelConfig
 from auton.model.contracts import ModelRequest, ModelResult, ToolCall
 from auton.model.factory import ModelGatewayFactory
@@ -869,6 +870,7 @@ async def test_http_protected_gold_and_judge_prompts_only_reach_private_journal(
         models=ModelConfig(backend="mock", fixture_scenario="agent_acceptance"),
         judgment=JudgmentConfig(backend="mock"),
         datasets=DatasetConfig(directory=tmp_path / "datasets"),
+        learning=LearningConfig(directory=tmp_path / "learning", background=False),
         training=TrainingConfig(directory=tmp_path / "training"),
         release=ReleaseConfig(directory=tmp_path / "release"),
         operations=OperationsConfig(directory=tmp_path / "operations"),

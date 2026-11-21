@@ -52,13 +52,18 @@ def encode_record(record: dict[str, Any], tokenizer: Any, limit: int) -> dict[st
         raise ValueError("wrong_target_role")
     calls = messages[index].get("tool_calls", [])
     replies = messages[index + 1 :]
-    if (
-        not calls
-        or {c["id"] for c in calls} != {r.get("tool_call_id") for r in replies}
+    if calls and (
+        {c["id"] for c in calls} != {r.get("tool_call_id") for r in replies}
         or len(calls) != len(replies)
         or any(r["role"] != "tool" for r in replies)
     ):
         raise ValueError("truncated_tool_pair")
+    if not calls and (
+        replies
+        or not isinstance(messages[index].get("content"), str)
+        or not messages[index]["content"].strip()
+    ):
+        raise ValueError("invalid_response_target")
     tools = [{"type": "function", "function": t} for t in record["tools"]]
 
     def render(items: list[dict[str, Any]], generation: bool = False) -> str:
@@ -252,6 +257,7 @@ def run(manifest_path: Path) -> None:
             for scope, rows in datasets.items():
                 losses = [float(loss(r).item()) for r in rows]
                 valid, exact = 0, 0
+                response_count, response_nonempty, response_exact = 0, 0, 0
                 for row in rows:
                     ids = tokenizer(row["prompt"], return_tensors="pt", add_special_tokens=False)[
                         "input_ids"
@@ -262,6 +268,14 @@ def run(manifest_path: Path) -> None:
                         do_sample=False,
                         pad_token_id=tokenizer.eos_token_id,
                     )
+                    if not row["target"].get("tool_calls"):
+                        response_count += 1
+                        response = tokenizer.decode(
+                            generated[0, ids.shape[1] :], skip_special_tokens=True
+                        ).strip()
+                        response_nonempty += int(bool(response))
+                        response_exact += int(response == row["target"]["content"].strip())
+                        continue
                     text = tokenizer.decode(generated[0, ids.shape[1] :], skip_special_tokens=False)
                     blocks = (
                         re.findall(r"<tool_call>\s*(.*?)\s*</tool_call>", text, re.S)
@@ -297,6 +311,11 @@ def run(manifest_path: Path) -> None:
                     "loss": sum(losses) / len(losses),
                     "tool_protocol_pass": valid,
                     "exact_action_pass": exact,
+                    "action_count": len(rows) - response_count,
+                    "response_count": response_count,
+                    "response_nonempty": response_nonempty,
+                    # Text match is a regression metric, never semantic acceptance.
+                    "response_exact_match": response_exact,
                 }
         return result
 

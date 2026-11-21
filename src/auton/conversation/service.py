@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 import anyio
 
-from auton.agent.contracts import Acceptance, AgentRun, CreateRun
+from auton.agent.contracts import Acceptance, AgentRun, CreateRun, PriorRun
 from auton.agent.ports import AgentRuntimePort
 from auton.constitution.config import Principal
 from auton.constitution.secrets import Redactor
@@ -18,6 +18,7 @@ from auton.conversation.contracts import (
     WorkspaceConversation,
 )
 from auton.conversation.history import HistoryExporter
+from auton.conversation.ports import ConversationObserver
 from auton.genome.contracts import Project
 from auton.genome.ports import GenomePort
 from auton.kernel.documents import key
@@ -46,6 +47,14 @@ class WorkspaceConversations:
         self.lock = asyncio.Lock()
         self.active: set[asyncio.Task[AgentRun]] = set()
         self.closing = False
+        self.observer: ConversationObserver | None = None
+
+    def bind_observer(self, observer: ConversationObserver) -> None:
+        self.observer = observer
+
+    async def observed(self, principal: Principal, identity: str) -> None:
+        if self.observer:
+            await self.observer.observe(principal, identity)
 
     async def start(self) -> None:
         self.closing = False
@@ -89,6 +98,7 @@ class WorkspaceConversations:
                     )
                 ):
                     raise ApplicationError(409, "conversation_conflict", "Request id already used")
+                await self.observed(principal, value.id)
                 return value
             value = WorkspaceConversation(
                 id=identity,
@@ -129,6 +139,7 @@ class WorkspaceConversations:
                     },
                 )
             )
+            await self.observed(principal, value.id)
             return value
 
     async def list(self, principal: Principal) -> list[WorkspaceConversation]:
@@ -145,6 +156,8 @@ class WorkspaceConversations:
                         WorkspaceConversation.model_validate(item.event.payload["conversation"])
                     )
             if len(batch) < 100:
+                for conversation in values:
+                    await self.observed(principal, conversation.id)
                 return list(reversed(values))
             cursor = batch[-1].cursor
         raise ApplicationError(
@@ -156,6 +169,7 @@ class WorkspaceConversations:
         if found is None:
             raise ApplicationError(404, "conversation_not_found", "No owned conversation")
         conversation = WorkspaceConversation.model_validate(found.event.payload["conversation"])
+        await self.observed(principal, identity)
         turns: list[AgentRun] = []
         for index in range(40):
             event = await self.deps.events.lookup(
@@ -260,6 +274,7 @@ class WorkspaceConversations:
                     model_id=model.id,
                     goal=command.text,
                     prior_messages=tuple(history),
+                    prior_runs=tuple(PriorRun(id=r.id, version=r.version) for r in view.turns),
                     boundaries=(
                         "The workspace is the user's selected project directory. "
                         "Use file_list to discover relative paths, then file_read to inspect "

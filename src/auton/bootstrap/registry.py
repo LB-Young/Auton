@@ -206,6 +206,22 @@ def module_catalog(demo: bool) -> list[ModuleDescriptor]:
             config_schema="DatasetConfig",
         ),
         ModuleDescriptor(
+            id="learning",
+            title="对话自动整理与质量入库",
+            milestone="M22",
+            status="ready",
+            provides=("conversation_learning",),
+            requires=(
+                "agent",
+                "assessment",
+                "decision_review",
+                "datasets",
+                "event_log",
+            ),
+            factory_entry="learning.ConversationLearningFactory",
+            config_schema="LearningConfig",
+        ),
+        ModuleDescriptor(
             id="training",
             title="通用执行模型训练流程",
             milestone="M18",

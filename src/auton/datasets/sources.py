@@ -3,6 +3,7 @@ import json
 from dataclasses import dataclass
 
 from auton.agent.contracts import AgentRun, checkpoint_event_id
+from auton.agent.lineage import conversation_ancestors
 from auton.assess.contracts import EvalReport, normalize_protected_input
 from auton.constitution.config import Principal
 from auton.constitution.secrets import Redactor
@@ -182,7 +183,24 @@ class DatasetSourceReader:
                     "dataset_human_correction_pending",
                     "Negative feedback requires re-evaluation before training",
                 )
-        texts = [initial.command.goal, run.command.goal]
+        ancestors = await conversation_ancestors(principal, run, self.deps.agent)
+        for prior in ancestors:
+            if not any(
+                t.model_id == (prior.resolved_model_id or prior.command.model_id)
+                and t.declared_revision == str(prior.executor_spec.get("declared_revision", ""))
+                and t.training_use_confirmed_by_user
+                for t in grant.command.teacher_uses
+            ):
+                raise ApplicationError(
+                    403,
+                    "dataset_history_teacher_terms_unknown",
+                    "Historical assistant teachers also need permission",
+                )
+        texts = [
+            initial.command.goal,
+            run.command.goal,
+            *(m.content for m in run.command.prior_messages if m.role == "user" and m.content),
+        ]
         frames = []
         event_refs = [checkpoint.event.event_id, seed.event.event_id]
         for result in run.model_results:
@@ -273,6 +291,20 @@ class DatasetSourceReader:
                 "Teacher identity must be observed and stable within the source",
             )
         fingerprints = await self.protect(principal, command.project_id, run, tuple(texts))
+        # Check targets for protected gold, without merging unrelated short acknowledgments.
+        await self.protect(
+            principal,
+            command.project_id,
+            run,
+            (
+                run.final_text,
+                *(
+                    m.content
+                    for m in run.command.prior_messages
+                    if m.role == "assistant" and m.content
+                ),
+            ),
+        )
         report = None
         if ref.assessment_report_id:
             report = await self.deps.assess.report(principal, ref.assessment_report_id)
@@ -315,7 +347,23 @@ class DatasetSourceReader:
                 "dataset_independent_acceptance_missing",
                 "Provide independent acceptance for the source checkpoint",
             )
-        groups = ["run:" + run.id, "family:" + ref.family, "origin:" + ref.origin_group]
+        groups = [
+            "run:" + run.id,
+            "family:" + ref.family,
+            "origin:" + ref.origin_group,
+            *("run:" + prior.id for prior in ancestors),
+        ]
+        for prior in ancestors:
+            prior_event = await self.deps.events.lookup(
+                checkpoint_event_id(principal.owner, prior.id, prior.version)
+            )
+            if prior_event is None or prior_event.cursor >= seed.cursor:
+                raise ApplicationError(
+                    409,
+                    "dataset_history_checkpoint_missing",
+                    "Predecessor evidence must predate the turn",
+                )
+            event_refs.append(prior_event.event.event_id)
         if report is not None and report.case_id is not None:
             if not report.bank_revision or report.split not in {"train", "development"}:
                 raise ApplicationError(

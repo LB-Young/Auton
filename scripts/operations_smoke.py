@@ -34,6 +34,7 @@ def main() -> None:
         "evolve",
         "decision_review",
         "datasets",
+        "learning",
         "training",
         "decision_training",
         "release",

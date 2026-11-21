@@ -267,7 +267,9 @@ async def test_per_run_limits_pin_budget_and_keep_legacy_request_digest(
 
     command = create()
     old_payload = json.dumps(
-        command.model_dump(mode="json", exclude={"limits", "asset_snapshot_id", "prior_messages"}),
+        command.model_dump(
+            mode="json", exclude={"limits", "asset_snapshot_id", "prior_messages", "prior_runs"}
+        ),
         ensure_ascii=False,
         separators=(",", ":"),
     )

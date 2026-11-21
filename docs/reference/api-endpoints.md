@@ -1588,6 +1588,94 @@ Judgment Preview
 - `501` Not Implemented：[ErrorBody](api-schemas.md#errorbody)
 - `503` Service Unavailable：[ErrorBody](api-schemas.md#errorbody)
 
+## GET /api/v1/learning
+
+Learning Status
+
+- `200` Successful Response：[LearningStatus](api-schemas.md#learningstatus)
+- `401` Unauthorized：[ErrorBody](api-schemas.md#errorbody)
+- `403` Forbidden：[ErrorBody](api-schemas.md#errorbody)
+- `404` Not Found：[ErrorBody](api-schemas.md#errorbody)
+- `409` Conflict：[ErrorBody](api-schemas.md#errorbody)
+- `410` Gone：[ErrorBody](api-schemas.md#errorbody)
+- `413` Request Entity Too Large：[ErrorBody](api-schemas.md#errorbody)
+- `422` Unprocessable Entity：[ErrorBody](api-schemas.md#errorbody)
+- `429` Too Many Requests：[ErrorBody](api-schemas.md#errorbody)
+- `501` Not Implemented：[ErrorBody](api-schemas.md#errorbody)
+- `503` Service Unavailable：[ErrorBody](api-schemas.md#errorbody)
+
+## POST /api/v1/learning/cases/{identity}/retry
+
+Learning Retry
+
+| 参数 | 位置 | 必填 | 类型 | 默认值 | 约束 |
+| --- | --- | --- | --- | --- | --- |
+| `identity` | path | 是 | string | — |  |
+
+请求体 `application/json`：[LearningRetry](api-schemas.md#learningretry)
+
+- `200` Successful Response：[LearningCase](api-schemas.md#learningcase)
+- `401` Unauthorized：[ErrorBody](api-schemas.md#errorbody)
+- `403` Forbidden：[ErrorBody](api-schemas.md#errorbody)
+- `404` Not Found：[ErrorBody](api-schemas.md#errorbody)
+- `409` Conflict：[ErrorBody](api-schemas.md#errorbody)
+- `410` Gone：[ErrorBody](api-schemas.md#errorbody)
+- `413` Request Entity Too Large：[ErrorBody](api-schemas.md#errorbody)
+- `422` Unprocessable Entity：[ErrorBody](api-schemas.md#errorbody)
+- `429` Too Many Requests：[ErrorBody](api-schemas.md#errorbody)
+- `501` Not Implemented：[ErrorBody](api-schemas.md#errorbody)
+- `503` Service Unavailable：[ErrorBody](api-schemas.md#errorbody)
+
+## GET /api/v1/learning/manifest
+
+Learning Manifest
+
+- `200` Successful Response：[LearningManifest](api-schemas.md#learningmanifest)
+- `401` Unauthorized：[ErrorBody](api-schemas.md#errorbody)
+- `403` Forbidden：[ErrorBody](api-schemas.md#errorbody)
+- `404` Not Found：[ErrorBody](api-schemas.md#errorbody)
+- `409` Conflict：[ErrorBody](api-schemas.md#errorbody)
+- `410` Gone：[ErrorBody](api-schemas.md#errorbody)
+- `413` Request Entity Too Large：[ErrorBody](api-schemas.md#errorbody)
+- `422` Unprocessable Entity：[ErrorBody](api-schemas.md#errorbody)
+- `429` Too Many Requests：[ErrorBody](api-schemas.md#errorbody)
+- `501` Not Implemented：[ErrorBody](api-schemas.md#errorbody)
+- `503` Service Unavailable：[ErrorBody](api-schemas.md#errorbody)
+
+## PUT /api/v1/learning/policy
+
+Learning Policy
+
+请求体 `application/json`：[LearningPolicyCommand-Input](api-schemas.md#learningpolicycommand-input)
+
+- `200` Successful Response：[LearningPolicy](api-schemas.md#learningpolicy)
+- `401` Unauthorized：[ErrorBody](api-schemas.md#errorbody)
+- `403` Forbidden：[ErrorBody](api-schemas.md#errorbody)
+- `404` Not Found：[ErrorBody](api-schemas.md#errorbody)
+- `409` Conflict：[ErrorBody](api-schemas.md#errorbody)
+- `410` Gone：[ErrorBody](api-schemas.md#errorbody)
+- `413` Request Entity Too Large：[ErrorBody](api-schemas.md#errorbody)
+- `422` Unprocessable Entity：[ErrorBody](api-schemas.md#errorbody)
+- `429` Too Many Requests：[ErrorBody](api-schemas.md#errorbody)
+- `501` Not Implemented：[ErrorBody](api-schemas.md#errorbody)
+- `503` Service Unavailable：[ErrorBody](api-schemas.md#errorbody)
+
+## POST /api/v1/learning/tick
+
+Learning Tick
+
+- `200` Successful Response：[LearningStatus](api-schemas.md#learningstatus)
+- `401` Unauthorized：[ErrorBody](api-schemas.md#errorbody)
+- `403` Forbidden：[ErrorBody](api-schemas.md#errorbody)
+- `404` Not Found：[ErrorBody](api-schemas.md#errorbody)
+- `409` Conflict：[ErrorBody](api-schemas.md#errorbody)
+- `410` Gone：[ErrorBody](api-schemas.md#errorbody)
+- `413` Request Entity Too Large：[ErrorBody](api-schemas.md#errorbody)
+- `422` Unprocessable Entity：[ErrorBody](api-schemas.md#errorbody)
+- `429` Too Many Requests：[ErrorBody](api-schemas.md#errorbody)
+- `501` Not Implemented：[ErrorBody](api-schemas.md#errorbody)
+- `503` Service Unavailable：[ErrorBody](api-schemas.md#errorbody)
+
 ## GET /api/v1/local/directories
 
 Local Directories

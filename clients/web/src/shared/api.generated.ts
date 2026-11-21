@@ -1224,6 +1224,91 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/learning': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Learning Status */
+    get: operations['learning_status_api_v1_learning_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/learning/cases/{identity}/retry': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Learning Retry */
+    post: operations['learning_retry_api_v1_learning_cases__identity__retry_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/learning/manifest': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Learning Manifest */
+    get: operations['learning_manifest_api_v1_learning_manifest_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/learning/policy': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /** Learning Policy */
+    put: operations['learning_policy_api_v1_learning_policy_put'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/learning/tick': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Learning Tick */
+    post: operations['learning_tick_api_v1_learning_tick_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/local/directories': {
     parameters: {
       query?: never;
@@ -3907,6 +3992,11 @@ export interface components {
        * @default []
        */
       prior_messages: components['schemas']['ModelMessage-Input'][];
+      /**
+       * Prior Runs
+       * @default []
+       */
+      prior_runs: components['schemas']['PriorRun'][];
       /** Project Id */
       project_id: string;
       /** Request Id */
@@ -3948,6 +4038,11 @@ export interface components {
        * @default []
        */
       prior_messages: components['schemas']['ModelMessage-Output'][];
+      /**
+       * Prior Runs
+       * @default []
+       */
+      prior_runs: components['schemas']['PriorRun'][];
       /** Project Id */
       project_id: string;
       /** Request Id */
@@ -4681,7 +4776,7 @@ export interface components {
        * Kind
        * @enum {string}
        */
-      kind: 'file' | 'research';
+      kind: 'file' | 'research' | 'response';
       /** Origin Group */
       origin_group: string;
       /** Prompt */
@@ -4744,7 +4839,7 @@ export interface components {
        * Kind
        * @enum {string}
        */
-      kind: 'file' | 'research';
+      kind: 'file' | 'research' | 'response';
       /** Origin Group */
       origin_group: string;
       /** Prompt */
@@ -5399,6 +5494,236 @@ export interface components {
       /** State Cutoff */
       state_cutoff: number;
     };
+    /** LearningCase */
+    LearningCase: {
+      /**
+       * Artifact Ids
+       * @default []
+       */
+      artifact_ids: string[];
+      /** Assessment Id */
+      assessment_id: string | null;
+      /**
+       * Attempt
+       * @default 0
+       */
+      attempt: number;
+      /** Conversation Id */
+      conversation_id: string;
+      /**
+       * Dataset Ids
+       * @default []
+       */
+      dataset_ids: string[];
+      /** Decision Outcomes */
+      decision_outcomes: {
+        [key: string]: string;
+      };
+      /**
+       * Example Keys
+       * @default []
+       */
+      example_keys: string[];
+      /** Id */
+      id: string;
+      /** Policy Version */
+      policy_version: number | null;
+      /** Project Id */
+      project_id: string;
+      /**
+       * Reasons
+       * @default []
+       */
+      reasons: string[];
+      /**
+       * Reserved Review Calls
+       * @default 0
+       */
+      reserved_review_calls: number;
+      /**
+       * Review Ids
+       * @default []
+       */
+      review_ids: string[];
+      /** Run Id */
+      run_id: string;
+      /** Run Version */
+      run_version: number | null;
+      /**
+       * Split
+       * @default train
+       * @enum {string}
+       */
+      split: 'train' | 'validation';
+      /**
+       * Stage
+       * @default collected
+       * @enum {string}
+       */
+      stage: 'collected' | 'assessing' | 'reviewing' | 'building' | 'ready' | 'hold' | 'rejected';
+      /**
+       * Version
+       * @default 0
+       */
+      version: number;
+    };
+    /** LearningManifest */
+    LearningManifest: {
+      /**
+       * Activation
+       * @default no_training_started
+       * @constant
+       */
+      activation: 'no_training_started';
+      /**
+       * Decision Train Artifact Ids
+       * @default []
+       */
+      decision_train_artifact_ids: string[];
+      /**
+       * Decision Validation Artifact Ids
+       * @default []
+       */
+      decision_validation_artifact_ids: string[];
+      /**
+       * Executor Train Artifact Ids
+       * @default []
+       */
+      executor_train_artifact_ids: string[];
+      /**
+       * Executor Validation Artifact Ids
+       * @default []
+       */
+      executor_validation_artifact_ids: string[];
+    };
+    /** LearningPolicy */
+    LearningPolicy: {
+      command: components['schemas']['LearningPolicyCommand-Output'];
+      /**
+       * Version
+       * @default 0
+       */
+      version: number;
+    };
+    /** LearningPolicyCommand */
+    'LearningPolicyCommand-Input': {
+      /**
+       * Allow Local Only Data
+       * @default false
+       */
+      allow_local_only_data: boolean;
+      /**
+       * Allow Remote Review
+       * @default false
+       */
+      allow_remote_review: boolean;
+      /**
+       * Data License Reference
+       * @default
+       */
+      data_license_reference: string;
+      /**
+       * Enabled
+       * @default false
+       */
+      enabled: boolean;
+      /** Expected Version */
+      expected_version?: number | null;
+      /**
+       * External Asset Uses
+       * @default []
+       */
+      external_asset_uses: components['schemas']['AssetUse-Input'][];
+      /**
+       * Local Training Authorized
+       * @default false
+       */
+      local_training_authorized: boolean;
+      /**
+       * Max Review Calls
+       * @default 0
+       */
+      max_review_calls: number;
+      /**
+       * Review Decisions
+       * @default true
+       */
+      review_decisions: boolean;
+      /**
+       * Teacher Uses
+       * @default []
+       */
+      teacher_uses: components['schemas']['TeacherUse-Input'][];
+    };
+    /** LearningPolicyCommand */
+    'LearningPolicyCommand-Output': {
+      /**
+       * Allow Local Only Data
+       * @default false
+       */
+      allow_local_only_data: boolean;
+      /**
+       * Allow Remote Review
+       * @default false
+       */
+      allow_remote_review: boolean;
+      /**
+       * Data License Reference
+       * @default
+       */
+      data_license_reference: string;
+      /**
+       * Enabled
+       * @default false
+       */
+      enabled: boolean;
+      /** Expected Version */
+      expected_version: number | null;
+      /**
+       * External Asset Uses
+       * @default []
+       */
+      external_asset_uses: components['schemas']['AssetUse-Output'][];
+      /**
+       * Local Training Authorized
+       * @default false
+       */
+      local_training_authorized: boolean;
+      /**
+       * Max Review Calls
+       * @default 0
+       */
+      max_review_calls: number;
+      /**
+       * Review Decisions
+       * @default true
+       */
+      review_decisions: boolean;
+      /**
+       * Teacher Uses
+       * @default []
+       */
+      teacher_uses: components['schemas']['TeacherUse-Output'][];
+    };
+    /** LearningRetry */
+    LearningRetry: {
+      /** Expected Version */
+      expected_version: number;
+    };
+    /** LearningStatus */
+    LearningStatus: {
+      /**
+       * Activation
+       * @default no_training_started
+       * @constant
+       */
+      activation: 'no_training_started';
+      /** Cases */
+      cases: components['schemas']['LearningCase'][];
+      policy: components['schemas']['LearningPolicy'] | null;
+      /** Reserved Review Calls */
+      reserved_review_calls: number;
+    };
     /** LegacyIdentityCommand */
     LegacyIdentityCommand: {
       /** Project Id */
@@ -5879,6 +6204,13 @@ export interface components {
        * @enum {string}
        */
       role: 'user' | 'runtime' | 'training' | 'evolution';
+    };
+    /** PriorRun */
+    PriorRun: {
+      /** Id */
+      id: string;
+      /** Version */
+      version: number;
     };
     /** Project */
     'Project-Input': {
@@ -8071,6 +8403,21 @@ export interface components {
        * @default 0.7
        */
       abstention_threshold: number;
+      /**
+       * Additional Train Artifact Ids
+       * @default []
+       */
+      additional_train_artifact_ids: string[];
+      /**
+       * Additional Validation Artifact Ids
+       * @default []
+       */
+      additional_validation_artifact_ids: string[];
+      /**
+       * Allow Cross Project Sources
+       * @default false
+       */
+      allow_cross_project_sources: boolean;
       /** Anchor Artifact Id */
       anchor_artifact_id?: string | null;
       /** Base Model Id */
@@ -8123,6 +8470,21 @@ export interface components {
        * @default 0.7
        */
       abstention_threshold: number;
+      /**
+       * Additional Train Artifact Ids
+       * @default []
+       */
+      additional_train_artifact_ids: string[];
+      /**
+       * Additional Validation Artifact Ids
+       * @default []
+       */
+      additional_validation_artifact_ids: string[];
+      /**
+       * Allow Cross Project Sources
+       * @default false
+       */
+      allow_cross_project_sources: boolean;
       /** Anchor Artifact Id */
       anchor_artifact_id: string | null;
       /** Base Model Id */
@@ -17793,6 +18155,566 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['JudgmentResult'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  learning_status_api_v1_learning_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LearningStatus'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  learning_retry_api_v1_learning_cases__identity__retry_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        identity: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['LearningRetry'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LearningCase'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  learning_manifest_api_v1_learning_manifest_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LearningManifest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  learning_policy_api_v1_learning_policy_put: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['LearningPolicyCommand-Input'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LearningPolicy'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Request Entity Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Not Implemented */
+      501: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  learning_tick_api_v1_learning_tick_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LearningStatus'];
         };
       };
       /** @description Unauthorized */

@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from typing import Literal, TypeVar, cast
 
 from auton.agent.contracts import AgentRun, checkpoint_event_id
+from auton.agent.lineage import conversation_ancestors
 from auton.agent.ports import AgentRuntimePort
 from auton.assess.contracts import (
     Aggregate,
@@ -342,6 +343,7 @@ class Assessment:
             await self.deps.context.snapshot(
                 principal.model_copy(update={"role": "runtime"}), run.command.project_id, identity
             )
+        await conversation_ancestors(principal, run, self.deps.agent)
         return run, source
 
     async def evaluate(self, principal: Principal, command: EvaluateCommand) -> EvalJob:
@@ -424,7 +426,12 @@ class Assessment:
             )
         await self.store.put("plan", principal.owner, identity, plan)
         signature, environment_verified, environment_reasons, evidence_text = await conditions(
-            principal, run, source, self.deps.events, self.deps.context
+            principal,
+            run,
+            source,
+            self.deps.events,
+            self.deps.context,
+            await conversation_ancestors(principal, run, self.deps.agent),
         )
         signals = list(await self.checker.check(principal, run, source, case))
         signals.extend(await human_signals(principal, run, source, self.deps.events))
@@ -450,6 +457,21 @@ class Assessment:
                     else None,
                 }
             )
+        if run.command.acceptance.kind == "response":
+            evidence_text[source.event.event_id + ":conversation-input"] = json.dumps(
+                {
+                    "prior_messages": [
+                        m.model_dump(mode="json") for m in run.command.prior_messages
+                    ],
+                    "boundaries": run.command.boundaries,
+                },
+                ensure_ascii=False,
+            )
+            for index, message in enumerate(run.history):
+                if message.role == "tool":
+                    evidence_text[source.event.event_id + ":tool-result:" + str(index)] = (
+                        message.content or ""
+                    )
         if case:
             evidence_text.update(
                 {"case:" + case.id + ":" + ref: text for ref, text in case.evidence_text.items()}

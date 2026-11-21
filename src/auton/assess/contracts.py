@@ -48,7 +48,7 @@ class EvalCase(Contract):
     origin_group: str = Field(pattern=r"^[a-zA-Z0-9_-]{1,100}$")
     split: Split
     prompt: str = Field(min_length=1, max_length=4000)
-    kind: Literal["file", "research"]
+    kind: Literal["file", "research", "response"]
     expected_sha256: str | None = Field(default=None, pattern=r"^[a-f0-9]{64}$")
     target_path: str | None = Field(default=None, max_length=400)
     critical: bool = False

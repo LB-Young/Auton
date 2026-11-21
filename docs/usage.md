@@ -195,6 +195,8 @@ M10 及更早版本的 Cookie 只有在原浏览器/CLI 私有文件仍保留时
 
 `make dataset-smoke` 复用本机 M15 的公开原始诊断任务，验证真实文件动作导出、授权撤回与下载拒绝，不增加付费模型调用。`.venv/bin/python scripts/dataset_smoke.py --reuse-completed` 验证新进程重用。当前只有一条真实样本，尚未开始训练，也不能据此宣称效果提升。见 [M17 验收与限制](milestones/evidence/M17.md)。
 
+新对话的发现、独立复核、合格回复转换和自动导出已接入后端；默认只采集，配置一次身份策略后持续整理。状态、额度、授权、恢复及训练清单见 [自动学习数据链路](conversation-learning.md)。
+
 ## 通用执行模型训练流程（M18）
 
 `?view=training` 提供训练计划、数据与基础模型版本检查、手动作业、预算、checkpoint、取消/恢复和离线候选。配置见 `config/training.example.toml`；模型、模板、镜像和资源由目标部署环境决定，不绑定当前开发电脑。默认训练后端关闭，核心服务不安装训练依赖。

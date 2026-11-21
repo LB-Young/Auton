@@ -2,6 +2,7 @@
 
 | 想做什么 | 阅读 |
 | --- | --- |
+| 新对话自动整理、复核、合格训练数据 | [自动学习数据链路](conversation-learning.md) |
 | 多轮对话、模型选择与工作面板 | [对话工作区](conversation-workspace.md) |
 | 安装并启动 | [快速启动](quickstart.md) |
 | 按页面使用全部功能 | [功能与使用指南](usage.md) |

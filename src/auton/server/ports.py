@@ -24,6 +24,7 @@ from auton.judgment.ports import JudgmentPort
 from auton.kernel.events import StorageInfo
 from auton.kernel.modules import ModuleDescriptor
 from auton.kernel.storage import EventLogPort
+from auton.learning.ports import LearningPort
 from auton.model.ports import ModelGatewayPort
 from auton.operations.ports import SchedulerPort
 from auton.release.ports import ReleasePort
@@ -69,6 +70,7 @@ class ServerDependencies:
     operations: SchedulerPort
     decision_training: DecisionTrainingPort
     training: ExecutorTrainingPort
+    learning: LearningPort
     datasets: DatasetPort
     decision_review: DecisionReviewPort
     evolve: EvolutionPort

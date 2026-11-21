@@ -156,7 +156,15 @@ class Datasets:
                         raise ApplicationError(
                             403, "dataset_source_withdrawn", "Source was withdrawn"
                         )
-                    sources.append(await self.reader.read(principal, command, ref, grant))
+                    source = await self.reader.read(principal, command, ref, grant)
+                    for token in source.group_tokens:
+                        if token.startswith("run:") and await self.withdrawn(principal, token[4:]):
+                            raise ApplicationError(
+                                403,
+                                "dataset_history_source_withdrawn",
+                                "Historical input was withdrawn",
+                            )
+                    sources.append(source)
                 except ApplicationError as error:
                     rejected.append(RejectedSubject(run_id=ref.run_id, reasons=(error.code,)))
             curator = self.curators.create(command.kind, self.deps)
@@ -245,6 +253,9 @@ class Datasets:
             raise ApplicationError(
                 409, "dataset_manifest_corrupt", "Immutable snapshot content digest differs"
             )
+        for token in {t for e in snapshot.examples for t in e.lineage_tokens}:
+            if token.startswith("run:") and await self.withdrawn(principal, token[4:]):
+                reasons.append("dataset_history_source_withdrawn")
         refs = {r.run_id: r for r in snapshot.command.subjects}
         proofs = {p.run_id: p for e in snapshot.examples for p in e.proofs}
         for run_id, proof in proofs.items():
@@ -373,6 +384,13 @@ class Datasets:
                     if command.grant_id
                     else any(
                         p["run_id"] == command.run_id for e in v["examples"] for p in e["proofs"]
+                    )
+                    or (
+                        command.run_id is not None
+                        and any(
+                            "run:" + command.run_id in e.get("lineage_tokens", [])
+                            for e in v["examples"]
+                        )
                     )
                 )
             )

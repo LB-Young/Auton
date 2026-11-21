@@ -12,7 +12,12 @@ from auton.conversation.contracts import (
 from auton.kernel.ports import LifecycleHandle
 
 
+class ConversationObserver(Protocol):
+    async def observe(self, principal: Principal, conversation_id: str) -> None: ...
+
+
 class WorkspaceConversationPort(LifecycleHandle, Protocol):
+    def bind_observer(self, observer: ConversationObserver) -> None: ...
     async def create(
         self, principal: Principal, command: ConversationCreate
     ) -> WorkspaceConversation: ...

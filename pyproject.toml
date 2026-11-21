@@ -318,3 +318,22 @@ name = "Transport only uses conversation public contracts"
 type = "forbidden"
 source_modules = ["auton.server"]
 forbidden_modules = ["auton.conversation.service", "auton.conversation.factory"]
+
+
+[[tool.importlinter.contracts]]
+name = "Automatic learning consumes public evidence ports"
+type = "forbidden"
+source_modules = ["auton.learning"]
+forbidden_modules = ["auton.bootstrap", "auton.server", "auton.training", "auton.release", "auton.model.gateway", "auton.agent.service", "auton.assess.service", "auton.datasets.service", "auton.decision_review.service", "auton.conversation.service"]
+
+[[tool.importlinter.contracts]]
+name = "Transport uses public automatic learning contracts"
+type = "forbidden"
+source_modules = ["auton.server"]
+forbidden_modules = ["auton.learning.service", "auton.learning.store", "auton.learning.factory", "auton.learning.dependencies"]
+
+[[tool.importlinter.contracts]]
+name = "Execution cannot authorize automatic learning"
+type = "forbidden"
+source_modules = ["auton.agent", "auton.model", "auton.judgment", "auton.tools", "auton.context", "auton.assess", "auton.datasets", "auton.training"]
+forbidden_modules = ["auton.learning"]

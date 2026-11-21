@@ -9,6 +9,7 @@
 
 | 参数 | 类型 / 可选值 | 必填 | 默认值 | 约束 / 说明 |
 | --- | --- | --- | --- | --- |
+| `learning` | [LearningConfig](#learningconfig) | 否 | 见对应类型字段 |  |
 | `operations` | [OperationsConfig](#operationsconfig) | 否 | 见对应类型字段 |  |
 | `release` | [ReleaseConfig](#releaseconfig) | 否 | 见对应类型字段 |  |
 | `decision_training` | [DecisionTrainingConfig](#decisiontrainingconfig) | 否 | 见对应类型字段 |  |
@@ -229,6 +230,17 @@
 | `backend` | `"sqlite"`, `"memory"` | 否 | `"sqlite"` |  |
 | `data_directory` | string | 否 | `".auton_local"` | 类型格式 path |
 | `busy_timeout_ms` | integer | 否 | `1000` | ≥ 0; ≤ 30000 |
+
+<a id="learningconfig"></a>
+### LearningConfig
+
+| 参数 | 类型 / 可选值 | 必填 | 默认值 | 约束 / 说明 |
+| --- | --- | --- | --- | --- |
+| `directory` | string | 否 | `".auton_local/learning"` | 类型格式 path |
+| `max_documents` | integer | 否 | `30000` | ≥ 100; ≤ 100000 |
+| `poll_seconds` | number | 否 | `5.0` | ≥ 0.1; ≤ 3600 |
+| `max_cases_per_tick` | integer | 否 | `4` | ≥ 1; ≤ 40 |
+| `background` | boolean | 否 | `true` |  |
 
 <a id="modelconfig"></a>
 ### ModelConfig

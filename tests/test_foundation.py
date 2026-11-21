@@ -23,6 +23,7 @@ from auton.judgment.config import JudgmentConfig
 from auton.kernel.config import KernelConfig
 from auton.kernel.modules import ModuleDescriptor, resolve_modules
 from auton.kernel.ports import ModuleFactory, RuntimeDependencies
+from auton.learning.contracts import LearningConfig
 from auton.model.config import ModelConfig
 from auton.operations.contracts import OperationsConfig
 from auton.release.contracts import ReleaseConfig
@@ -42,6 +43,7 @@ def test_factory_swap_has_identical_http_and_event_contract(
             genome=GenomeConfig(directory=tmp_path / "genome"),
             experience=ExperienceConfig(directory=tmp_path / "experience"),
             datasets=DatasetConfig(directory=tmp_path / "datasets"),
+            learning=LearningConfig(directory=tmp_path / "learning", background=False),
             training=TrainingConfig(directory=tmp_path / "training"),
             release=ReleaseConfig(directory=tmp_path / "release"),
             operations=OperationsConfig(directory=tmp_path / "operations"),
@@ -121,6 +123,7 @@ def test_real_profile_never_uses_demo(deps: RuntimeDependencies, tmp_path: Path)
             genome=GenomeConfig(directory=tmp_path / "genome"),
             experience=ExperienceConfig(directory=tmp_path / "experience"),
             datasets=DatasetConfig(directory=tmp_path / "datasets"),
+            learning=LearningConfig(directory=tmp_path / "learning", background=False),
             training=TrainingConfig(directory=tmp_path / "training"),
             release=ReleaseConfig(directory=tmp_path / "release"),
             operations=OperationsConfig(directory=tmp_path / "operations"),

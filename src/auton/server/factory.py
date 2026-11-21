@@ -103,6 +103,14 @@ from auton.genome.contracts import Asset, Project, Revision, Snapshot, VersionIn
 from auton.judgment.contracts import JudgmentInfo, JudgmentRequest, JudgmentResult
 from auton.judgment.questions import JudgmentQuestionsFactory
 from auton.kernel.ports import ApplicationError
+from auton.learning.contracts import (
+    LearningCase,
+    LearningManifest,
+    LearningPolicy,
+    LearningPolicyCommand,
+    LearningRetry,
+    LearningStatus,
+)
 from auton.model.contracts import ModelInfo, ModelMessage, ModelRequest, ModelResult
 from auton.operations.contracts import (
     BackgroundJob,
@@ -1091,6 +1099,34 @@ class ServerFactory:
                 raise ApplicationError(403, "origin_denied", "目录浏览仅允许来自本机工作台")
             return await deps.tools.browse_directories(
                 Principal(owner=owner(request), role="user"), path
+            )
+
+        @app.get("/api/v1/learning")
+        async def learning_status(request: Request) -> LearningStatus:
+            return await deps.learning.status(Principal(owner=owner(request), role="user"))
+
+        @app.get("/api/v1/learning/manifest")
+        async def learning_manifest(request: Request) -> LearningManifest:
+            return await deps.learning.manifest(Principal(owner=owner(request), role="user"))
+
+        @app.put("/api/v1/learning/policy")
+        async def learning_policy(
+            request: Request, command: LearningPolicyCommand
+        ) -> LearningPolicy:
+            return await deps.learning.configure(
+                Principal(owner=owner(request), role="user"), command
+            )
+
+        @app.post("/api/v1/learning/tick")
+        async def learning_tick(request: Request) -> LearningStatus:
+            return await deps.learning.tick(Principal(owner=owner(request), role="user"))
+
+        @app.post("/api/v1/learning/cases/{identity}/retry")
+        async def learning_retry(
+            request: Request, identity: str, command: LearningRetry
+        ) -> LearningCase:
+            return await deps.learning.retry(
+                Principal(owner=owner(request), role="user"), identity, command
             )
 
         @app.get("/api/v1/conversations")

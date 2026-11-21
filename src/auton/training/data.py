@@ -68,6 +68,19 @@ def verify_base(spec: BaseModelSpec) -> str:
     return digest(spec.model_dump(mode="json", exclude={"directory"}))
 
 
+def source_artifacts(command: TrainingPlanCommand, scope: str) -> tuple[str, ...]:
+    primary = getattr(command, scope + "_artifact_id")
+    additional = getattr(command, "additional_" + scope + "_artifact_ids", ())
+    if additional and primary is None:
+        raise ApplicationError(
+            422, "training_primary_artifact_required", "Additional sources need a primary artifact"
+        )
+    identities = ((primary,) if primary else ()) + tuple(additional)
+    if len(set(identities)) != len(identities):
+        raise ApplicationError(422, "training_duplicate_artifact", "Artifact ids must be distinct")
+    return identities
+
+
 class TrainingDataReader:
     def __init__(self, deps: TrainingDependencies, kind: str = "executor") -> None:
         self.deps = deps
@@ -83,37 +96,61 @@ class TrainingDataReader:
         groups: dict[str, int] = {}
         assigned: dict[str, str] = {}
         for scope in ("train", "validation", "replay", "anchor"):
-            identity = getattr(command, scope + "_artifact_id")
-            if identity is None:
+            identities = source_artifacts(command, scope)
+            if not identities:
                 continue
-            artifact, content = await self.deps.datasets.read_artifact(principal, identity)
-            self.validate_artifact(artifact, scope)
-            snapshot = await self.deps.datasets.get(principal, artifact.snapshot_id)
-            if (
-                snapshot.command.project_id != command.project_id
-                or snapshot.command.kind != self.kind
-            ):
-                raise ApplicationError(
-                    409,
-                    "training_dataset_scope",
-                    "Training needs owned data with exactly matching supervision kind",
-                )
-            selected = [e for e in snapshot.examples if e.split == artifact.command.split]
-            for example in selected:
-                prior = assigned.get(example.group_id)
-                if prior and prior != scope:
+            chunks: list[bytes] = []
+            proofs = []
+            selected_groups: set[str] = set()
+            seen_examples: set[str] = set()
+            for identity in identities:
+                artifact, content = await self.deps.datasets.read_artifact(principal, identity)
+                self.validate_artifact(artifact, scope)
+                snapshot = await self.deps.datasets.get(principal, artifact.snapshot_id)
+                if (
+                    snapshot.command.project_id != command.project_id
+                    and not command.allow_cross_project_sources
+                ) or snapshot.command.kind != self.kind:
                     raise ApplicationError(
                         409,
-                        "training_evaluation_overlap",
-                        "Train, validation, replay and anchor groups must be independent",
+                        "training_dataset_scope",
+                        "Cross-project owned sources need explicit permission and matching kind",
                     )
-                assigned[example.group_id] = scope
-            inputs[scope] = content
-            manifests[scope] = digest(
-                {"artifact": artifact.model_dump(mode="json"), "snapshot": snapshot.content_digest}
-            )
-            examples[scope] = len(selected)
-            groups[scope] = len({e.group_id for e in selected})
+                selected = [e for e in snapshot.examples if e.split == artifact.command.split]
+                for example in selected:
+                    if example.id in seen_examples:
+                        raise ApplicationError(
+                            409, "training_duplicate_example", "Repeated examples across artifacts"
+                        )
+                    seen_examples.add(example.id)
+                    prior = assigned.get(example.group_id)
+                    if prior and prior != scope:
+                        raise ApplicationError(
+                            409,
+                            "training_evaluation_overlap",
+                            "Train, validation, replay and anchor groups must be independent",
+                        )
+                    assigned[example.group_id] = scope
+                    selected_groups.add(example.group_id)
+                if sum(len(chunk) for chunk in chunks) + len(content) > 32000000:
+                    raise ApplicationError(
+                        429, "training_aggregate_input_limit", "Aggregate role input exceeds 32 MB"
+                    )
+                chunks.append(content)
+                proofs.append(
+                    {
+                        "artifact": artifact.model_dump(mode="json"),
+                        "snapshot": snapshot.content_digest,
+                    }
+                )
+            inputs[scope] = b"".join(chunks)
+            if len(inputs[scope]) > 32000000:
+                raise ApplicationError(
+                    429, "training_aggregate_input_limit", "Aggregate role input exceeds 32 MB"
+                )
+            manifests[scope] = digest(proofs[0] if len(proofs) == 1 else proofs)
+            examples[scope] = len(seen_examples)
+            groups[scope] = len(selected_groups)
         return inputs, manifests, examples, groups
 
     def validate_artifact(self, artifact: DatasetArtifact, scope: str) -> None:

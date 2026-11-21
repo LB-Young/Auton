@@ -784,6 +784,7 @@
 | `limits` | [RunLimits-Input](#runlimits-input) / null | 否 | — |  |
 | `model_id` | string | 是 | — | 最短 1; 最长 100 |
 | `prior_messages` | array&lt;[ModelMessage-Input](#modelmessage-input)&gt; | 否 | `[]` | 最多项 78 |
+| `prior_runs` | array&lt;[PriorRun](#priorrun)&gt; | 否 | `[]` | 最多项 39 |
 | `project_id` | string | 是 | — | 格式 ^[a-zA-Z0-9_-]{1,80}$ |
 | `request_id` | string | 是 | — | 格式 ^[a-zA-Z0-9_-]{1,100}$ |
 | `workspace_id` | string | 是 | — | 格式 ^[a-zA-Z0-9_-]{1,80}$ |
@@ -802,6 +803,7 @@
 | `limits` | [RunLimits-Output](#runlimits-output) / null | 是 | — |  |
 | `model_id` | string | 是 | — | 最短 1; 最长 100 |
 | `prior_messages` | array&lt;[ModelMessage-Output](#modelmessage-output)&gt; | 是 | `[]` | 最多项 78 |
+| `prior_runs` | array&lt;[PriorRun](#priorrun)&gt; | 是 | `[]` | 最多项 39 |
 | `project_id` | string | 是 | — | 格式 ^[a-zA-Z0-9_-]{1,80}$ |
 | `request_id` | string | 是 | — | 格式 ^[a-zA-Z0-9_-]{1,100}$ |
 | `workspace_id` | string | 是 | — | 格式 ^[a-zA-Z0-9_-]{1,80}$ |
@@ -1170,7 +1172,7 @@
 | `human_answer` | string / null | 否 | — |  |
 | `human_verdict` | `"pass"`, `"fail"`, `"unknown"` | 否 | `"unknown"` |  |
 | `id` | string | 是 | — | 格式 ^[a-zA-Z0-9_-]{1,80}$ |
-| `kind` | `"file"`, `"research"` | 是 | — |  |
+| `kind` | `"file"`, `"research"`, `"response"` | 是 | — |  |
 | `origin_group` | string | 是 | — | 格式 ^[a-zA-Z0-9_-]{1,100}$ |
 | `prompt` | string | 是 | — | 最短 1; 最长 4000 |
 | `source` | `"human_seed"`, `"benchmark"`, `"episode"`, `"test_fixture"` | 是 | — |  |
@@ -1192,7 +1194,7 @@
 | `human_answer` | string / null | 是 | — |  |
 | `human_verdict` | `"pass"`, `"fail"`, `"unknown"` | 是 | `"unknown"` |  |
 | `id` | string | 是 | — | 格式 ^[a-zA-Z0-9_-]{1,80}$ |
-| `kind` | `"file"`, `"research"` | 是 | — |  |
+| `kind` | `"file"`, `"research"`, `"response"` | 是 | — |  |
 | `origin_group` | string | 是 | — | 格式 ^[a-zA-Z0-9_-]{1,100}$ |
 | `prompt` | string | 是 | — | 最短 1; 最长 4000 |
 | `source` | `"human_seed"`, `"benchmark"`, `"episode"`, `"test_fixture"` | 是 | — |  |
@@ -1559,6 +1561,98 @@ object
 | `source` | [DecisionSource](#decisionsource) | 是 | — |  |
 | `state_cutoff` | integer | 是 | — |  |
 
+<a id="learningcase"></a>
+### LearningCase
+
+| 参数 | 类型 / 可选值 | 必填 | 默认值 | 约束 / 说明 |
+| --- | --- | --- | --- | --- |
+| `artifact_ids` | array&lt;string&gt; | 是 | `[]` |  |
+| `assessment_id` | string / null | 是 | — |  |
+| `attempt` | integer | 是 | `0` |  |
+| `conversation_id` | string | 是 | — |  |
+| `dataset_ids` | array&lt;string&gt; | 是 | `[]` |  |
+| `decision_outcomes` | map&lt;string&gt; | 是 | — |  |
+| `example_keys` | array&lt;string&gt; | 是 | `[]` |  |
+| `id` | string | 是 | — |  |
+| `policy_version` | integer / null | 是 | — |  |
+| `project_id` | string | 是 | — |  |
+| `reasons` | array&lt;string&gt; | 是 | `[]` |  |
+| `reserved_review_calls` | integer | 是 | `0` |  |
+| `review_ids` | array&lt;string&gt; | 是 | `[]` |  |
+| `run_id` | string | 是 | — |  |
+| `run_version` | integer / null | 是 | — |  |
+| `split` | `"train"`, `"validation"` | 是 | `"train"` |  |
+| `stage` | `"collected"`, `"assessing"`, `"reviewing"`, `"building"`, `"ready"`, `"hold"`, `"rejected"` | 是 | `"collected"` |  |
+| `version` | integer | 是 | `0` |  |
+
+<a id="learningmanifest"></a>
+### LearningManifest
+
+| 参数 | 类型 / 可选值 | 必填 | 默认值 | 约束 / 说明 |
+| --- | --- | --- | --- | --- |
+| `activation` | `"no_training_started"` | 是 | `"no_training_started"` |  |
+| `decision_train_artifact_ids` | array&lt;string&gt; | 是 | `[]` |  |
+| `decision_validation_artifact_ids` | array&lt;string&gt; | 是 | `[]` |  |
+| `executor_train_artifact_ids` | array&lt;string&gt; | 是 | `[]` |  |
+| `executor_validation_artifact_ids` | array&lt;string&gt; | 是 | `[]` |  |
+
+<a id="learningpolicy"></a>
+### LearningPolicy
+
+| 参数 | 类型 / 可选值 | 必填 | 默认值 | 约束 / 说明 |
+| --- | --- | --- | --- | --- |
+| `command` | [LearningPolicyCommand-Output](#learningpolicycommand-output) | 是 | — |  |
+| `version` | integer | 是 | `0` |  |
+
+<a id="learningpolicycommand-input"></a>
+### LearningPolicyCommand-Input
+
+| 参数 | 类型 / 可选值 | 必填 | 默认值 | 约束 / 说明 |
+| --- | --- | --- | --- | --- |
+| `allow_local_only_data` | boolean | 否 | `false` |  |
+| `allow_remote_review` | boolean | 否 | `false` |  |
+| `data_license_reference` | string | 否 | `""` | 最长 1000 |
+| `enabled` | boolean | 否 | `false` |  |
+| `expected_version` | integer / null | 否 | — |  |
+| `external_asset_uses` | array&lt;[AssetUse-Input](#assetuse-input)&gt; | 否 | `[]` | 最多项 100 |
+| `local_training_authorized` | boolean | 否 | `false` |  |
+| `max_review_calls` | integer | 否 | `0` | ≥ 0.0; ≤ 100000.0 |
+| `review_decisions` | boolean | 否 | `true` |  |
+| `teacher_uses` | array&lt;[TeacherUse-Input](#teacheruse-input)&gt; | 否 | `[]` | 最多项 20 |
+
+<a id="learningpolicycommand-output"></a>
+### LearningPolicyCommand-Output
+
+| 参数 | 类型 / 可选值 | 必填 | 默认值 | 约束 / 说明 |
+| --- | --- | --- | --- | --- |
+| `allow_local_only_data` | boolean | 是 | `false` |  |
+| `allow_remote_review` | boolean | 是 | `false` |  |
+| `data_license_reference` | string | 是 | `""` | 最长 1000 |
+| `enabled` | boolean | 是 | `false` |  |
+| `expected_version` | integer / null | 是 | — |  |
+| `external_asset_uses` | array&lt;[AssetUse-Output](#assetuse-output)&gt; | 是 | `[]` | 最多项 100 |
+| `local_training_authorized` | boolean | 是 | `false` |  |
+| `max_review_calls` | integer | 是 | `0` | ≥ 0.0; ≤ 100000.0 |
+| `review_decisions` | boolean | 是 | `true` |  |
+| `teacher_uses` | array&lt;[TeacherUse-Output](#teacheruse-output)&gt; | 是 | `[]` | 最多项 20 |
+
+<a id="learningretry"></a>
+### LearningRetry
+
+| 参数 | 类型 / 可选值 | 必填 | 默认值 | 约束 / 说明 |
+| --- | --- | --- | --- | --- |
+| `expected_version` | integer | 是 | — | ≥ 0.0 |
+
+<a id="learningstatus"></a>
+### LearningStatus
+
+| 参数 | 类型 / 可选值 | 必填 | 默认值 | 约束 / 说明 |
+| --- | --- | --- | --- | --- |
+| `activation` | `"no_training_started"` | 是 | `"no_training_started"` |  |
+| `cases` | array&lt;[LearningCase](#learningcase)&gt; | 是 | — |  |
+| `policy` | [LearningPolicy](#learningpolicy) / null | 是 | — |  |
+| `reserved_review_calls` | integer | 是 | — |  |
+
 <a id="legacyidentitycommand"></a>
 ### LegacyIdentityCommand
 
@@ -1839,6 +1933,14 @@ Executable train/dev input, with no meta human answer or calibration label.
 | --- | --- | --- | --- | --- |
 | `owner` | string | 是 | — | 最短 1; 最长 200 |
 | `role` | `"user"`, `"runtime"`, `"training"`, `"evolution"` | 否 | `"runtime"` |  |
+
+<a id="priorrun"></a>
+### PriorRun
+
+| 参数 | 类型 / 可选值 | 必填 | 默认值 | 约束 / 说明 |
+| --- | --- | --- | --- | --- |
+| `id` | string | 是 | — | 格式 ^[a-f0-9]{64}$ |
+| `version` | integer | 是 | — | ≥ 0.0; ≤ 65535.0 |
 
 <a id="project-input"></a>
 ### Project-Input
@@ -2990,6 +3092,9 @@ Executable train/dev input, with no meta human answer or calibration label.
 | 参数 | 类型 / 可选值 | 必填 | 默认值 | 约束 / 说明 |
 | --- | --- | --- | --- | --- |
 | `abstention_threshold` | number | 否 | `0.7` | ≥ 0.5; ≤ 0.99 |
+| `additional_train_artifact_ids` | array&lt;string&gt; | 否 | `[]` | 最多项 199 |
+| `additional_validation_artifact_ids` | array&lt;string&gt; | 否 | `[]` | 最多项 199 |
+| `allow_cross_project_sources` | boolean | 否 | `false` |  |
 | `anchor_artifact_id` | string / null | 否 | — |  |
 | `base_model_id` | string | 是 | — | 格式 ^[a-zA-Z0-9_-]{1,80}$ |
 | `engineering_probe` | boolean | 否 | `false` |  |
@@ -3010,6 +3115,9 @@ Executable train/dev input, with no meta human answer or calibration label.
 | 参数 | 类型 / 可选值 | 必填 | 默认值 | 约束 / 说明 |
 | --- | --- | --- | --- | --- |
 | `abstention_threshold` | number | 是 | `0.7` | ≥ 0.5; ≤ 0.99 |
+| `additional_train_artifact_ids` | array&lt;string&gt; | 是 | `[]` | 最多项 199 |
+| `additional_validation_artifact_ids` | array&lt;string&gt; | 是 | `[]` | 最多项 199 |
+| `allow_cross_project_sources` | boolean | 是 | `false` |  |
 | `anchor_artifact_id` | string / null | 是 | — |  |
 | `base_model_id` | string | 是 | — | 格式 ^[a-zA-Z0-9_-]{1,80}$ |
 | `engineering_probe` | boolean | 是 | `false` |  |

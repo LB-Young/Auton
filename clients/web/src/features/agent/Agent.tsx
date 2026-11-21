@@ -201,6 +201,7 @@ export function Agent({
       return feature.create({
         request_id: crypto.randomUUID(),
         prior_messages: [],
+        prior_runs: [],
         project_id: project,
         workspace_id: workspace,
         model_id: model,
