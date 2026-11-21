@@ -1,0 +1,153 @@
+# 参考资料
+
+Auton 自进化架构设计（[`../self-evolution-architecture.md`](../self-evolution-architecture.md)）所参考的文章、论文与开源项目。
+
+- 用户提供的 PDF 原样保存。
+- 第三方文章与论文保存为中文**阅读笔记**（元信息、核心观点、关键机制、数据、局限、对 Auton 的启示），附原文链接与少量原文短句，不转载全文。
+- 开源项目保存为代码分析。
+
+首次收集：2026-11-11；补充查阅：2026-11-14；逐篇阅读笔记整理：2026-11-15；Jev 决策学习补充：2026-11-16。
+
+## 项目框架与前端参考（2026-11-16）
+
+开发计划见 [M01–M21](../milestones/README.md)，前端按模块同步交付。
+
+| 阅读笔记 | 原始来源 | 重点 |
+|---|---|---|
+| [ChatGPT 项目工作区](./chatgpt-project-workspace-ui.md) | OpenAI 官方帮助 | 项目、会话、文件与说明组织 |
+| [Claude 产物工作区](./claude-artifact-workspace-ui.md) | Anthropic 官方产品页 | 对话围绕产物迭代 |
+| [React 组件化](./react-component-ui.md) | React 官方文档 | 组件与 feature 模块边界 |
+| [Vite 工具链](./vite-web-tooling.md) | Vite 官方文档 | 开发、构建与版本锁定 |
+
+## 专题综合手册
+
+- [Jev 判断层、模型路由与本地小模型持续学习](../model-routing-and-local-learning.md)：难度/能力感知路由，历史轨迹加工为路由与执行训练数据，以及本地候选训练、隔离评测与发布闭环。
+
+## 本地决策模型评估与发布参考（2026-11-16）
+
+专项设计：[持续训练评估、上线与回滚](../decision-model-evaluation-and-release.md)。区分判断正确、旧能力保持、完整任务收益与部署资源，未来采用按任务灰度，不启用按难度的 Jev/本地动态路由。
+
+| 阅读笔记 | 原始来源 | 重点 |
+|---|---|---|
+| [神经网络概率校准](./guo-neural-network-calibration.md) | Guo 等，ICML 2017 | 高置信不等于高正确率、校准与局限 |
+| [分类评估](./google-classification-evaluation.md) | Google Cloud 官方文档 | 分类别、阈值、precision/recall |
+| [影子与灰度](./seldon-shadow-canary.md) | Seldon 官方文档 | 影子不采用输出，灰度实际采用候选 |
+
+## Jev 全链路判断与本地决策模型参考（2026-11-16）
+
+专项设计：[Jev 全链路判断与本地决策模型离线学习](../jev-decision-learning.md)。线上只走 Jev；本地 student 用经过独立轨迹复核的正样本持续离线学习，不参与路由或 fallback。以下每个来源独立一份 Markdown 理解笔记。
+
+| 阅读笔记 | 原始来源 | 重点 |
+|---|---|---|
+| [Jev 用途地图](./typesafe-jev-agent-use-cases.md) | TypeSafe 官方文档 | 工具、检索、技能、失败与记忆判断 |
+| [Laya 模型与训练](./laya-local-decision-model.md) | 官方仓库 | 类型化决策与微调入口 |
+| [Laya 权重限制](./laya-model-card-limits.md) | 发布者模型卡 | 语言、上下文、选项与校准 |
+| [AnyJev / Tacit](./anyjev-local-decisions.md) | 官方仓库 | 开放基座读出与决策 checkpoint |
+| [AnyJev 接口变更](./anyjev-changelog-training.md) | 官方 CHANGELOG | 旧训练接口移除与版本固定 |
+| [poorjev 判断层](./poorjev-local-decision-layer.md) | 官方仓库 | NLI 选项打分与校准基线 |
+| [mlx-decision](./mlx-decision-training-runtime.md) | 官方仓库 | Apple Silicon 运行与训练工具 |
+
+## 模型路由与本地学习参考（2026-11-15）
+
+| 阅读笔记 | 原始来源 | 重点 |
+|---|---|---|
+| [Jev 结构化判断](./typesafe-jev-judgment-routing.md) | TypeSafe Introduction | 类型化判断、confidence 与独立 adapter |
+| [判断与代码决策](./typesafe-jev-code-decisions.md) | TypeSafe 官方博客 | 判断不覆盖权限与确定性控制 |
+| [RouteLLM](./routellm-routing-calibration.md) | 官方仓库 | 本地候选、阈值校准与公平基线 |
+| [TRL SFT 数据](./huggingface-trl-agent-sft-data.md) | 官方文档 | 对话/工具格式、loss mask 与数据谱系 |
+| [PEFT 本地训练](./huggingface-peft-local-training.md) | 官方文档 | adapter、量化与真实硬件边界 |
+
+## 执行与构建专题
+
+- [Agent 执行与构建博客：35 篇中文阅读笔记](./agent-article-reading-index.md)：每篇独立 Markdown，包含观点、机制、个人理解、Auton 启示、局限与建议验证；附原文链接，非原文转载。
+
+- [Agent 与多 Agent 执行问题及解决方案手册](../agent-execution-problems-and-solutions.md)：基于 23 篇原始工程博客，整理 94 项执行问题、64 个故障注入场景及 Auton 的建议契约、状态机与建设顺序。明确区分来源摘要与工程推论；作为设计输入，尚未实现或验证。
+- [Agent 构建者的失败尝试、事故与修复案例](../agent-builder-case-studies.md)：第二轮新增 12 篇第一方博客，整理 11 组构建/调试/事故案例与 12 个建议实验，涵盖 Manus、Vercel/Braintrust、Parcha/Grep、Anthropic、Uber、Cloudflare。保留原方案、改动、局限及与问题手册的映射。
+
+## 目录
+
+| 文件 | 来源 | 机构 | 日期 | 主题 |
+|---|---|---|---|---|
+| [tencent-agent-self-evolution-flywheel.pdf](./tencent-agent-self-evolution-flywheel.pdf) · [笔记](./tencent-agent-self-evolution-flywheel.md) | 一篇讲透 Agent 自进化飞轮怎么搭 | 腾讯技术工程 | 2026-08-27 | 评测→记忆→落地→控制的四齿飞轮 |
+| [evoagentx-analysis.md](./evoagentx-analysis.md) | EvoAgentX（开源项目） | EvoAgentX 团队 | — | 工作流优化算法：TextGrad、AFlow、MIPRO、EvoPrompt、SEW、MAP-Elites |
+| [anthropic-components-of-agent-memory.md](./anthropic-components-of-agent-memory.md) | The components of agent memory | Anthropic | 2026-11-06 | 记忆分层、显著性、Dreaming 验证与 wiki |
+| [anthropic-managed-agents-dreaming-outcomes.md](./anthropic-managed-agents-dreaming-outcomes.md) | New in Claude Managed Agents | Anthropic | 2026-05-19 | Dreaming、Outcomes（独立评分者）、多 Agent |
+| [anthropic-agent-skills.md](./anthropic-agent-skills.md) | Equipping agents for the real world with Agent Skills | Anthropic | 2025-10-16 | Skill 格式、渐进披露、开发与评估 |
+| [openai-self-evolving-agents-cookbook.md](./openai-self-evolving-agents-cookbook.md) | Self-Evolving Agents cookbook | OpenAI Cookbook | 未标注（已归档） | 多评分器 + 元提示优化循环 |
+| [openai-agent-improvement-loop.md](./openai-agent-improvement-loop.md) | Build an Agent Improvement Loop with Traces, Evals, and Codex | OpenAI Cookbook | 约 2026-05 | trace → 反馈 → 生成 eval → 门 → HALO → Codex 交接 |
+| [ace-agentic-context-engineering.md](./ace-agentic-context-engineering.md) | Agentic Context Engineering (ACE) | Stanford · SambaNova · UC Berkeley | ICLR 2026 | 条目化增量更新、上下文坍缩 |
+| [gepa-reflective-prompt-evolution.md](./gepa-reflective-prompt-evolution.md) | GEPA | UC Berkeley · Stanford · Databricks 等 | ICLR 2026 | 反思式提示进化、Pareto 候选选择 |
+| [decagon-gepa-in-production.md](./decagon-gepa-in-production.md) | Optimizing GEPA for production | Decagon | 2026-03-25 | 样本量、反思模型、长度约束的消融 |
+| [sakana-darwin-godel-machine.md](./sakana-darwin-godel-machine.md) | The Darwin Gödel Machine | Sakana AI · UBC | 2025-05-30 | 自改代码、Agent 存档、奖励作弊 |
+| [deepmind-alphaevolve.md](./deepmind-alphaevolve.md) | AlphaEvolve | Google DeepMind | 2025-05-14 | 进化编码 Agent、模型集成、自动评估 |
+| [letta-sleep-time-compute.md](./letta-sleep-time-compute.md) | Sleep-time Compute / Agent Memory | Letta | 2025-04-21 / 2025-07-07 | 空闲时整理记忆、主 Agent 与记忆 Agent 分工 |
+| [langchain-continual-learning.md](./langchain-continual-learning.md) | Continual learning for AI agents | LangChain | 2026-04-05 | 模型 / Harness / 上下文三层 |
+
+## 2026-11-14 补充资料
+
+以下 7 篇补充同等预算对照、长期经验干扰、记忆操作进化与 Skill 效用验证。笔记区分来源结论与设计推论，建议尚未合并到 v0.4 正文。
+
+| 笔记 | 发布 / 版本 | 重点 |
+|---|---|---|
+| [Rethinking the Evaluation of Harness Evolution for Agents](./harness-evolution-evaluation.md) | 2026-07-14；v4：2026-10-05 | 自动修改 Harness 的收益，需要排除额外搜索预算和评测数据泄漏的影响。 |
+| [PATH-Bench: Path-Dependent Evaluation of Lifelong Agents](./path-bench-lifelong-agents.md) | 2026-08-02；v1 | 长期 Agent 的能力取决于经验积累的路径；学到新经验可能干扰已有能力。 |
+| [MemSkill: Learning and Evolving Memory Skills for Self-Evolving Agents](./memskill-evolving-memory-skills.md) | 2026-02-02；v3：2026-11-06；页面标注 NeurIPS 2026 接收 | 不仅记忆内容可以更新，提取、整合和裁剪记忆的操作也可以作为技能学习和进化。 |
+| [SkillsBench: Benchmarking How Well Agent Skills Work Across Diverse Tasks](./skillsbench.md) | 2026-02-13；v4：2026-06-14 | Skill 是否有效，需要在同一任务条件下对比加载和不加载 Skill 的结果。 |
+| [Remember Me, Refine Me: A Dynamic Procedural Memory Framework for Experience-Driven Agent Evolution](./reme-procedural-memory.md) | Findings of ACL 2026；2026-07 | 程序性记忆需要提炼、按情境复用、依据效用修订，避免被动累积。 |
+| [Demystifying evals for AI agents](./anthropic-demystifying-agent-evals.md) | 2026-01-09 | Agent 评测需要清楚区分任务、重复试验、评分器、轨迹和环境中的最终结果。 |
+| [A Survey of Self-Evolving Agents: What, When, How, and Where to Evolve on the Path to Artificial Super Intelligence](./self-evolving-agents-survey.md) | 2025-07-28；v4：2026-01-16；TMLR 01/2026 | 用进化对象、时机、方法和应用场景组织自进化 Agent 的研究空间。 |
+
+建议阅读顺序：Harness evolution evaluation → PATH-Bench → MemSkill，其余按评测、Skill 和记忆设计需要阅读。
+
+### 优先验证的设计假设（待合并）
+
+| 假设 | 建议实验 / 设计检查 | 对应章节 |
+|---|---|---|
+| 进化收益超过简单增加重试 | 旧版本 / 旧版本增加重试 / 新版本对照，核算搜索成本并用未见任务验证 | §6、§7.5 |
+| 长期积累不会破坏已有能力 | 连续任务流、冲突项目历史、旧任务探测，记录迁移与遗忘 | §4.3、§6、§7.7 |
+| 记忆处理策略可安全进化 | 将提取策略与固定权限、来源追踪、删除规则分离，分别验证记忆与任务收益 | §4、§7.4、§8.1 |
+
+## 跨来源共识
+
+| 共识 | 出处 | Auton 设计中的位置 |
+|---|---|---|
+| 当前最划算的进化发生在 Harness / 上下文层，而不是权重 | 腾讯、LangChain、ACE、GEPA | §0.1 |
+| trace（完整执行轨迹）是一切改进的基础 | LangChain、OpenAI、Anthropic | §1、§5.3 事件溯源 |
+| 离线、异步地整理经验（Dreaming / sleep-time） | Anthropic、Letta、腾讯、LangChain | §3.1 慢回路、§7.1 |
+| 自然语言反馈比标量分数信息量大 | GEPA、ACE、TextGrad | §7.1 文本梯度 |
+| 不要整体重写，只做局部增量修改 | ACE（上下文坍缩）、腾讯（Diff 模式）、AlphaEvolve（diff） | §7.4 |
+| 不只从当前最优出发，保留多样的"垫脚石" | DGM、GEPA、AFlow、MAP-Elites | §7.3、§7.8 |
+| 评测者独立于被评测者；评测与检测逻辑不可被进化修改 | Anthropic Outcomes、DGM、腾讯 | §6.3、§8.1 |
+| 人类把关关键节点，自动化程度随信任逐步提高 | OpenAI、腾讯、Anthropic Dreaming | §8.2–§8.4 |
+
+## 对 v0.4 设计的新增启示（待合并）
+
+| # | 启示 | 来源 | 建议落点 |
+|---|---|---|---|
+| 1 | Dreaming 增加"对照原始事件核验记忆"步骤，错误即修正或降级 | Anthropic memory | §7.1、§4.3 |
+| 2 | 捕获阶段告诉模型记忆的用途，不预设"只记 X"之类规则；治理放在后端 | Anthropic memory | §3.1 快回路、§4.3 |
+| 3 | knowledge 采用 wiki 结构（页面 + 链接 + 索引）；常驻层只放索引 | Anthropic memory | §4.1、§5.2 |
+| 4 | 同一记忆页面一次只由一个写入者修改 | Anthropic memory | §4.3 |
+| 5 | 主 Agent 只追加 learnings；长期记忆的编辑全部由后台 Curator 完成，并用更强模型 | Letta | §3.1、§5.1 |
+| 6 | 记忆与 playbook 只做条目级 delta，合并去重由确定性代码完成；条目带 helpful / harmful 计数，由 Agent 在 episode 结束时标注 | ACE | §4.2、§4.3、§6.5 |
+| 7 | 警惕简短偏置：精简不能是目标本身，必须通过 val 验证 | ACE | §7.4 Gardener |
+| 8 | 父版本选择改用 Pareto 前沿（按每个 val case 的最好版本保留，按领先 case 数加权抽样） | GEPA、DGM | §7.3 |
+| 9 | checker 除分数外返回失败原因文字，供文本梯度使用 | GEPA | §6.4 |
+| 10 | 反思 / 补丁生成 / Dreaming 必须用前沿模型；单次反思约 10 个样本，单个诊断的训练样本 20–100 | Decagon | §5.1、§7.1 |
+| 11 | 资产 token 预算同时作为 G1 门禁（长度正则化） | Decagon | §7.5 |
+| 12 | 快模型批量产出多样变体，强模型深入改进最有希望的方向 | AlphaEvolve | §7.4 |
+| 13 | 有确定性 checker 的 task_type 可更快升级自主等级 | AlphaEvolve | §8.2 |
+| 14 | 评测只信任 Tool Host 事件记录，不信任 Agent 自述的结果；Guard 拒绝删除或绕过检测逻辑的补丁 | DGM | §6.2、§8.1 |
+| 15 | 切换主模型后，对 evolved 资产跑全量回归 | DGM | §7.7 |
+| 16 | 用户反馈自动生成带字面断言 + rubric 的 eval 用例，人可收紧后升级为回归用例 | OpenAI loop | §6.4 |
+| 17 | 一个 eval 用例挂多个评分器（确定性 + 相似度 + Judge），分别记录 | OpenAI cookbook | §6.4 |
+| 18 | 工具层 / 代码层问题生成结构化 `handoff.md`，交给编码 Agent 或用户；Auton 自身代码的改进作为独立的、始终人工审核的 PR 通道 | OpenAI loop、LangChain Meta-Harness | §7.1 熔断、新增章节 |
+| 19 | 运行时 Outcome 检查：独立上下文的评分者按 rubric 驱动返工；rubric 可来自用户偏好记忆 | Anthropic Outcomes | §5、§6.2 |
+| 20 | skill 对齐开放标准（`name` + `description` 必填）；description 作为独立字段，评测其触发准确率；skill 可捆绑确定性脚本；外部 skill 视为不可信 | Anthropic Skills | §4.2、§7.4、§8.1 |
+| 21 | 用户显式要求"记住"的内容跳过晋升门槛，作为 user-origin 直接写入 | LangChain | §4.3 |
+| 22 | 空闲时预读用户常用项目，生成项目级 knowledge | Letta | §3.1 |
+
+## M02 存储实现参考（2026-11-17）
+
+- [SQLite WAL](./sqlite-wal-storage.md)：并发、持久边界与修复版引擎。
+- [APSW 内嵌引擎](./apsw-embedded-sqlite.md)：Python 驱动隔离与部署要求。

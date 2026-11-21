@@ -1,0 +1,84 @@
+import logging
+from collections.abc import Callable
+from contextlib import AbstractAsyncContextManager
+from dataclasses import dataclass
+from typing import Literal
+
+from fastapi import FastAPI
+from pydantic import BaseModel
+
+from auton.agent.ports import AgentRuntimePort
+from auton.assess.ports import AssessPort
+from auton.constitution.config import PublicPolicy
+from auton.constitution.ports import PolicyControlPort
+from auton.context.ports import ContextEnginePort
+from auton.datasets.ports import DatasetPort
+from auton.decision_review.ports import DecisionReviewPort
+from auton.delegation.ports import DelegationPort
+from auton.demo.ports import ConversationPort
+from auton.evolve.ports import EvolutionPort
+from auton.experience.ports import ExperiencePort
+from auton.genome.ports import GenomePort
+from auton.judgment.ports import JudgmentPort
+from auton.kernel.events import StorageInfo
+from auton.kernel.modules import ModuleDescriptor
+from auton.kernel.storage import EventLogPort
+from auton.model.ports import ModelGatewayPort
+from auton.operations.ports import SchedulerPort
+from auton.release.ports import ReleasePort
+from auton.server.commands import CommandHandlerPort
+from auton.server.feedback import FeedbackPort
+from auton.server.identity import IdentityInfo, IdentityPort
+from auton.server.uploads import UploadPort
+from auton.tools.ports import ToolHostPort
+from auton.training.ports import DecisionTrainingPort, ExecutorTrainingPort
+
+
+class BootstrapResponse(BaseModel):
+    identity: IdentityInfo
+    profile: str
+    demo: bool
+    implementation: str
+    persistence: Literal["memory-only"] = "memory-only"
+    modules: list[ModuleDescriptor]
+    event_storage: StorageInfo
+    policy: PublicPolicy
+
+
+class HealthResponse(BaseModel):
+    status: Literal["ready", "starting", "stopped"]
+    profile: str
+
+
+@dataclass(frozen=True)
+class ServerDependencies:
+    conversation: ConversationPort | None
+    modules: list[ModuleDescriptor]
+    implementation: str
+    lifespan: Callable[[FastAPI], AbstractAsyncContextManager[None]]
+    is_ready: Callable[[], bool]
+    storage: Callable[[], StorageInfo]
+    feedback: FeedbackPort
+    uploads: UploadPort
+    commands: CommandHandlerPort
+    identity: IdentityPort
+    events: EventLogPort
+    release: ReleasePort
+    operations: SchedulerPort
+    decision_training: DecisionTrainingPort
+    training: ExecutorTrainingPort
+    datasets: DatasetPort
+    decision_review: DecisionReviewPort
+    evolve: EvolutionPort
+    delegation: DelegationPort
+    assess: AssessPort
+    experience: ExperiencePort
+    agent: AgentRuntimePort
+    context: ContextEnginePort
+    genome: GenomePort
+    tools: ToolHostPort
+    judgment: JudgmentPort
+    models: ModelGatewayPort
+    control: PolicyControlPort
+    redact: Callable[[str], str]
+    logger: logging.Logger

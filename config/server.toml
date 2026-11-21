@@ -1,0 +1,24 @@
+# Preset for `make server`; only DEEPSEEK_API_KEY is supplied by the user.
+profile = "dev"
+implementation = "disabled"
+allowed_origins = ["http://127.0.0.1:5173", "http://localhost:5173", "http://127.0.0.1:8000", "http://localhost:8000"]
+
+[constitution]
+remote_providers = ["deepseek"]
+
+[models]
+backend = "deepseek"
+secret_reference = "DEEPSEEK_API_KEY"
+
+[judgment]
+backend = "laya"
+application_enabled = false
+
+[training]
+backend = "disabled"
+
+[decision_training]
+backend = "disabled"
+
+[operations]
+enabled = false

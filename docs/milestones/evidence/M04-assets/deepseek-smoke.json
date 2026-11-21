@@ -1,0 +1,95 @@
+{
+  "timestamp": "2026-11-17T03:54:12.456072+00:00",
+  "results": [
+    {
+      "model_id": "deepseek-flash",
+      "mode": "text",
+      "reported_model": "deepseek-flash",
+      "fingerprint": "bc19ba97cbe016479903222bb1578db6",
+      "finish_reason": "stop",
+      "usage": {
+        "input_tokens": 11,
+        "output_tokens": 1,
+        "estimated_cost_microusd": 5,
+        "cost_is_estimate": true
+      },
+      "latency_ms": 924,
+      "source": "remote"
+    },
+    {
+      "model_id": "deepseek-flash",
+      "mode": "json",
+      "reported_model": "deepseek-flash",
+      "fingerprint": "bc19ba97cbe016479903222bb1578db6",
+      "finish_reason": "stop",
+      "usage": {
+        "input_tokens": 39,
+        "output_tokens": 5,
+        "estimated_cost_microusd": 18,
+        "cost_is_estimate": true
+      },
+      "latency_ms": 603,
+      "source": "remote"
+    },
+    {
+      "model_id": "deepseek-flash",
+      "mode": "tools",
+      "reported_model": "deepseek-flash",
+      "fingerprint": "bc19ba97cbe016479903222bb1578db6",
+      "finish_reason": "tool_calls",
+      "usage": {
+        "input_tokens": 274,
+        "output_tokens": 31,
+        "estimated_cost_microusd": 120,
+        "cost_is_estimate": true
+      },
+      "latency_ms": 1047,
+      "source": "remote"
+    },
+    {
+      "model_id": "deepseek-v4-pro",
+      "mode": "text",
+      "reported_model": "deepseek-v4-pro",
+      "fingerprint": "d400d062347a13495558bb956f2a0a0c",
+      "finish_reason": "stop",
+      "usage": {
+        "input_tokens": 11,
+        "output_tokens": 1,
+        "estimated_cost_microusd": 19,
+        "cost_is_estimate": true
+      },
+      "latency_ms": 808,
+      "source": "remote"
+    },
+    {
+      "model_id": "deepseek-v4-pro",
+      "mode": "json",
+      "reported_model": "deepseek-v4-pro",
+      "fingerprint": "d400d062347a13495558bb956f2a0a0c",
+      "finish_reason": "stop",
+      "usage": {
+        "input_tokens": 36,
+        "output_tokens": 5,
+        "estimated_cost_microusd": 68,
+        "cost_is_estimate": true
+      },
+      "latency_ms": 998,
+      "source": "remote"
+    },
+    {
+      "model_id": "deepseek-v4-pro",
+      "mode": "tools",
+      "reported_model": "deepseek-v4-pro",
+      "fingerprint": "d400d062347a13495558bb956f2a0a0c",
+      "finish_reason": "tool_calls",
+      "usage": {
+        "input_tokens": 285,
+        "output_tokens": 35,
+        "estimated_cost_microusd": 515,
+        "cost_is_estimate": true
+      },
+      "latency_ms": 1154,
+      "source": "remote"
+    }
+  ]
+}

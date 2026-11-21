@@ -1,0 +1,20 @@
+# Merge into a deployment configuration after reviewing the worker image and model manifests.
+# No hardware is detected on the development computer and no model is selected automatically.
+[training]
+backend = "disabled" # Set docker only after filling a real reviewed image digest.
+# image = "your-registry/auton-training@sha256:<64-hex-characters>"
+directory = ".auton_local/training"
+device = "auto" # cpu or cuda may be selected by the deployment operator.
+max_steps = 1000
+max_wall_seconds = 3600
+max_active_jobs = 1
+memory_mb = 8192
+cpus = 4
+max_output_bytes = 536870912
+min_free_bytes = 1073741824
+
+# Add [[training.base_models]] entries with:
+# id, directory, repository, full immutable revision, license_reference,
+# template_sha256 (hash of actual chat_template), tool_parser (tagged_json or json),
+# and files = { "config.json" = "<sha256>", ... } covering EVERY mounted file.
+# Only reviewed local safetensors/model/tokenizer data is mounted; no remote code/pickle weights.

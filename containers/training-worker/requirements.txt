@@ -1,0 +1,6 @@
+# Build recipe constraints; freeze the resolved platform environment into a reviewed image digest.
+# Optional training dependencies are not installed into the Auton service environment.
+torch>=2.6,<3
+transformers>=4.51,<5
+peft>=0.17,<0.18
+safetensors>=0.5,<1

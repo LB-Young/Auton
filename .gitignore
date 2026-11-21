@@ -1,49 +1,26 @@
-# Python
+.venv/
 __pycache__/
 *.py[cod]
-*.so
-.Python
 *.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage*
+htmlcov/
+.env
+.env.*
+!.env.example
+.auton_local/
+.claude/
+.vscode/
+.DS_Store
+node_modules/
 dist/
 build/
-.eggs/
-
-# Virtual environments
-.env
-.venv
-venv/
-ENV/
-
-# Data (runtime, not committed)
-data/memory/
-data/tasks/
-data/cache/
-data/logs/
-data/heartbeat/
-data/cron/
-data/workspace/
-
-# Config overrides
-auton.yaml
-.local.yaml
-
-# Logs
+*.tsbuildinfo
+playwright-report/
+test-results/
 *.log
-
-# uv
-uv.lock
-
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Auton runtime files
-.auton/
-.auton_local/
-.HEARTBEAT_OK.log
+data/
+weights/
+/datasets/

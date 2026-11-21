@@ -1,76 +1,307 @@
+[build-system]
+requires = ["hatchling>=1.26,<2"]
+build-backend = "hatchling.build"
+
 [project]
 name = "auton"
 version = "0.1.0"
-description = "Personal AI Agent Assistant"
-requires-python = ">=3.11"
+description = "A modular personal agent workbench — M01 foundation"
+requires-python = ">=3.12,<3.13"
 dependencies = [
-    "typer>=0.12.0",
-    "pydantic>=2.0.0",
-    "pydantic-settings>=2.0.0",
-    "httpx>=0.27.0",
-    "anthropic>=0.25.0",
-    "openai>=1.0.0",
-    "loguru>=0.7.0",
-    "fastapi>=0.110.0",
-    "uvicorn[standard]>=0.29.0",
-    "chromadb>=0.5.0",
-    "sqlite-minutils>=3.0.0",
-    "croniter>=2.0.0",
-    "rich>=13.0.0",
-    "PyYAML>=6.0.0",
-    "playwright>=1.40.0",
+  "anyio>=4.8,<5",
+  "apsw>=3.51.3,<4",
+  "fastapi>=0.115,<1",
+  "httpx>=0.28,<1",
+  "jsonschema>=4.23,<5",
+  "pydantic>=2.10,<3",
+  "python-dotenv>=1.0,<2",
+  "tokenizers>=0.22,<0.23",
+  "uvicorn[standard]>=0.34,<1",
 ]
-
-[project.scripts]
-auton = "auton.adapters.cli.main:app"
-
-[tool.setuptools]
-packages = [
-    "auton",
-    "auton.core",
-    "auton.agent",
-    "auton.llm",
-    "auton.llm.providers",
-    "auton.tools",
-    "auton.tools.browser",
-    "auton.tools.web_search",
-    "auton.tools.web_search.providers",
-    "auton.adapters",
-    "auton.adapters.cli",
-    "auton.adapters.web",
-    "auton.gateway",
-    "auton.skills",
-    "auton.skills.builtin",
-]
-
-[tool.setuptools.package-data]
-"auton.adapters.web" = ["static/*"]
-"auton.skills.builtin" = ["**/*.md"]
 
 [project.optional-dependencies]
-dev = [
-    "pytest>=8.0",
-    "pytest-asyncio>=0.23",
-    "pytest-cov>=4.1",
-    "ruff>=0.4",
-    "mypy>=1.9",
-    "httpx>=0.27",
+judgment = [
+    "laya==0.3.20",
+    "transformers>=4.48,<5",
 ]
 
+[dependency-groups]
+dev = [
+  "httpx>=0.28,<1",
+  "import-linter>=2.3,<3",
+  "mypy>=1.15,<2",
+  "pytest>=8.3,<10",
+  "playwright>=1.50,<2",
+  "pytest-asyncio>=0.25,<2",
+  "ruff>=0.11,<1",
+  "types-jsonschema>=4.26.0.20261006",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/auton"]
+
 [tool.ruff]
-line-length = 120
-target-version = "py311"
+force-exclude = true
+extend-exclude = ["src/auton/context/vendor"]
+target-version = "py312"
+line-length = 100
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "N", "W", "UP", "B"]
-ignore = ["E501"]
+select = ["E", "F", "I", "UP", "B", "ASYNC"]
 
 [tool.mypy]
-python_version = "3.11"
-warn_return_any = true
-warn_unused_configs = true
-disallow_untyped_defs = true
+python_version = "3.12"
+strict = true
+files = ["src", "tests", "scripts/export_contracts.py", "scripts/dev.py", "scripts/check_boundaries.py", "scripts/setup.py", "scripts/check_secrets.py", "scripts/model_smoke.py", "scripts/judgment_smoke.py", "scripts/download_laya.py", "scripts/download_context_tokenizers.py", "scripts/context_smoke.py", "scripts/agent_cli.py", "scripts/agent_smoke.py", "scripts/delegation_smoke.py", "scripts/evolution_smoke.py", "scripts/decision_review_smoke.py", "scripts/dataset_smoke.py", "scripts/operations_smoke.py", "scripts/server.py", "scripts/export_user_docs.py"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = ["browser: requires Chromium and running development servers"]
 asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+
+[tool.importlinter]
+root_package = "auton"
+
+[[tool.importlinter.contracts]]
+name = "Kernel is independent"
+type = "forbidden"
+source_modules = ["auton.kernel"]
+forbidden_modules = ["auton.bootstrap", "auton.demo", "auton.server", "auton.constitution", "auton.model", "auton.judgment", "auton.tools", "auton.genome", "auton.context", "auton.agent", "auton.experience", "auton.assess", "auton.delegation", "auton.evolve", "auton.decision_review", "auton.datasets", "auton.training", "auton.release", "auton.operations"]
+
+[[tool.importlinter.contracts]]
+name = "Demo never imports transport or composition"
+type = "forbidden"
+source_modules = ["auton.demo"]
+forbidden_modules = ["auton.server", "auton.bootstrap", "auton.constitution"]
+
+[[tool.importlinter.contracts]]
+name = "Transport only uses demo public contracts"
+type = "forbidden"
+source_modules = ["auton.server"]
+forbidden_modules = ["auton.bootstrap", "auton.demo.service", "auton.demo.factory"]
+
+[[tool.importlinter.contracts]]
+name = "Transport only uses public policy ports"
+type = "forbidden"
+source_modules = ["auton.server"]
+forbidden_modules = ["auton.constitution.control", "auton.constitution.factory", "auton.constitution.secrets"]
+
+[[tool.importlinter.contracts]]
+name = "Model gateway depends only on policy public contracts"
+type = "forbidden"
+source_modules = ["auton.model"]
+forbidden_modules = ["auton.bootstrap", "auton.server", "auton.demo", "auton.constitution.control", "auton.constitution.factory"]
+
+[[tool.importlinter.contracts]]
+name = "Transport only uses model ports and contracts"
+type = "forbidden"
+source_modules = ["auton.server"]
+forbidden_modules = ["auton.model.gateway", "auton.model.provider", "auton.model.factory", "auton.model.registry"]
+
+[[tool.importlinter.contracts]]
+name = "Judgment uses only public execution and policy contracts"
+type = "forbidden"
+source_modules = ["auton.judgment"]
+forbidden_modules = ["auton.bootstrap", "auton.server", "auton.constitution.control", "auton.constitution.factory", "auton.model.gateway", "auton.model.provider", "auton.model.factory"]
+
+[[tool.importlinter.contracts]]
+name = "Transport does not import decision implementation"
+type = "forbidden"
+source_modules = ["auton.server"]
+forbidden_modules = ["auton.judgment.service", "auton.judgment.adapter", "auton.judgment.factory", "auton.judgment.worker"]
+
+[[tool.importlinter.contracts]]
+name = "Tools use only public control contracts"
+type = "forbidden"
+source_modules = ["auton.tools"]
+forbidden_modules = ["auton.bootstrap", "auton.server", "auton.constitution.control", "auton.constitution.factory", "auton.model.gateway", "auton.judgment.service"]
+
+[[tool.importlinter.contracts]]
+name = "Transport does not import tool implementations"
+type = "forbidden"
+source_modules = ["auton.server"]
+forbidden_modules = ["auton.tools.service", "auton.tools.adapters", "auton.tools.factory", "auton.tools.sandbox", "auton.tools.ledger"]
+
+[[tool.importlinter.contracts]]
+name = "Genome uses public policy contracts"
+type = "forbidden"
+source_modules = ["auton.genome"]
+forbidden_modules = ["auton.bootstrap", "auton.server", "auton.constitution.control", "auton.constitution.factory", "auton.tools.service"]
+
+[[tool.importlinter.contracts]]
+name = "Transport uses public asset ports"
+type = "forbidden"
+source_modules = ["auton.server"]
+forbidden_modules = ["auton.genome.service", "auton.genome.repository", "auton.genome.factory", "auton.genome.policy"]
+
+[[tool.mypy.overrides]]
+module = "auton.context.vendor.*"
+ignore_errors = true
+
+[[tool.importlinter.contracts]]
+name = "Context uses public module contracts"
+type = "forbidden"
+source_modules = ["auton.context"]
+forbidden_modules = ["auton.bootstrap", "auton.server", "auton.model.gateway", "auton.model.provider", "auton.model.factory", "auton.genome.service", "auton.genome.repository", "auton.tools.service", "auton.constitution.control", "auton.constitution.factory"]
+
+[[tool.importlinter.contracts]]
+name = "Transport uses public context ports"
+type = "forbidden"
+source_modules = ["auton.server"]
+forbidden_modules = ["auton.context.service", "auton.context.factory", "auton.context.tokenization", "auton.context.retrieval", "auton.context.compression"]
+
+[[tool.importlinter.contracts]]
+name = "Agent depends on public runtime ports"
+type = "forbidden"
+source_modules = ["auton.agent"]
+forbidden_modules = ["auton.bootstrap", "auton.server", "auton.model.gateway", "auton.model.provider", "auton.context.service", "auton.context.factory", "auton.judgment.service", "auton.judgment.factory", "auton.tools.service", "auton.genome.service", "auton.constitution.control", "auton.experience"]
+
+[[tool.importlinter.contracts]]
+name = "Transport only uses public agent contracts"
+type = "forbidden"
+source_modules = ["auton.server"]
+forbidden_modules = ["auton.agent.service", "auton.agent.factory", "auton.agent.repository"]
+
+[[tool.importlinter.contracts]]
+name = "Experience uses public ports and event facts"
+type = "forbidden"
+source_modules = ["auton.experience"]
+forbidden_modules = ["auton.bootstrap", "auton.server", "auton.agent.service", "auton.agent.repository", "auton.context.service", "auton.tools.service", "auton.model.gateway"]
+
+[[tool.importlinter.contracts]]
+name = "Transport uses public experience contracts"
+type = "forbidden"
+source_modules = ["auton.server"]
+forbidden_modules = ["auton.experience.service", "auton.experience.projection", "auton.experience.repository", "auton.experience.factory"]
+
+
+[[tool.importlinter.contracts]]
+name = "Assessment only depends on public runtime ports"
+type = "forbidden"
+source_modules = ["auton.assess"]
+forbidden_modules = ["auton.bootstrap", "auton.server", "auton.agent.service", "auton.agent.repository", "auton.context.service", "auton.model.gateway", "auton.model.provider", "auton.tools.service", "auton.constitution.control"]
+
+[[tool.importlinter.contracts]]
+name = "Transport cannot access evaluator storage or implementations"
+type = "forbidden"
+source_modules = ["auton.server"]
+forbidden_modules = ["auton.assess.service", "auton.assess.store", "auton.assess.judge", "auton.assess.checkers", "auton.assess.factory"]
+
+
+[[tool.importlinter.contracts]]
+name = "Delegation only uses public workers and independent assessment"
+type = "forbidden"
+source_modules = ["auton.delegation"]
+forbidden_modules = ["auton.bootstrap", "auton.server", "auton.agent.service", "auton.agent.repository", "auton.assess.service", "auton.assess.store", "auton.assess.judge", "auton.tools.service", "auton.genome.service", "auton.model.gateway", "auton.constitution.control"]
+
+[[tool.importlinter.contracts]]
+name = "Agent cannot grant delegation authority to itself"
+type = "forbidden"
+source_modules = ["auton.agent"]
+forbidden_modules = ["auton.delegation"]
+
+[[tool.importlinter.contracts]]
+name = "Transport uses only delegation contracts and ports"
+type = "forbidden"
+source_modules = ["auton.server"]
+forbidden_modules = ["auton.delegation.service", "auton.delegation.store", "auton.delegation.roles", "auton.delegation.integrator", "auton.delegation.factory"]
+
+[[tool.importlinter.contracts]]
+name = "Evolution only uses public execution and independent evaluation"
+type = "forbidden"
+source_modules = ["auton.evolve"]
+forbidden_modules = ["auton.bootstrap", "auton.server", "auton.agent.service", "auton.agent.repository", "auton.assess.service", "auton.assess.store", "auton.assess.judge", "auton.tools.service", "auton.genome.service", "auton.genome.repository", "auton.model.gateway", "auton.constitution.control"]
+
+[[tool.importlinter.contracts]]
+name = "Executor cannot grant itself evolution authority"
+type = "forbidden"
+source_modules = ["auton.agent", "auton.context", "auton.model", "auton.tools", "auton.assess", "auton.genome"]
+forbidden_modules = ["auton.evolve"]
+
+[[tool.importlinter.contracts]]
+name = "Transport uses only evolution contracts and ports"
+type = "forbidden"
+source_modules = ["auton.server"]
+forbidden_modules = ["auton.evolve.service", "auton.evolve.store", "auton.evolve.proposals", "auton.evolve.arena", "auton.evolve.factory", "auton.evolve.mutation", "auton.evolve.gates"]
+
+
+[[tool.importlinter.contracts]]
+name = "Decision reviewer only uses public evidence and model ports"
+type = "forbidden"
+source_modules = ["auton.decision_review"]
+forbidden_modules = ["auton.bootstrap", "auton.server", "auton.agent.service", "auton.agent.repository", "auton.assess.service", "auton.assess.store", "auton.assess.judge", "auton.genome.service", "auton.context.service", "auton.experience.service", "auton.experience.projection", "auton.model.gateway", "auton.judgment.service", "auton.judgment.adapter"]
+
+[[tool.importlinter.contracts]]
+name = "Executor and teacher cannot review themselves"
+type = "forbidden"
+source_modules = ["auton.agent", "auton.judgment", "auton.model", "auton.assess", "auton.context", "auton.tools"]
+forbidden_modules = ["auton.decision_review"]
+
+[[tool.importlinter.contracts]]
+name = "Transport uses only decision review contracts and port"
+type = "forbidden"
+source_modules = ["auton.server"]
+forbidden_modules = ["auton.decision_review.service", "auton.decision_review.store", "auton.decision_review.reviewer", "auton.decision_review.policy", "auton.decision_review.calibration", "auton.decision_review.sources", "auton.decision_review.factory"]
+
+[[tool.importlinter.contracts]]
+name = "Datasets consume public contracts and ports"
+type = "forbidden"
+source_modules = ["auton.datasets"]
+forbidden_modules = ["auton.agent.service", "auton.assess.service", "auton.genome.service", "auton.context.service", "auton.decision_review.service", "auton.decision_review.store", "auton.evolve.service", "auton.evolve.store", "auton.delegation.service", "auton.model.gateway", "auton.model.provider", "auton.tools.service", "auton.bootstrap", "auton.server"]
+
+[[tool.importlinter.contracts]]
+name = "Execution cannot curate or export training data"
+type = "forbidden"
+source_modules = ["auton.agent", "auton.model", "auton.judgment", "auton.tools", "auton.context", "auton.genome", "auton.assess", "auton.evolve", "auton.decision_review", "auton.delegation"]
+forbidden_modules = ["auton.datasets"]
+
+[[tool.importlinter.contracts]]
+name = "Training only consumes qualified data ports"
+type = "forbidden"
+source_modules = ["auton.training"]
+forbidden_modules = ["auton.bootstrap", "auton.server", "auton.model.gateway", "auton.model.provider", "auton.agent.service", "auton.datasets.service", "auton.datasets.store", "auton.assess.service", "auton.tools.ports", "auton.tools.service", "auton.tools.factory", "auton.tools.adapters", "auton.tools.ledger", "auton.tools.sandbox", "auton.tools.process_worker", "auton.tools.mcp_server", "auton.decision_review.service", "auton.evolve.service"]
+
+[[tool.importlinter.contracts]]
+name = "Executors cannot train or register themselves"
+type = "forbidden"
+source_modules = ["auton.agent", "auton.model", "auton.judgment", "auton.tools", "auton.context", "auton.genome", "auton.datasets", "auton.assess", "auton.decision_review", "auton.evolve"]
+forbidden_modules = ["auton.training"]
+
+
+[[tool.importlinter.contracts]]
+name = "Release only uses public source and runtime ports"
+type = "forbidden"
+source_modules = ["auton.release"]
+forbidden_modules = ["auton.bootstrap", "auton.server", "auton.training.service", "auton.training.backend", "auton.genome.service", "auton.genome.repository", "auton.model.gateway", "auton.model.publications", "auton.agent.service", "auton.assess.service", "auton.assess.store", "auton.evolve.service"]
+
+[[tool.importlinter.contracts]]
+name = "Training and execution cannot publish themselves"
+type = "forbidden"
+source_modules = ["auton.training", "auton.agent", "auton.model", "auton.context", "auton.genome", "auton.evolve", "auton.assess", "auton.decision_review", "auton.datasets"]
+forbidden_modules = ["auton.release"]
+
+[[tool.importlinter.contracts]]
+name = "Transport uses release contracts and ports"
+type = "forbidden"
+source_modules = ["auton.server"]
+forbidden_modules = ["auton.release.service", "auton.release.factory", "auton.release.adapters", "auton.release.sources", "auton.release.policy"]
+
+
+[[tool.importlinter.contracts]]
+name = "Operations only uses approved public background ports"
+type = "forbidden"
+source_modules = ["auton.operations"]
+forbidden_modules = ["auton.bootstrap", "auton.server", "auton.release", "auton.evolve", "auton.constitution.control", "auton.model.gateway", "auton.model.provider", "auton.agent.service", "auton.training.service", "auton.training.backend", "auton.training.worker", "auton.training.decision_worker", "auton.datasets.service", "auton.assess.service", "auton.assess.store", "auton.decision_review.service", "auton.genome.service", "auton.tools.ports", "auton.tools.service", "auton.tools.factory", "auton.tools.adapters", "auton.tools.ledger", "auton.tools.process_worker"]
+
+[[tool.importlinter.contracts]]
+name = "Execution cannot schedule or monitor itself"
+type = "forbidden"
+source_modules = ["auton.agent", "auton.model", "auton.context", "auton.genome", "auton.judgment", "auton.training", "auton.datasets", "auton.assess", "auton.evolve", "auton.decision_review"]
+forbidden_modules = ["auton.operations"]
+
+[[tool.importlinter.contracts]]
+name = "Transport uses operations contracts and port"
+type = "forbidden"
+source_modules = ["auton.server"]
+forbidden_modules = ["auton.operations.service", "auton.operations.queue", "auton.operations.telemetry", "auton.operations.backup", "auton.operations.pipelines", "auton.operations.factory"]

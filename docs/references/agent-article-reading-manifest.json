@@ -1,0 +1,498 @@
+{
+  "scope": "All 35 unique blog sources cited by the two agent research documents",
+  "prepared_on": "2026-11-15",
+  "note_count": 35,
+  "format": "Markdown reading notes in Chinese, with source links and distinct original analysis",
+  "sources": [
+    {
+      "reference_id": "REF001",
+      "title": "AWS：Deep Insight 的五类生产问题",
+      "source_description": "AWS Solutions Architecture；发布日期本次未固定",
+      "url": "https://aws.amazon.com/blogs/machine-learning/5-production-challenges-in-multi-agent-systems-and-how-deep-insight-solved-them/",
+      "cited_by": [
+        "agent-execution-problems-and-solutions.md"
+      ],
+      "note_path": "aws-deep-insight-production-challenges.md",
+      "note_type": "Chinese reading notes and original analysis; not a full-text copy",
+      "status": "completed",
+      "prepared_on": "2026-11-15",
+      "note_sha256": "34a237bfc1854fa11ad332579f51545896ad354858af1fc8334b6209e13321e2"
+    },
+    {
+      "reference_id": "REF002",
+      "title": "AWS：超时、重试、退避与抖动",
+      "source_description": "AWS Builders’ Library，Marc Brooker；2019-12-05",
+      "url": "https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/",
+      "cited_by": [
+        "agent-execution-problems-and-solutions.md"
+      ],
+      "note_path": "aws-timeouts-retries-backoff-jitter.md",
+      "note_type": "Chinese reading notes and original analysis; not a full-text copy",
+      "status": "completed",
+      "prepared_on": "2026-11-15",
+      "note_sha256": "adb345b880116c0b633818b598adc6d91c1421c76cd2f7c9df59035662145965"
+    },
+    {
+      "reference_id": "REF003",
+      "title": "Cognition：为什么不要默认构建多 Agent",
+      "source_description": "Cognition，Walden Yan；2025-06-12",
+      "url": "https://cognition.com/blog/dont-build-multi-agents",
+      "cited_by": [
+        "agent-execution-problems-and-solutions.md"
+      ],
+      "note_path": "cognition-dont-build-multi-agents.md",
+      "note_type": "Chinese reading notes and original analysis; not a full-text copy",
+      "status": "completed",
+      "prepared_on": "2026-11-15",
+      "note_sha256": "467fcdbbb2c8ff6ea3ef263ba98a369ddd9ca451c514233cf8666b0506705b59"
+    },
+    {
+      "reference_id": "REF004",
+      "title": "Cognition：哪些多 Agent 模式实际有效",
+      "source_description": "Cognition，Walden Yan；2026-04-22",
+      "url": "https://cognition.com/blog/multi-agents-working",
+      "cited_by": [
+        "agent-execution-problems-and-solutions.md"
+      ],
+      "note_path": "cognition-multi-agents-working.md",
+      "note_type": "Chinese reading notes and original analysis; not a full-text copy",
+      "status": "completed",
+      "prepared_on": "2026-11-15",
+      "note_sha256": "2b48292a4cf0ed425aeb1dc4abdb390afd41ad8fb2581ca0d6e66b1b4e4cce29"
+    },
+    {
+      "reference_id": "REF005",
+      "title": "Cursor：长运行编码 Agent 的扩展经验",
+      "source_description": "Cursor，Wilson Lin；2026-01-14",
+      "url": "https://cursor.com/blog/scaling-agents",
+      "cited_by": [
+        "agent-execution-problems-and-solutions.md"
+      ],
+      "note_path": "cursor-scaling-long-running-agents.md",
+      "note_type": "Chinese reading notes and original analysis; not a full-text copy",
+      "status": "completed",
+      "prepared_on": "2026-11-15",
+      "note_sha256": "ec21b70e5b893e7e7d261bdcba433a58301253776d92ae6fd388f05fc4363133"
+    },
+    {
+      "reference_id": "REF006",
+      "title": "Cursor：走向自动运行代码库的取舍",
+      "source_description": "Cursor，Wilson Lin；2026-02-05",
+      "url": "https://cursor.com/blog/self-driving-codebases",
+      "cited_by": [
+        "agent-execution-problems-and-solutions.md"
+      ],
+      "note_path": "cursor-self-driving-codebases.md",
+      "note_type": "Chinese reading notes and original analysis; not a full-text copy",
+      "status": "completed",
+      "prepared_on": "2026-11-15",
+      "note_sha256": "10d08944cbe53429038d946a6cca3c432ded469fec00b9918a0ab66403ad3e93"
+    },
+    {
+      "reference_id": "REF007",
+      "title": "Simon Willison：Agent 数据外泄的危险组合",
+      "source_description": "Simon Willison；2025-06-16",
+      "url": "https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/",
+      "cited_by": [
+        "agent-execution-problems-and-solutions.md"
+      ],
+      "note_path": "simon-willison-lethal-trifecta.md",
+      "note_type": "Chinese reading notes and original analysis; not a full-text copy",
+      "status": "completed",
+      "prepared_on": "2026-11-15",
+      "note_sha256": "229bba6067e932c79c6d547d9a0fc9809ab5da8a8b4bc274689f53a4a389f411"
+    },
+    {
+      "reference_id": "REF008",
+      "title": "Temporal：持久执行为什么仍需要幂等",
+      "source_description": "Temporal，Keith Tenzer、Joshua Smith；2024-02-27",
+      "url": "https://temporal.io/blog/idempotency-and-durable-execution",
+      "cited_by": [
+        "agent-execution-problems-and-solutions.md"
+      ],
+      "note_path": "temporal-idempotency-durable-execution.md",
+      "note_type": "Chinese reading notes and original analysis; not a full-text copy",
+      "status": "completed",
+      "prepared_on": "2026-11-15",
+      "note_sha256": "4bdf7e01d97e0900ac2f505ec588424948c148793741a49b63fadd078a3b1970"
+    },
+    {
+      "reference_id": "REF009",
+      "title": "Anthropic：用沙箱减少逐次许可提示",
+      "source_description": "Anthropic Engineering；2025-10-20",
+      "url": "https://www.anthropic.com/research/claude-code-sandboxing",
+      "cited_by": [
+        "agent-execution-problems-and-solutions.md"
+      ],
+      "note_path": "anthropic-claude-code-sandboxing.md",
+      "note_type": "Chinese reading notes and original analysis; not a full-text copy",
+      "status": "completed",
+      "prepared_on": "2026-11-15",
+      "note_sha256": "3230d43f892b6f9353b677ecabf037c256b3f3da366c773a9f8fb8d3f6799921"
+    },
+    {
+      "reference_id": "REF010",
+      "title": "Anthropic：通过代码执行提高 MCP 使用效率",
+      "source_description": "Anthropic Engineering；2025-11-04",
+      "url": "https://www.anthropic.com/research/code-execution-with-mcp",
+      "cited_by": [
+        "agent-execution-problems-and-solutions.md"
+      ],
+      "note_path": "anthropic-code-execution-with-mcp.md",
+      "note_type": "Chinese reading notes and original analysis; not a full-text copy",
+      "status": "completed",
+      "prepared_on": "2026-11-15",
+      "note_sha256": "6f5d983ab8cacf1be86f01a771b32ca44f39106bab5d2efbf30a7dab334e07ec"
+    },
+    {
+      "reference_id": "REF011",
+      "title": "Anthropic：理解 Agent 评测的基本对象",
+      "source_description": "Anthropic Engineering；2026-01-09",
+      "url": "https://www.anthropic.com/research/demystifying-evals-for-ai-agents",
+      "cited_by": [
+        "agent-execution-problems-and-solutions.md"
+      ],
+      "note_path": "anthropic-demystifying-agent-evals.md",
+      "note_type": "Chinese reading notes and original analysis; not a full-text copy",
+      "status": "completed",
+      "prepared_on": "2026-11-15",
+      "note_sha256": "42f760609018093f5a592e7bf3041f0ef91e73e21273b68b36bc6d99e09a0b4e"
+    },
+    {
+      "reference_id": "REF012",
+      "title": "Anthropic：有效上下文工程",
+      "source_description": "Anthropic Engineering；2025-09-29",
+      "url": "https://www.anthropic.com/research/effective-context-engineering-for-ai-agents",
+      "cited_by": [
+        "agent-execution-problems-and-solutions.md"
+      ],
+      "note_path": "anthropic-effective-context-engineering.md",
+      "note_type": "Chinese reading notes and original analysis; not a full-text copy",
+      "status": "completed",
+      "prepared_on": "2026-11-15",
+      "note_sha256": "0df698c7301189b0113846a68b85a618fdab3ef53ed3fa01da017afbb2965b8c"
+    },
+    {
+      "reference_id": "REF013",
+      "title": "Anthropic：长运行 Agent 的执行框架",
+      "source_description": "Anthropic Engineering；2025-11-26",
+      "url": "https://www.anthropic.com/research/effective-harnesses-for-long-running-agents",
+      "cited_by": [
+        "agent-execution-problems-and-solutions.md"
+      ],
+      "note_path": "anthropic-effective-long-running-harnesses.md",
+      "note_type": "Chinese reading notes and original analysis; not a full-text copy",
+      "status": "completed",
+      "prepared_on": "2026-11-15",
+      "note_sha256": "fb6d2940d035d38b7d6921de8dbea83c0de41c3b05e86e2b828d3cc39be14072"
+    },
+    {
+      "reference_id": "REF014",
+      "title": "Anthropic：编码评测中的基础设施噪声",
+      "source_description": "Anthropic Engineering；2026-02-05",
+      "url": "https://www.anthropic.com/research/infrastructure-noise",
+      "cited_by": [
+        "agent-execution-problems-and-solutions.md"
+      ],
+      "note_path": "anthropic-infrastructure-noise.md",
+      "note_type": "Chinese reading notes and original analysis; not a full-text copy",
+      "status": "completed",
+      "prepared_on": "2026-11-15",
+      "note_sha256": "d867f44bbc2f5739885385f64f1a791a64104c84c8d9513ed0f8ecc8f24281e7"
+    },
+    {
+      "reference_id": "REF015",
+      "title": "Anthropic：多 Agent 研究系统的构建经验",
+      "source_description": "Anthropic Engineering；2025-06-13",
+      "url": "https://www.anthropic.com/research/multi-agent-research-system",
+      "cited_by": [
+        "agent-execution-problems-and-solutions.md"
+      ],
+      "note_path": "anthropic-multi-agent-research-system.md",
+      "note_type": "Chinese reading notes and original analysis; not a full-text copy",
+      "status": "completed",
+      "prepared_on": "2026-11-15",
+      "note_sha256": "3d0c60d24ecc999e46ec5a43c01b85a3eb21d47208cb7f1a4ed76ee77c1ddf54"
+    },
+    {
+      "reference_id": "REF016",
+      "title": "Anthropic：为 Agent 设计有效工具",
+      "source_description": "Anthropic Engineering；2025-09-11",
+      "url": "https://www.anthropic.com/research/writing-tools-for-agents",
+      "cited_by": [
+        "agent-execution-problems-and-solutions.md"
+      ],
+      "note_path": "anthropic-writing-effective-tools.md",
+      "note_type": "Chinese reading notes and original analysis; not a full-text copy",
+      "status": "completed",
+      "prepared_on": "2026-11-15",
+      "note_sha256": "aea79a5a68f8ce4e2f9462f63e37280c5b390b80f4062d73e583b301883c4e5b"
+    },
+    {
+      "reference_id": "REF017",
+      "title": "Drew Breunig：长上下文如何失败",
+      "source_description": "Drew Breunig；2025-06-22",
+      "url": "https://www.dbreunig.com/2025/06/22/how-contexts-fail-and-how-to-fix-them.html",
+      "cited_by": [
+        "agent-execution-problems-and-solutions.md"
+      ],
+      "note_path": "drew-breunig-how-long-contexts-fail.md",
+      "note_type": "Chinese reading notes and original analysis; not a full-text copy",
+      "status": "completed",
+      "prepared_on": "2026-11-15",
+      "note_sha256": "76e00f00bb92412a98be2fa43184161aefe8af35473d20830738c0bcba54ca19"
+    },
+    {
+      "reference_id": "REF018",
+      "title": "LangChain：从第一原则设计 Agent Runtime",
+      "source_description": "LangChain，Nuno Campos；2025-09-04",
+      "url": "https://www.langchain.com/blog/building-langgraph",
+      "cited_by": [
+        "agent-execution-problems-and-solutions.md"
+      ],
+      "note_path": "langchain-building-langgraph.md",
+      "note_type": "Chinese reading notes and original analysis; not a full-text copy",
+      "status": "completed",
+      "prepared_on": "2026-11-15",
+      "note_sha256": "cdbc08db1a15539152d2864dd63de2c1cc96a8b4a95065e1eb118af16a0d2a7f"
+    },
+    {
+      "reference_id": "REF019",
+      "title": "LangChain：常驻 Agent 带来的新上下文问题",
+      "source_description": "LangChain，Harrison Chase；2026-11-02",
+      "url": "https://www.langchain.com/blog/context-engineering-challenges-late-2026",
+      "cited_by": [
+        "agent-execution-problems-and-solutions.md"
+      ],
+      "note_path": "langchain-context-challenges-late-2026.md",
+      "note_type": "Chinese reading notes and original analysis; not a full-text copy",
+      "status": "completed",
+      "prepared_on": "2026-11-15",
+      "note_sha256": "3a1ae60233ce6f066b9e07cbb3001423db26369681d054dcbd3bead1c0e82d97"
+    },
+    {
+      "reference_id": "REF020",
+      "title": "LangChain：写入、选择、压缩与隔离",
+      "source_description": "LangChain；2025-07-02",
+      "url": "https://www.langchain.com/blog/context-engineering-for-agents",
+      "cited_by": [
+        "agent-execution-problems-and-solutions.md"
+      ],
+      "note_path": "langchain-context-engineering.md",
+      "note_type": "Chinese reading notes and original analysis; not a full-text copy",
+      "status": "completed",
+      "prepared_on": "2026-11-15",
+      "note_sha256": "8b0a4ae0f1edea525379b9b37f114570b84ed52adf31cab5405426c5482ed7aa"
+    },
+    {
+      "reference_id": "REF021",
+      "title": "LangChain：Agent Builder 的文件式记忆",
+      "source_description": "LangChain；2026-02-21",
+      "url": "https://www.langchain.com/blog/how-we-built-agent-builders-memory-system",
+      "cited_by": [
+        "agent-execution-problems-and-solutions.md"
+      ],
+      "note_path": "langchain-agent-builder-memory.md",
+      "note_type": "Chinese reading notes and original analysis; not a full-text copy",
+      "status": "completed",
+      "prepared_on": "2026-11-15",
+      "note_sha256": "3a26fcd50e93baf7839946073dbb890fe97a929f6129a8fadfabb5d7b0b22d6a"
+    },
+    {
+      "reference_id": "REF022",
+      "title": "LangChain：多 Agent 的上下文模式",
+      "source_description": "LangChain，Thushanth Bengre、Chester Curme；2026-09-08",
+      "url": "https://www.langchain.com/blog/organizing-context-in-a-multi-agent-harness",
+      "cited_by": [
+        "agent-execution-problems-and-solutions.md"
+      ],
+      "note_path": "langchain-multi-agent-context-modes.md",
+      "note_type": "Chinese reading notes and original analysis; not a full-text copy",
+      "status": "completed",
+      "prepared_on": "2026-11-15",
+      "note_sha256": "2aa447eaefc6f26c71280ea830b0252db16e8113e4d1a3cc4b825bb6fb60b948"
+    },
+    {
+      "reference_id": "REF023",
+      "title": "LangChain：在后台运行子 Agent",
+      "source_description": "LangChain，Hunter Lovell、Colin Francis；2026-04-16",
+      "url": "https://www.langchain.com/blog/running-subagents-in-the-background",
+      "cited_by": [
+        "agent-execution-problems-and-solutions.md"
+      ],
+      "note_path": "langchain-background-subagents.md",
+      "note_type": "Chinese reading notes and original analysis; not a full-text copy",
+      "status": "completed",
+      "prepared_on": "2026-11-15",
+      "note_sha256": "bf433e5ffd5d06ae7ac80bd3084442e7fce2297e4bd6c8594b85a41ca82723fd"
+    },
+    {
+      "reference_id": "REF024",
+      "title": "Cloudflare：把 MCP 工具转成代码 API",
+      "source_description": "Cloudflare，Kenton Varda、Sunil Pai；2025-09-26",
+      "url": "https://blog.cloudflare.com/code-mode/",
+      "cited_by": [
+        "agent-builder-case-studies.md"
+      ],
+      "note_path": "cloudflare-code-mode.md",
+      "note_type": "Chinese reading notes and original analysis; not a full-text copy",
+      "status": "completed",
+      "prepared_on": "2026-11-15",
+      "note_sha256": "9cd948179e074a885b3e0492da5044587368d0c407f811bc8119afac6c936432"
+    },
+    {
+      "reference_id": "REF025",
+      "title": "Parcha / Grep：三年 Agent 架构迭代与静默事故",
+      "source_description": "AJ Asver；2026-09-10",
+      "url": "https://operatorsguidetoai.substack.com/p/ten-lessons-learned-from-three-years",
+      "cited_by": [
+        "agent-builder-case-studies.md"
+      ],
+      "note_path": "parcha-grep-three-years-agent-lessons.md",
+      "note_type": "Chinese reading notes and original analysis; not a full-text copy",
+      "status": "completed",
+      "prepared_on": "2026-11-15",
+      "note_sha256": "c6d0ef256066844dd5388b9d27f7efa65f1bab7b64862372cd049b3786956301"
+    },
+    {
+      "reference_id": "REF026",
+      "title": "Braintrust × Vercel：检验 bash 是否足够",
+      "source_description": "Braintrust / Vercel，Ankur Goyal 等；2026-01-22",
+      "url": "https://vercel.com/blog/testing-if-bash-is-all-you-need",
+      "cited_by": [
+        "agent-builder-case-studies.md"
+      ],
+      "note_path": "braintrust-vercel-bash-evaluation.md",
+      "note_type": "Chinese reading notes and original analysis; not a full-text copy",
+      "status": "completed",
+      "prepared_on": "2026-11-15",
+      "note_sha256": "ca12c9fa8c0b84e136007476aec2c20dd2c2d22d53dc3524c51739d57d0612be"
+    },
+    {
+      "reference_id": "REF027",
+      "title": "Vercel：删减 d0 的专用工具",
+      "source_description": "Vercel，Andrew Qu；2025-12-22",
+      "url": "https://vercel.com/blog/we-removed-80-percent-of-our-agents-tools",
+      "cited_by": [
+        "agent-builder-case-studies.md"
+      ],
+      "note_path": "vercel-remove-agent-tools.md",
+      "note_type": "Chinese reading notes and original analysis; not a full-text copy",
+      "status": "completed",
+      "prepared_on": "2026-11-15",
+      "note_sha256": "f554c70d3a7a44f3933f8b74152e3e311485c183364e744ce8f186068294ebd2"
+    },
+    {
+      "reference_id": "REF028",
+      "title": "Anthropic：Claude Code 质量退化复盘",
+      "source_description": "Anthropic Engineering；2026-04-23",
+      "url": "https://www.anthropic.com/research/april-23-postmortem",
+      "cited_by": [
+        "agent-builder-case-studies.md"
+      ],
+      "note_path": "anthropic-claude-code-quality-postmortem.md",
+      "note_type": "Chinese reading notes and original analysis; not a full-text copy",
+      "status": "completed",
+      "prepared_on": "2026-11-15",
+      "note_sha256": "c43c2acb9bbea27775cf08c030936ad33a13dbc2f594fe0c894675da300ded69"
+    },
+    {
+      "reference_id": "REF029",
+      "title": "Anthropic：并行 Agent 构建 C 编译器",
+      "source_description": "Anthropic，Nicholas Carlini；2026-02-05",
+      "url": "https://www.anthropic.com/research/building-c-compiler",
+      "cited_by": [
+        "agent-builder-case-studies.md"
+      ],
+      "note_path": "anthropic-parallel-c-compiler.md",
+      "note_type": "Chinese reading notes and original analysis; not a full-text copy",
+      "status": "completed",
+      "prepared_on": "2026-11-15",
+      "note_sha256": "67adea7645c0f61434d2c1b0b2072259c07f7d7938299b00ba187ec5067a8c1c"
+    },
+    {
+      "reference_id": "REF030",
+      "title": "Anthropic：长应用任务中的规划、生成与评估",
+      "source_description": "Anthropic，Prithvi Rajasekaran；2026-03-24",
+      "url": "https://www.anthropic.com/research/harness-design-long-running-apps",
+      "cited_by": [
+        "agent-builder-case-studies.md"
+      ],
+      "note_path": "anthropic-long-running-app-harness.md",
+      "note_type": "Chinese reading notes and original analysis; not a full-text copy",
+      "status": "completed",
+      "prepared_on": "2026-11-15",
+      "note_sha256": "d81549f3bd6459dbdf88e680380442e2c457c5c5e148318ca35a06bf4ba34a51"
+    },
+    {
+      "reference_id": "REF031",
+      "title": "Anthropic：分离 session、harness 与 sandbox",
+      "source_description": "Anthropic Engineering；2026-04-08",
+      "url": "https://www.anthropic.com/research/managed-agents",
+      "cited_by": [
+        "agent-builder-case-studies.md"
+      ],
+      "note_path": "anthropic-managed-agent-architecture.md",
+      "note_type": "Chinese reading notes and original analysis; not a full-text copy",
+      "status": "completed",
+      "prepared_on": "2026-11-15",
+      "note_sha256": "bb09b27da0fdc4f880c8354e0a72aae6d156e75977507d4b110f081dca9c1a44"
+    },
+    {
+      "reference_id": "REF032",
+      "title": "Anthropic：Project Vend 第一阶段的失败",
+      "source_description": "Anthropic / Andon Labs；2025-06-27",
+      "url": "https://www.anthropic.com/research/project-vend-1",
+      "cited_by": [
+        "agent-builder-case-studies.md"
+      ],
+      "note_path": "anthropic-project-vend-phase-one.md",
+      "note_type": "Chinese reading notes and original analysis; not a full-text copy",
+      "status": "completed",
+      "prepared_on": "2026-11-15",
+      "note_sha256": "e369a7db6a8fd08151f5f46ab78538488634333cbbaf05f394ebcbcb3fa545f8"
+    },
+    {
+      "reference_id": "REF033",
+      "title": "Anthropic：Project Vend 第二阶段的改进与剩余风险",
+      "source_description": "Anthropic / Andon Labs；2025-12-18",
+      "url": "https://www.anthropic.com/research/project-vend-2",
+      "cited_by": [
+        "agent-builder-case-studies.md"
+      ],
+      "note_path": "anthropic-project-vend-phase-two.md",
+      "note_type": "Chinese reading notes and original analysis; not a full-text copy",
+      "status": "completed",
+      "prepared_on": "2026-11-15",
+      "note_sha256": "a442441f8d6b4e1ba5bfd366c390b11b9435035d24a331286cad68fab855ca85"
+    },
+    {
+      "reference_id": "REF034",
+      "title": "Manus：构建 Agent 的上下文工程经验",
+      "source_description": "Manus，Yichao “Peak” Ji；2025-07-18",
+      "url": "https://www.manus.im/blog/Context-Engineering-for-AI-Agents-Lessons-from-Building-Manus",
+      "cited_by": [
+        "agent-builder-case-studies.md"
+      ],
+      "note_path": "manus-context-engineering-lessons.md",
+      "note_type": "Chinese reading notes and original analysis; not a full-text copy",
+      "status": "completed",
+      "prepared_on": "2026-11-15",
+      "note_sha256": "e8b45e19a9896783875223e255576e42e3088022a5b305a827815dc0630a5dbb"
+    },
+    {
+      "reference_id": "REF035",
+      "title": "Uber：Finch 的路由、数据查询与验证",
+      "source_description": "Uber Engineering；2025-07-17",
+      "url": "https://www.uber.com/us/en/blog/unlocking-financial-insights-with-finch/",
+      "cited_by": [
+        "agent-builder-case-studies.md"
+      ],
+      "note_path": "uber-finch-data-agent.md",
+      "note_type": "Chinese reading notes and original analysis; not a full-text copy",
+      "status": "completed",
+      "prepared_on": "2026-11-15",
+      "note_sha256": "a9a47a203f0ed5bc33cd3e1bda9dcfff9083542132116e6bb95497c722a48dbb"
+    }
+  ]
+}

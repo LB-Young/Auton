@@ -1,0 +1,11 @@
+profile = "demo"
+implementation = "scripted"
+chunk_delay_seconds = 0.035
+allowed_origins = ["http://127.0.0.1:5173", "http://localhost:5173", "http://127.0.0.1:8000", "http://localhost:8000"]
+
+[constitution]
+remote_providers = ["deepseek"]
+
+[models]
+backend = "deepseek"
+secret_reference = "DEEPSEEK_API_KEY"
